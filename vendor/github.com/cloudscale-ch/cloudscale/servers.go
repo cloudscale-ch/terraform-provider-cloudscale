@@ -23,7 +23,7 @@ type Server struct {
 	Interfaces      []Interface `json:"interfaces"`
 	SSHFingerprints []string    `json:"ssh_fingerprints"`
 	SSHHostKeys     []string    `json:"ssh_host_keys"`
-	AntiAfinityWith []Server    `json:"anti-affinity-with"`
+	AntiAfinityWith []Server    `json:"anti_affinity_with"`
 }
 
 type Flavor struct {
@@ -40,9 +40,9 @@ type Image struct {
 }
 
 type Volume struct {
-	Type       string `json:"ssd"`
+	Type       string `json:"type"`
 	DevicePath string `json:"device_path"`
-	SizeGB     int    `json:"SizeGB"`
+	SizeGB     int    `json:"size_gb"`
 }
 
 type Interface struct {
