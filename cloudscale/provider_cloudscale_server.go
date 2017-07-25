@@ -19,122 +19,126 @@ func resourceCloudScaleServer() *schema.Resource {
 		Update: resourceServerUpdate,
 		Delete: resourceServerDelete,
 
-		Schema: map[string]*schema.Schema{
-			"href": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"flavor": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"image": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"volume_size_gb": &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
-			},
-			"bulk_volume_size_gb": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				ForceNew: true,
-			},
-			"volumes": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"device_path": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"size_gb": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
+		Schema: getServerSchema(),
+	}
+}
+
+func getServerSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"href": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"name": &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"flavor": &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"image": &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"volume_size_gb": &schema.Schema{
+			Type:     schema.TypeInt,
+			Required: true,
+			ForceNew: true,
+		},
+		"bulk_volume_size_gb": &schema.Schema{
+			Type:     schema.TypeInt,
+			Optional: true,
+			ForceNew: true,
+		},
+		"volumes": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"device_path": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"size_gb": {
+						Type:     schema.TypeInt,
+						Computed: true,
 					},
 				},
-				Computed: true,
 			},
-			"ssh_keys": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				ForceNew: true,
-			},
-			"use_public_network": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-			"use_private_network": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-			"use_ipv6": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-			"anti_affinity_with": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				ForceNew: true,
-			},
-			"user_data": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"ipv4_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ipv6_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ipv4_private_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ipv6_private_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ssh_fingerprints": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
-			"ssh_host_keys": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"state": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+			Computed: true,
+		},
+		"ssh_keys": {
+			Type:     schema.TypeList,
+			Required: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		},
+		"use_public_network": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+		"use_private_network": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+		"use_ipv6": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+		"anti_affinity_with": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		},
+		"user_data": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"ipv4_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"ipv6_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"ipv4_private_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"ipv6_private_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"ssh_fingerprints": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
+		},
+		"ssh_host_keys": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
+		},
+		"status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"state": {
+			Type:     schema.TypeString,
+			Optional: true,
 		},
 	}
 }
