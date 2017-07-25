@@ -295,7 +295,12 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error updating the Server (%s) state (%s) ", id, err)
 		}
 
-		_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
+		if state == "stopped" {
+			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
+		} else {
+			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running")
+		}
+
 		if err != nil {
 			return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
 		}
