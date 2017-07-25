@@ -16,37 +16,41 @@ func resourceCloudScaleFloatingIP() *schema.Resource {
 		Update: resourceFloatingIPUpdate,
 		Delete: resourceFloatingIPDelete,
 
-		Schema: map[string]*schema.Schema{
-			"ip_version": &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
-			},
-			"server": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"reverse_prt": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"network": &schema.Schema{
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"next_hop": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"href": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ip": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+		Schema: getFloatingIPSchema(),
+	}
+}
+
+func getFloatingIPSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"ip_version": &schema.Schema{
+			Type:     schema.TypeInt,
+			Required: true,
+			ForceNew: true,
+		},
+		"server": &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"reverse_prt": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"network": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+		"next_hop": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"href": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"ip": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 	}
 }
