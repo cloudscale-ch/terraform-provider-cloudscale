@@ -10,10 +10,11 @@ import (
 const floatingIPsBasePath = "v1/floating-ips"
 
 type FloatingIP struct {
-	HREF    string `json:"href"`
-	Network string `json:"network"`
-	NextHop string `json:"next_hop"`
-	Server  Server `json:"server"`
+	HREF           string `json:"href"`
+	Network        string `json:"network"`
+	NextHop        string `json:"next_hop"`
+	Server         Server `json:"server"`
+	ReversePointer string `json:"reverse_ptr,omitempty"`
 }
 
 type FloatingIPCreateRequest struct {
