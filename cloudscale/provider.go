@@ -16,7 +16,9 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 
-		ResourcesMap:  map[string]*schema.Resource{},
+		ResourcesMap: map[string]*schema.Resource{
+			"cloudscale_server": resourceCloudScaleServer(),
+		},
 		ConfigureFunc: providerConfigureClient,
 	}
 }
