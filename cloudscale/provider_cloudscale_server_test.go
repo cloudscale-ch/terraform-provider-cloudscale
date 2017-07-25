@@ -74,6 +74,44 @@ func TestAccCloudscale_Basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscale_Upate(t *testing.T) {
+	var afterCreate, afterUpdate cloudscale.Server
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterCreate),
+					testAccCheckCloudscaleServerAttributes(&afterCreate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "flavor", "flex-2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "image", "debian-8"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerConfig_update_state(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "status", "stopped"),
+					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleServerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
@@ -150,6 +188,16 @@ func testAccCheckCloudscaleServerAttributes(server *cloudscale.Server) resource.
 	}
 }
 
+func testAccCheckServerChanged(t *testing.T,
+	before, after *cloudscale.Server) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if before.UUID != after.UUID {
+			t.Fatalf("Expected change of Server IDs, but both were %v", before.UUID)
+		}
+		return nil
+	}
+}
+
 func testAccCheckCloudscaleServerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
@@ -157,6 +205,18 @@ resource "cloudscale_server" "basic" {
   flavor    			= "flex-2"
   image     			= "debian-8"
   volume_size_gb	= 10
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`, rInt)
+}
+
+func testAccCheckCloudscaleServerConfig_update_state(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "basic" {
+  name      			= "terraform-%d"
+  flavor    			= "flex-2"
+  image     			= "debian-8"
+  volume_size_gb	= 10
+	state 					= "stopped"
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }
