@@ -20,6 +20,7 @@ func resourceCloudScaleFloatingIP() *schema.Resource {
 			"ip_version": &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: true,
+				ForceNew: true,
 			},
 			"server": &schema.Schema{
 				Type:     schema.TypeString,
@@ -28,6 +29,7 @@ func resourceCloudScaleFloatingIP() *schema.Resource {
 			"reverse_prt": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			"network": &schema.Schema{
 				Type:     schema.TypeInt,
@@ -97,7 +99,25 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 
 }
 func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*cloudscale.Client)
+
+	if d.HasChange("server") {
+		serverUUID := d.Get("server").(string)
+
+		id := d.Id()
+
+		log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
+
+		opts := &cloudscale.FloatingIPUpdateRequest{
+			Server: serverUUID,
+		}
+
+		_, err := client.FloatingIPs.Update(context.Background(), id, opts)
+		if err != nil {
+			return fmt.Errorf("Error assigning FloatingIP (%s) to Server: %s", id, err)
+		}
+	}
+	return resourceFloatingIPRead(d, meta)
 }
 func resourceFloatingIPDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)

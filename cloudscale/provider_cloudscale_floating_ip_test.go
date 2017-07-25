@@ -51,11 +51,42 @@ func TestAccCloudscaleFloatingIP_Server(t *testing.T) {
 		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudScaleFloatingIPConfig_Server(rInt),
+				Config: testAccCheckCloudScaleFloatingIPConfig_server(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
+	var beforeUpdate, afterUpdate cloudscale.FloatingIP
+	rIntA := acctest.RandInt()
+	rIntB := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudScaleFloatingIPConfig_update_first(rIntA, rIntB),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &beforeUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.gateway", "ip_version", "4"),
+				),
+			},
+			{
+				Config: testAccCheckCloudScaleFloatingIPConfig_update_second(rIntA, rIntB),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.gateway", "ip_version", "4"),
+					testAccCheckFloaingIPChanged(t, &beforeUpdate, &afterUpdate),
 				),
 			},
 		},
@@ -75,8 +106,6 @@ func testAccCheckCloudScaleFloatingIPExists(n string, floatingIP *cloudscale.Flo
 		}
 
 		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		fmt.Println(rs.Primary.ID)
 
 		id := rs.Primary.ID
 		// Try to find the FloatingIP
@@ -115,7 +144,18 @@ func testAccCheckCloudScaleFloatingIPDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckCloudScaleFloatingIPConfig_Server(rInt int) string {
+func testAccCheckFloaingIPChanged(t *testing.T,
+	before, after *cloudscale.FloatingIP) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if before.Server.UUID == after.Server.UUID {
+			t.Fatalf("Expected a change of Server IDs got=%s",
+				after.Server.UUID)
+		}
+		return nil
+	}
+}
+
+func testAccCheckCloudScaleFloatingIPConfig_server(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      			= "terraform-%d"
@@ -128,4 +168,52 @@ resource "cloudscale_floating_ip" "gateway" {
   server 					= "${cloudscale_server.basic.id}"
   ip_version     	= 4
 }`, rInt)
+}
+
+func testAccCheckCloudScaleFloatingIPConfig_update_first(rIntA, rIntB int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "basic" {
+  name      			= "terraform-%d"
+  flavor    			= "flex-2"
+  image     			= "debian-8"
+  volume_size_gb	= 10
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+
+resource "cloudscale_server" "advanced" {
+  name      			= "terraform-%d"
+  flavor    			= "flex-2"
+  image     			= "debian-8"
+  volume_size_gb	= 10
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+
+resource "cloudscale_floating_ip" "gateway" {
+  server 					= "${cloudscale_server.basic.id}"
+  ip_version     	= 4
+}`, rIntA, rIntB)
+}
+
+func testAccCheckCloudScaleFloatingIPConfig_update_second(rIntA, rIntB int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "basic" {
+  name      			= "terraform-%d"
+  flavor    			= "flex-2"
+  image     			= "debian-8"
+  volume_size_gb	= 10
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+
+resource "cloudscale_server" "advanced" {
+  name      			= "terraform-%d"
+  flavor    			= "flex-2"
+  image     			= "debian-8"
+  volume_size_gb	= 10
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+
+resource "cloudscale_floating_ip" "gateway" {
+  server 					= "${cloudscale_server.advanced.id}"
+  ip_version     	= 4
+}`, rIntA, rIntB)
 }
