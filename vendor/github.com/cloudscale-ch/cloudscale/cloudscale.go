@@ -34,7 +34,7 @@ type Client struct {
 	FloatingIPs FloatingIPsService
 }
 
-// NewClient returns a new DigitalOcean API client.
+// NewClient returns a new CloudScale API client.
 func NewClient(httpClient *http.Client) *Client {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
