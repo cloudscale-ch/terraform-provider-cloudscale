@@ -17,7 +17,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"cloudscale_server": resourceCloudScaleServer(),
+			"cloudscale_server":      resourceCloudScaleServer(),
+			"cloudscale_floating_ip": resourceCloudScaleFloatingIP(),
 		},
 		ConfigureFunc: providerConfigureClient,
 	}
