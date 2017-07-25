@@ -23,7 +23,7 @@ type Server struct {
 	Interfaces      []Interface `json:"interfaces"`
 	SSHFingerprints []string    `json:"ssh_fingerprints"`
 	SSHHostKeys     []string    `json:"ssh_host_keys"`
-	AntiAfinityWith []string    `json:"anti-affinity-with"`
+	AntiAfinityWith []Server    `json:"anti-affinity-with"`
 }
 
 type Flavor struct {

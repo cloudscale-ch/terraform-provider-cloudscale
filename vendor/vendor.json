@@ -199,10 +199,17 @@
 			"revisionTime": "2017-07-24T15:15:01Z"
 		},
 		{
-			"checksumSHA1": "JcCoucxPoHraXcwFI6udcnC9im8=",
+			"checksumSHA1": "aOsrE2cxJjzy81Y6CFokee6w2FM=",
 			"path": "github.com/cloudscale-ch/cloudscale",
-			"revision": "8c43a64f8430064fb844c7ffde86b377d85ee021",
-			"revisionTime": "2017-07-24T18:50:32Z"
+			"revision": "df09c2ee9bbdb756a33a6b646917786627011282",
+			"revisionTime": "2017-07-24T20:51:46Z"
+		},
+		{
+			"checksumSHA1": "/5cvgU+J4l7EhMXTK76KaCAfOuU=",
+			"origin": "github.com/hashicorp/terraform/vendor/github.com/davecgh/go-spew/spew",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
+			"revisionTime": "2017-07-24T15:15:01Z"
 		},
 		{
 			"checksumSHA1": "1K+xrZ1PBez190iGt5OnMtGdih4=",
@@ -359,6 +366,13 @@
 			"revisionTime": "2017-07-24T15:15:01Z"
 		},
 		{
+			"checksumSHA1": "vt+P9D2yWDO3gdvdgCzwqunlhxU=",
+			"origin": "github.com/hashicorp/terraform/vendor/github.com/hashicorp/logutils",
+			"path": "github.com/hashicorp/logutils",
+			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
+			"revisionTime": "2017-07-24T15:15:01Z"
+		},
+		{
 			"checksumSHA1": "KPrCMDPNcLmO7K6xPcJSl86LwPk=",
 			"path": "github.com/hashicorp/terraform/config",
 			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
@@ -383,6 +397,12 @@
 			"revisionTime": "2017-07-24T15:15:01Z"
 		},
 		{
+			"checksumSHA1": "uT6Q9RdSRAkDjyUgQlJ2XKJRab4=",
+			"path": "github.com/hashicorp/terraform/helper/config",
+			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
+			"revisionTime": "2017-07-24T15:15:01Z"
+		},
+		{
 			"checksumSHA1": "Vbo55GDzPgG/L/+W2pcvDhxrPZc=",
 			"path": "github.com/hashicorp/terraform/helper/experiment",
 			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
@@ -397,6 +417,18 @@
 		{
 			"checksumSHA1": "B267stWNQd0/pBTXHfI/tJsxzfc=",
 			"path": "github.com/hashicorp/terraform/helper/hilmapstructure",
+			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
+			"revisionTime": "2017-07-24T15:15:01Z"
+		},
+		{
+			"checksumSHA1": "2wJa9F3BGlbe2DNqH5lb5POayRI=",
+			"path": "github.com/hashicorp/terraform/helper/logging",
+			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
+			"revisionTime": "2017-07-24T15:15:01Z"
+		},
+		{
+			"checksumSHA1": "dhU2woQaSEI2OnbYLdkHxf7/nu8=",
+			"path": "github.com/hashicorp/terraform/helper/resource",
 			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
 			"revisionTime": "2017-07-24T15:15:01Z"
 		},
@@ -491,12 +523,6 @@
 			"path": "github.com/satori/go.uuid",
 			"revision": "0c69e466496e86b23e0024889d01efa074b75035",
 			"revisionTime": "2017-07-24T15:15:01Z"
-		},
-		{
-			"checksumSHA1": "dYCkTURvyOleTT9VflmFKJPcFXY=",
-			"path": "github.com/terraform-providers/terraform-provider-cloudscale",
-			"revision": "90340bed4164e36ba54ca4322e6ca46631857ca4",
-			"revisionTime": "2017-07-24T19:41:22Z"
 		},
 		{
 			"checksumSHA1": "vE43s37+4CJ2CDU6TlOUOYE0K9c=",
