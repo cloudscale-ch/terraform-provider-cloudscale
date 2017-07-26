@@ -174,7 +174,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.UsePublicNetwork = attr.(bool)
 	}
 
-	if attr, ok := d.GetOk("use_private_network	"); ok {
+	if attr, ok := d.GetOk("use_private_network"); ok {
 		opts.UsePrivateNetwork = attr.(bool)
 	}
 
@@ -276,10 +276,19 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("anti_affinity_with", antiAfs)
 	}
 
-	d.SetConnInfo(map[string]string{
-		"type": "ssh",
-		"host": findIPv4AddrByType(server, "public"),
-	})
+	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
+		d.SetConnInfo(map[string]string{
+			"type": "ssh",
+			"host": publicIPV4,
+		})
+	} else {
+		if publicIPV6 := findIPv6AddrByType(server, "private"); publicIPV6 != "" {
+			d.SetConnInfo(map[string]string{
+				"type": "ssh",
+				"host": publicIPV6,
+			})
+		}
+	}
 
 	return nil
 }
