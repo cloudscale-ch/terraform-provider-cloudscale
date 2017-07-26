@@ -1,0 +1,32 @@
+<% wrap_layout :inner do %>
+  <% content_for :sidebar do %>
+    <div class="docs-sidebar hidden-print affix-top" role="complementary">
+      <ul class="nav docs-sidenav">
+        <li<%= sidebar_current("docs-home") %>>
+        <a href="/docs/providers/index.html">All Providers</a>
+                </li>
+
+        <li<%= sidebar_current("docs-cloudscale-index") %>>
+        <a href="/docs/providers/cloudscale/index.html">cloudscale Provider</a>
+                </li>
+
+        <li<%= sidebar_current("docs-cloudscale-resource") %>>
+        <a href="#">Resources</a>
+                <ul class="nav nav-visible">
+
+                    <li<%= sidebar_current("docs-cloudscale-resource-server") %>>
+          <a href="/docs/providers/cloudscale/r/server.html">cloudscale_server</a>
+                    </li>
+
+                  <li<%= sidebar_current("docs-cloudscale-resource-floating-ip") %>>
+                    <a href="/docs/providers/cloudscale/r/floating_ip.html">cloudscale_floating_ip</a>
+                  </li>
+
+        </ul>
+        </li>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= yield %>
+  <% end %>
