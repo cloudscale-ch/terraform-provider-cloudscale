@@ -47,7 +47,7 @@ func testSweepServers(region string) error {
 	return nil
 }
 
-func TestAccCloudscale_Basic(t *testing.T) {
+func TestAccCloudscaleServer_Basic(t *testing.T) {
 	var server cloudscale.Server
 
 	rInt := acctest.RandInt()
@@ -74,7 +74,7 @@ func TestAccCloudscale_Basic(t *testing.T) {
 	})
 }
 
-func TestAccCloudscale_Update(t *testing.T) {
+func TestAccCloudscaleServer_Update(t *testing.T) {
 	var afterCreate, afterUpdate cloudscale.Server
 
 	rInt := acctest.RandInt()
@@ -134,7 +134,7 @@ func TestAccCloudscale_Update(t *testing.T) {
 	})
 }
 
-func TestAccCloudscale_Recreated(t *testing.T) {
+func TestAccCloudscaleServer_Recreated(t *testing.T) {
 	var afterCreate, afterUpdate cloudscale.Server
 
 	rInt := acctest.RandInt()
