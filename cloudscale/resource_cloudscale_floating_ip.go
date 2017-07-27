@@ -22,6 +22,9 @@ func resourceCloudScaleFloatingIP() *schema.Resource {
 
 func getFloatingIPSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+
+		// Required attributes
+
 		"ip_version": &schema.Schema{
 			Type:     schema.TypeInt,
 			Required: true,
@@ -31,11 +34,22 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
+
+		// Optional attributes
+
 		"reverse_ptr": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
 		},
+		"prefix_length": &schema.Schema{
+			Type:     schema.TypeInt,
+			ForceNew: true,
+			Optional: true,
+		},
+
+		// Computed attributes
+
 		"network": &schema.Schema{
 			Type:     schema.TypeInt,
 			Computed: true,
@@ -47,11 +61,6 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 		"href": &schema.Schema{
 			Type:     schema.TypeString,
 			Computed: true,
-		},
-		"prefix_length": &schema.Schema{
-			Type:     schema.TypeInt,
-			ForceNew: true,
-			Optional: true,
 		},
 	}
 }
