@@ -53,7 +53,8 @@ The following arguments are supported:
 * `user_data	` (Optional) - Cloud-init configuration (cloud-config) data to use 
    for the new server. Needs to be valid YAML. A default configuration is used 
    if this parameter is not specified or is set to null. Use only if you are an 
-   advanced users with knowledge of cloud-config..
+   advanced users with knowledge of cloud-config.
+* `state	` (Optional) - The desired state of a server, can be `running`, `stopped` and `rebooted`.
 
 ## Attributes Reference
 
