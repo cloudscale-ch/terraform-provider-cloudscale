@@ -25,10 +25,9 @@ func resourceCloudScaleServer() *schema.Resource {
 
 func getServerSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"href": &schema.Schema{
-			Type:     schema.TypeString,
-			Computed: true,
-		},
+
+		// Required attributes
+
 		"name": &schema.Schema{
 			Type:     schema.TypeString,
 			Required: true,
@@ -44,6 +43,15 @@ func getServerSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
+		"ssh_keys": {
+			Type:     schema.TypeList,
+			Required: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		},
+
+		// Optional attributes
+
 		"volume_size_gb": &schema.Schema{
 			Type:     schema.TypeInt,
 			Optional: true,
@@ -53,6 +61,43 @@ func getServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
+		},
+		"anti_affinity_with": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		},
+		"user_data": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"state": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"use_public_network": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+		"use_private_network": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+		"use_ipv6": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		// Computed attributes
+
+		"href": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"volumes": {
 			Type: schema.TypeList,
@@ -73,38 +118,6 @@ func getServerSchema() map[string]*schema.Schema {
 				},
 			},
 			Computed: true,
-		},
-		"ssh_keys": {
-			Type:     schema.TypeList,
-			Required: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			ForceNew: true,
-		},
-		"use_public_network": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"use_private_network": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"use_ipv6": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"anti_affinity_with": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			ForceNew: true,
-		},
-		"user_data": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
 		},
 		"ipv4_address": {
 			Type:     schema.TypeString,
@@ -135,10 +148,6 @@ func getServerSchema() map[string]*schema.Schema {
 		"status": {
 			Type:     schema.TypeString,
 			Computed: true,
-		},
-		"state": {
-			Type:     schema.TypeString,
-			Optional: true,
 		},
 	}
 }
