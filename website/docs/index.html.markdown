@@ -21,7 +21,7 @@ Use the navigation to the left to read about the available resources.
 # or using the -var="cloudscale_token=..." CLI option
 variable "cloudscale_token" {}
 
-# Configure the CloudScale Provider
+# Configure the cloudscale.ch Provider
 provider "cloudscale" {
   token = "${var.cloudscale_token}"
 }

@@ -24,7 +24,7 @@ func sharedConfigForRegion(region string) (interface{}, error) {
 	// configures a default client for the region, using the above env vars
 	client, err := config.Client()
 	if err != nil {
-		return nil, fmt.Errorf("error getting CloudScale client")
+		return nil, fmt.Errorf("error getting cloudscale client")
 	}
 
 	return client, nil
