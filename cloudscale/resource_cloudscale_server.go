@@ -340,7 +340,7 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error deleting droplet: %s", err)
+		return fmt.Errorf("Error deleting server: %s", err)
 	}
 
 	return nil
