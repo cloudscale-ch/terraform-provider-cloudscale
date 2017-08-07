@@ -47,7 +47,7 @@ The following arguments are supported for updating floating IPs:
 
 The following attributes are exported:
 
-* `href` - The URL for the current field.
+* `href` - The cloudscale.ch API URL for the current field.
 * `server` - The floating IP is routed to this server (UUID).
 * `network` - The CIDR notation of the network that is routed to your server,
    e.g. `192.0.2.123/32`.
