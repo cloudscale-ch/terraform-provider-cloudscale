@@ -8,9 +8,9 @@ description: |-
 
 # cloudscale.ch Provider
 
-The cloudscale.ch provider is used to interact with the
-resources supported by cloudscale.ch. The provider needs to be configured
-with the proper credentials before it can be used.
+The cloudscale.ch provider is used to interact with the resources supported by
+cloudscale.ch. The provider needs to be configured with proper credentials
+before it can be used.
 
 Use the navigation to the left to read about the available resources.
 
@@ -36,6 +36,6 @@ resource "cloudscale_server" "web" {
 
 The following arguments are supported:
 
-* `token` - (Required) This is the cloudscale.ch API token. This can also be
+* `token` - (Required) This is the cloudscale.ch API token. It can also be
   specified as a shell environment variable called `CLOUDSCALE_TOKEN`. It can
-  generated in the cloudscale control panel.
+  be generated in the cloudscale control panel.
