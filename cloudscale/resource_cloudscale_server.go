@@ -119,20 +119,44 @@ func getServerSchema() map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
-		"ipv4_address": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"ipv6_address": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"ipv4_private_address": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"ipv6_private_address": {
-			Type:     schema.TypeString,
+		"interfaces": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"addresses": {
+						Type: schema.TypeList,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"version": {
+									Type:     schema.TypeInt,
+									Computed: true,
+								},
+								"address": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
+								"prefix_length": {
+									Type:     schema.TypeInt,
+									Computed: true,
+								},
+								"gateway": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
+								"reverse_ptr": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
+							},
+						},
+						Computed: true,
+					},
+				},
+			},
 			Computed: true,
 		},
 		"ssh_fingerprints": {
@@ -260,6 +284,32 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("status", server.Status)
 
+	if addrss := len(server.Interfaces); addrss > 0 {
+
+		intsMap := make([]map[string]interface{}, 0, addrss)
+		for _, intr := range server.Interfaces {
+
+			intMap := make(map[string]interface{})
+			addrssMap := make([]map[string]interface{}, 0, len(intr.Adresses))
+			for _, addr := range intr.Adresses {
+				i := make(map[string]interface{})
+				i["address"] = addr.Address
+				i["version"] = addr.Version
+				i["prefix_length"] = addr.PrefixLenght
+				i["gateway"] = addr.Gateway
+				i["reverse_ptr"] = addr.ReversePtr
+
+				addrssMap = append(addrssMap, i)
+			}
+
+			intMap["type"] = intr.Type
+			intMap["addresses"] = addrssMap
+
+			intsMap = append(intsMap, intMap)
+		}
+		d.Set("interfaces", intsMap)
+	}
+
 	if publicIPv4 := findIPv4AddrByType(server, "public"); publicIPv4 != "" {
 		d.Set("ipv4_address", publicIPv4)
 	}
@@ -340,7 +390,7 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error deleting droplet: %s", err)
+		return fmt.Errorf("Error deleting Server: %s", err)
 	}
 
 	return nil
