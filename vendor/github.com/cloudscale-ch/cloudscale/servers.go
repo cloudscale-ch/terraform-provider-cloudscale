@@ -53,7 +53,7 @@ type Interface struct {
 type Address struct {
 	Version      int    `json:"version"`
 	Address      string `json:"address"`
-	PrefixLenght int    `json:"prefix_lenght"`
+	PrefixLenght int    `json:"prefix_length"`
 	Gateway      string `json:"gateway"`
 	ReversePtr   string `json:"reverse_ptr"`
 }
