@@ -33,12 +33,12 @@ func getServerSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-		"flavor": &schema.Schema{
+		"flavor_slug": &schema.Schema{
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"image": &schema.Schema{
+		"image_slug": &schema.Schema{
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -180,8 +180,8 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 
 	opts := &cloudscale.ServerRequest{
 		Name:   d.Get("name").(string),
-		Flavor: d.Get("flavor").(string),
-		Image:  d.Get("image").(string),
+		Flavor: d.Get("flavor_slug").(string),
+		Image:  d.Get("image_slug").(string),
 	}
 
 	sshKeys := d.Get("ssh_keys.#").(int)
@@ -267,8 +267,8 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("href", server.HREF)
 	d.Set("name", server.Name)
-	d.Set("flavor", server.Flavor.Slug)
-	d.Set("image", server.Image.Slug)
+	d.Set("flavor_slug", server.Flavor.Slug)
+	d.Set("image_slug", server.Image.Slug)
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]interface{}, 0, volumes)
