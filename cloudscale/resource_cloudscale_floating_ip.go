@@ -40,6 +40,7 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 		"reverse_ptr": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 		"prefix_length": &schema.Schema{
