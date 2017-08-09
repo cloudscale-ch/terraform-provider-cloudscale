@@ -204,15 +204,18 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if attr, ok := d.GetOk("use_public_network"); ok {
-		opts.UsePublicNetwork = attr.(bool)
+		val := attr.(bool)
+		opts.UsePublicNetwork = &val
 	}
 
 	if attr, ok := d.GetOk("use_private_network"); ok {
-		opts.UsePrivateNetwork = attr.(bool)
+		val := attr.(bool)
+		opts.UsePrivateNetwork = &val
 	}
 
 	if attr, ok := d.GetOk("use_ipv6"); ok {
-		opts.UseIPV6 = attr.(bool)
+		val := attr.(bool)
+		opts.UseIPV6 = &val
 	}
 
 	antiAffinityUUIDs := d.Get("anti_affinity_with.#").(int)
