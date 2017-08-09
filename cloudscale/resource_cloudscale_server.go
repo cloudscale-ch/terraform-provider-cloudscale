@@ -432,6 +432,10 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interfa
 				return nil, "", fmt.Errorf("Error retrieving server %s", err)
 			}
 
+			if server.Status == "errored" {
+				return nil, "", fmt.Errorf("Server status %s, abort", server.Status)
+			}
+
 			if sshKeys := len(server.SSHHostKeys); sshKeys <= 0 {
 				return nil, "", nil
 			}
