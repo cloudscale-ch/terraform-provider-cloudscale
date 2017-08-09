@@ -65,9 +65,9 @@ type ServerRequest struct {
 	VolumeSizeGB      int      `json:"volume_size_gb,omitempty"`
 	BulkVolumeSizeGB  int      `json:"bulk_volume_size_gb,omitempty"`
 	SSHKeys           []string `json:"ssh_keys"`
-	UsePublicNetwork  bool     `json:"use_public_network,omitempty"`
-	UsePrivateNetwork bool     `json:"use_private_network,omitempty"`
-	UseIPV6           bool     `json:"use_ipv6"`
+	UsePublicNetwork  *bool    `json:"use_public_network,omitempty"`
+	UsePrivateNetwork *bool    `json:"use_private_network,omitempty"`
+	UseIPV6           *bool    `json:"use_ipv6,omitempty"`
 	AntiAffinityWith  []string `json:"anti_affinity_with,omitempty"`
 	UserData          string   `json:"user_data,omitempty"`
 }
