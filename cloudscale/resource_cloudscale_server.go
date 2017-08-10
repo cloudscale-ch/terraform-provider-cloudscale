@@ -409,7 +409,7 @@ func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []str
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    newServerRefreshFunc(d, attribute, meta),
-		Timeout:    60 * time.Minute,
+		Timeout:    5 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
