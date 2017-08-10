@@ -1,7 +1,7 @@
 package cloudscale
 
 import (
-	"github.com/cloudscale-ch/cloudscale"
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"golang.org/x/oauth2"
 )
 

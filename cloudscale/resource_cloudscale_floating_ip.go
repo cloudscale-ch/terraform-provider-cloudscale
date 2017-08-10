@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudscale-ch/cloudscale"
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -40,6 +40,7 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 		"reverse_ptr": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 		"prefix_length": &schema.Schema{

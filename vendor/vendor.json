@@ -199,10 +199,10 @@
 			"revisionTime": "2017-07-24T15:15:01Z"
 		},
 		{
-			"checksumSHA1": "C/LaPPv8qeDkuNQLwHPoOignNaw=",
-			"path": "github.com/cloudscale-ch/cloudscale",
-			"revision": "11add3ca578fd4847c3202c75f6cd8fe54083884",
-			"revisionTime": "2017-07-26T17:11:25Z"
+			"checksumSHA1": "jP6Fc+RQWi/A06WliXZrrZfjtrE=",
+			"path": "github.com/cloudscale-ch/cloudscale-go-sdk",
+			"revision": "0e2b8c97e53945ef33c1d791113db99e6d3306e0",
+			"revisionTime": "2017-08-08T21:12:14Z"
 		},
 		{
 			"checksumSHA1": "/5cvgU+J4l7EhMXTK76KaCAfOuU=",

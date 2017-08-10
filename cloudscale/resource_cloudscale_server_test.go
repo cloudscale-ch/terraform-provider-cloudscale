@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale"
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -65,9 +65,9 @@ func TestAccCloudscaleServer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "image", "debian-8"),
+						"cloudscale_server.basic", "image_slug", "debian-8"),
 				),
 			},
 		},
@@ -92,9 +92,9 @@ func TestAccCloudscaleServer_Update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "image", "debian-8"),
+						"cloudscale_server.basic", "image_slug", "debian-8"),
 				),
 			},
 			{
@@ -110,17 +110,6 @@ func TestAccCloudscaleServer_Update(t *testing.T) {
 			},
 			{
 				Config: testAccCheckCloudscaleServerConfig_update_state_running(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
-					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "status", "running"),
-					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
-				),
-			},
-			{
-				Config: testAccCheckCloudscaleServerConfig_update_state_rebooted(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
 					resource.TestCheckResourceAttr(
@@ -152,9 +141,9 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "image", "debian-8"),
+						"cloudscale_server.basic", "image_slug", "debian-8"),
 				),
 			},
 			{
@@ -164,7 +153,7 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor", "flex-4"),
+						"cloudscale_server.basic", "flavor_slug", "flex-4"),
 					testAccCheckServerRecreated(t, &afterCreate, &afterUpdate),
 				),
 			},
@@ -233,11 +222,11 @@ func testAccCheckCloudscaleServerAttributes(server *cloudscale.Server) resource.
 	return func(s *terraform.State) error {
 
 		if server.Image.Slug != "debian-8" {
-			return fmt.Errorf("Bad image_slug: %s", server.Image.Slug)
+			return fmt.Errorf("Bad image_slug_slug: %s", server.Image.Slug)
 		}
 
 		if server.Flavor.Slug != "flex-2" {
-			return fmt.Errorf("Bad flavor_slug: %s", server.Image.Slug)
+			return fmt.Errorf("Bad flavor_slug_slug: %s", server.Image.Slug)
 		}
 
 		if server.Volumes[0].SizeGB != 10 {
@@ -272,46 +261,34 @@ func testAccCheckServerRecreated(t *testing.T,
 func testAccCheckCloudscaleServerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
-  name      			= "terraform-%d"
-  flavor    			= "flex-2"
-  image     			= "debian-8"
-  volume_size_gb	= 10
-  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+  name      					= "terraform-%d"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "debian-8"
+  volume_size_gb			= 10
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }
 
 func testAccCheckCloudscaleServerConfig_update_state_stopped(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
-  name      			= "terraform-%d"
-  flavor    			= "flex-2"
-  image     			= "debian-8"
-  volume_size_gb	= 10
-	state 					= "stopped"
-  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+  name      					= "terraform-%d"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "debian-8"
+  volume_size_gb			= 10
+	status 							= "stopped"
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }
 
 func testAccCheckCloudscaleServerConfig_update_state_running(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
-  name      			= "terraform-%d"
-  flavor    			= "flex-2"
-  image     			= "debian-8"
-  volume_size_gb	= 10
-	state 					= "running"
-  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
-}`, rInt)
-}
-
-func testAccCheckCloudscaleServerConfig_update_state_rebooted(rInt int) string {
-	return fmt.Sprintf(`
-resource "cloudscale_server" "basic" {
-  name      			= "terraform-%d"
-  flavor    			= "flex-2"
-  image     			= "debian-8"
-  volume_size_gb	= 10
-	state 					= "rebooted"
+  name      					= "terraform-%d"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "debian-8"
+  volume_size_gb			= 10
+	status 							= "running"
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }
@@ -319,10 +296,10 @@ resource "cloudscale_server" "basic" {
 func testAccCheckCloudscaleServerConfig_update_recreate(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
-  name      			= "terraform-%d"
-  flavor    			= "flex-4"
-  image     			= "debian-8"
-  volume_size_gb	= 10
-  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+  name      			    = "terraform-%d"
+  flavor_slug    			= "flex-4"
+  image_slug     			= "debian-8"
+  volume_size_gb			= 10
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }

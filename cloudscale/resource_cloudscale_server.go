@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale"
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -33,12 +33,12 @@ func getServerSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-		"flavor": &schema.Schema{
+		"flavor_slug": &schema.Schema{
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"image": &schema.Schema{
+		"image_slug": &schema.Schema{
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -72,10 +72,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
-		},
-		"state": {
-			Type:     schema.TypeString,
-			Optional: true,
 		},
 		"use_public_network": {
 			Type:     schema.TypeBool,
@@ -119,20 +115,44 @@ func getServerSchema() map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
-		"ipv4_address": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"ipv6_address": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"ipv4_private_address": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"ipv6_private_address": {
-			Type:     schema.TypeString,
+		"interfaces": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"addresses": {
+						Type: schema.TypeList,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"version": {
+									Type:     schema.TypeInt,
+									Computed: true,
+								},
+								"address": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
+								"prefix_length": {
+									Type:     schema.TypeInt,
+									Computed: true,
+								},
+								"gateway": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
+								"reverse_ptr": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
+							},
+						},
+						Computed: true,
+					},
+				},
+			},
 			Computed: true,
 		},
 		"ssh_fingerprints": {
@@ -147,6 +167,7 @@ func getServerSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
+			Optional: true,
 			Computed: true,
 		},
 	}
@@ -156,8 +177,8 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 
 	opts := &cloudscale.ServerRequest{
 		Name:   d.Get("name").(string),
-		Flavor: d.Get("flavor").(string),
-		Image:  d.Get("image").(string),
+		Flavor: d.Get("flavor_slug").(string),
+		Image:  d.Get("image_slug").(string),
 	}
 
 	sshKeys := d.Get("ssh_keys.#").(int)
@@ -180,15 +201,18 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if attr, ok := d.GetOk("use_public_network"); ok {
-		opts.UsePublicNetwork = attr.(bool)
+		val := attr.(bool)
+		opts.UsePublicNetwork = &val
 	}
 
 	if attr, ok := d.GetOk("use_private_network"); ok {
-		opts.UsePrivateNetwork = attr.(bool)
+		val := attr.(bool)
+		opts.UsePrivateNetwork = &val
 	}
 
 	if attr, ok := d.GetOk("use_ipv6"); ok {
-		opts.UseIPV6 = attr.(bool)
+		val := attr.(bool)
+		opts.UseIPV6 = &val
 	}
 
 	antiAffinityUUIDs := d.Get("anti_affinity_with.#").(int)
@@ -243,8 +267,8 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("href", server.HREF)
 	d.Set("name", server.Name)
-	d.Set("flavor", server.Flavor.Slug)
-	d.Set("image", server.Image.Slug)
+	d.Set("flavor_slug", server.Flavor.Slug)
+	d.Set("image_slug", server.Image.Slug)
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]interface{}, 0, volumes)
@@ -259,6 +283,32 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("status", server.Status)
+
+	if addrss := len(server.Interfaces); addrss > 0 {
+
+		intsMap := make([]map[string]interface{}, 0, addrss)
+		for _, intr := range server.Interfaces {
+
+			intMap := make(map[string]interface{})
+			addrssMap := make([]map[string]interface{}, 0, len(intr.Adresses))
+			for _, addr := range intr.Adresses {
+				i := make(map[string]interface{})
+				i["address"] = addr.Address
+				i["version"] = addr.Version
+				i["prefix_length"] = addr.PrefixLenght
+				i["gateway"] = addr.Gateway
+				i["reverse_ptr"] = addr.ReversePtr
+
+				addrssMap = append(addrssMap, i)
+			}
+
+			intMap["type"] = intr.Type
+			intMap["addresses"] = addrssMap
+
+			intsMap = append(intsMap, intMap)
+		}
+		d.Set("interfaces", intsMap)
+	}
 
 	if publicIPv4 := findIPv4AddrByType(server, "public"); publicIPv4 != "" {
 		d.Set("ipv4_address", publicIPv4)
@@ -306,14 +356,18 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	if d.HasChange("state") {
-		state := d.Get("state").(string)
-		err := client.Servers.Update(context.Background(), id, state)
+	if d.HasChange("status") {
+		status := d.Get("status").(string)
+		err := client.Servers.Update(context.Background(), id, status)
 		if err != nil {
-			return fmt.Errorf("Error updating the Server (%s) state (%s) ", id, err)
+			return fmt.Errorf("Error updating the Server (%s) status (%s) ", id, err)
 		}
 
-		if state == "stopped" {
+		if status == "rebooted" {
+			return fmt.Errorf("Status (%s) not supported", status)
+		}
+
+		if status == "stopped" {
 			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
 		} else {
 			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running")
@@ -340,7 +394,7 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error deleting server: %s", err)
+		return fmt.Errorf("Error deleting Server: %s", err)
 	}
 
 	return nil
@@ -355,7 +409,7 @@ func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []str
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    newServerRefreshFunc(d, attribute, meta),
-		Timeout:    60 * time.Minute,
+		Timeout:    5 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -377,6 +431,10 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interfa
 			server, err := client.Servers.Get(context.Background(), id)
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving server %s", err)
+			}
+
+			if server.Status == "errored" {
+				return nil, "", fmt.Errorf("Server status %s, abort", server.Status)
 			}
 
 			if sshKeys := len(server.SSHHostKeys); sshKeys <= 0 {
