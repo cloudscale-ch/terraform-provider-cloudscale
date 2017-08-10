@@ -73,10 +73,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
-		"state": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
 		"use_public_network": {
 			Type:     schema.TypeBool,
 			Optional: true,
@@ -171,6 +167,7 @@ func getServerSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
+			Optional: true,
 			Computed: true,
 		},
 	}
@@ -359,14 +356,18 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	if d.HasChange("state") {
-		state := d.Get("state").(string)
-		err := client.Servers.Update(context.Background(), id, state)
+	if d.HasChange("status") {
+		status := d.Get("status").(string)
+		err := client.Servers.Update(context.Background(), id, status)
 		if err != nil {
-			return fmt.Errorf("Error updating the Server (%s) state (%s) ", id, err)
+			return fmt.Errorf("Error updating the Server (%s) status (%s) ", id, err)
 		}
 
-		if state == "stopped" {
+		if status == "rebooted" {
+			return fmt.Errorf("Status (%s) not supported", status)
+		}
+
+		if status == "stopped" {
 			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
 		} else {
 			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running")

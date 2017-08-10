@@ -119,17 +119,6 @@ func TestAccCloudscaleServer_Update(t *testing.T) {
 					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
 				),
 			},
-			{
-				Config: testAccCheckCloudscaleServerConfig_update_state_rebooted(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
-					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "status", "running"),
-					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
-				),
-			},
 		},
 	})
 }
@@ -287,7 +276,7 @@ resource "cloudscale_server" "basic" {
   flavor_slug    			= "flex-2"
   image_slug     			= "debian-8"
   volume_size_gb			= 10
-	state 							= "stopped"
+	status 							= "stopped"
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }
@@ -299,20 +288,8 @@ resource "cloudscale_server" "basic" {
   flavor_slug    			= "flex-2"
   image_slug     			= "debian-8"
   volume_size_gb			= 10
-	state 							= "running"
+	status 							= "running"
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
-}`, rInt)
-}
-
-func testAccCheckCloudscaleServerConfig_update_state_rebooted(rInt int) string {
-	return fmt.Sprintf(`
-resource "cloudscale_server" "basic" {
-  name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
-  image_slug     			= "debian-8"
-  volume_size_gb			= 10
-	state 							= "rebooted"
-  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }
 
