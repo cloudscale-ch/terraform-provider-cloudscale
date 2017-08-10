@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale"
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"

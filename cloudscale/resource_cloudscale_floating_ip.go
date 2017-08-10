@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudscale-ch/cloudscale"
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
