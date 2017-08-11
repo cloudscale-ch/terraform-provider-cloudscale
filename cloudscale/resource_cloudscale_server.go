@@ -62,11 +62,9 @@ func getServerSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
-		"anti_affinity_with": {
-			Type:     schema.TypeList,
+		"anti_affinity_uuid": {
+			Type:     schema.TypeString,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			ForceNew: true,
 		},
 		"user_data": {
 			Type:     schema.TypeString,
@@ -165,6 +163,12 @@ func getServerSchema() map[string]*schema.Schema {
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
+		"anti_affinity_with": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Computed: true,
+			Optional: true,
+		},
 		"status": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -215,16 +219,8 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.UseIPV6 = &val
 	}
 
-	antiAffinityUUIDs := d.Get("anti_affinity_with.#").(int)
-	if antiAffinityUUIDs > 0 {
-		opts.AntiAffinityWith = make([]string, 0, antiAffinityUUIDs)
-
-		for i := 0; i < antiAffinityUUIDs; i++ {
-			key := fmt.Sprintf("anti_affinity_with.%d", i)
-			antiAffinityUUID := d.Get(key).(string)
-			opts.AntiAffinityWith = append(opts.AntiAffinityWith, antiAffinityUUID)
-
-		}
+	if attr, ok := d.GetOk("anti_affinity_uuid"); ok {
+		opts.AntiAffinityWith = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {
@@ -295,7 +291,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 				i := make(map[string]interface{})
 				i["address"] = addr.Address
 				i["version"] = addr.Version
-				i["prefix_length"] = addr.PrefixLenght
+				i["prefix_length"] = addr.PrefixLength
 				i["gateway"] = addr.Gateway
 				i["reverse_ptr"] = addr.ReversePtr
 
@@ -327,13 +323,11 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("ssh_host_keys", server.SSHHostKeys)
 
-	if antiAffinities := len(server.AntiAfinityWith); antiAffinities > 0 {
-		antiAfs := make([]string, 0, antiAffinities)
-		for _, antiAf := range server.AntiAfinityWith {
-			antiAfs = append(antiAfs, antiAf.UUID)
-		}
-		d.Set("anti_affinity_with", antiAfs)
+	var antiAfs []string
+	for _, antiAf := range server.AntiAfinityWith {
+		antiAfs = append(antiAfs, antiAf.UUID)
 	}
+	d.Set("anti_affinity_with", antiAfs)
 
 	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
 		d.SetConnInfo(map[string]string{
