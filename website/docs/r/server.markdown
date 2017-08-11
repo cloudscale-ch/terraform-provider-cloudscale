@@ -28,11 +28,11 @@ resource "cloudscale_server" "db_server" {
 
 The following arguments are supported:
 
-* `image` - (Required) The slug (name) of the image to use for a new server.
+* `image_slug` - (Required) The slug (name) of the image to use for a new server.
    Possible values can be found [here](https://www.cloudscale.ch/en/api/v1#images).
 * `name` - (Required) Name to use for the new server. The name has to be a
    valid host name or a fully qualified domain name (FQDN).
-* `flavor` - (Required) The slug of the flavor to use for the new server.
+* `flavor_slug` - (Required) The slug (name) of the flavor to use for the new server.
    Possible values are can be found [here](https://www.cloudscale.ch/en/api/v1#flavors).
 * `ssh_keys` - (Required) A list of SSH public keys. Use the full content of 
    your \*.pub files.
@@ -55,29 +55,32 @@ The following arguments are supported:
    for the new server. Needs to be valid YAML. A default configuration is used 
    if this parameter is not specified or is set to null. Use only if you are an 
    advanced users with knowledge of cloud-config.
-* `state	` (Optional) - The desired state of a server, can be `running`, `stopped` and `rebooted`.
+* `status` (Optional) - The desired state of a server, can be `running` or `stopped`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the arguments listed above, the following computed attributes
+are exported:
 
-* `id` - The ID of the server
-* `name`- The name (and maybe FQDN) of the server.
+* `id` - The UUID of the server
 * `href` - The cloudscale.ch API URL of the server
-* `image` - The image of the server
-* `flavor` - The flavor of the server
-* `use_ipv6` - Is IPv6 enabled
-* `ipv6_address` - The IPv6 address
-* `ipv6_private_address` - The private networking IPv6 address
-* `ipv4_address` - The IPv4 address
-* `ipv4_private_address` - The private networking IPv4 address
-* `ssh_fingerprints` - A list of SSH host key fingerprints
-* `ssh_host_keys` - A list of SSH host keys
-* `anti_affinity_with` - Droplet hourly price
-* `price_monthly` - Droplet monthly price
-* `size` - The instance size
-* `disk` - The size of the instance's disk in GB
-* `vcpus` - The number of the instance's virtual CPUs
-* `status` - The status of the droplet
-* `tags` - The tags associated with the droplet
-* `volumes` -  A list of volumes attached to this server.
+* `ssh_fingerprints` - A list of SSH host key fingerprints (strings) of your server.
+* `ssh_host_keys` - A list of SSH host keys (strings) of your server.
+* `anti_affinity_with` - 
+* `volumes` - A list of volume objects attached to this server. A volume object
+   has three attributes:
+    * `device_path` - A string, describes the path on your server (e.g. `/dev/vda`)
+    * `size_gb` - The size (int) of the volume, typically matches
+       `volume_size_gb` or `bulk_volume_size_gb`.
+    * `type` - A string. Either `ssd` or `bulk`.
+* `interfaces` - A list of interface objects. An interface object has two attributes:
+    * `type` - Either `public` or `private`. Public interfaces are connected
+       to the internet, while private interfaces are not.
+    * `addresses` - A list of address objects:
+        * address - An IPv4 or IPv6 address that is available for that server.
+        * gateway - Also an IPv4 or IPv6 address.
+        * prefix_length - The prefix length of the IP address, typically 24 for
+          IPv4 and 128 for IPv6.
+        * reverse_ptr - The reverse pointer for this IP address. If you use an
+          FQDN as your server name it will be used here.
+        * version - The IP version, either `4` or `6`.

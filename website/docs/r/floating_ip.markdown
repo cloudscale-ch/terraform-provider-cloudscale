@@ -35,8 +35,8 @@ The following arguments are supported for creating floating IPs:
 * `ip_version` - (Required) `4` or `6 `for an IPv4 or IPv6 address.
 * `server` - (Required) The floating IP is pointed to this server (UUID).
 * `prefix_length` - (Optional) If you want a whole network instead of a single 
-   IP routed to your server, specify the prefix length here. This is only 
-   supported for IPv6 and prefix length `56`.
+   IP routed to your server, specify the prefix length here. Currently, there
+   is only support for `ip_version=6` and `prefix_length=56`.
 * `reverse_ptr` - (Optional) You can specify a reverse pointer.
 
 The following arguments are supported for updating floating IPs:
@@ -45,11 +45,10 @@ The following arguments are supported for updating floating IPs:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the arguments listed above, the following computed attributes
+are exported:
 
 * `href` - The cloudscale.ch API URL for the current field.
-* `server` - The floating IP is routed to this server (UUID).
 * `network` - The CIDR notation of the network that is routed to your server,
    e.g. `192.0.2.123/32`.
 * `next_hop` - Your floating IP is routed to this IP address.
-* `reverse_ptr` - The reverse pointer for this floating IP address.
