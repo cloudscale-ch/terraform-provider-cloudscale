@@ -13,17 +13,22 @@ const ServerStopped = "stopped"
 const ServerRebooted = "rebooted"
 
 type Server struct {
-	HREF            string      `json:"href"`
-	UUID            string      `json:"uuid"`
-	Name            string      `json:"name"`
-	Status          string      `json:"status"`
-	Flavor          Flavor      `json:"flavor"`
-	Image           Image       `json:"image"`
-	Volumes         []Volume    `json:"volumes"`
-	Interfaces      []Interface `json:"interfaces"`
-	SSHFingerprints []string    `json:"ssh_fingerprints"`
-	SSHHostKeys     []string    `json:"ssh_host_keys"`
-	AntiAfinityWith []Server    `json:"anti_affinity_with"`
+	HREF            string       `json:"href"`
+	UUID            string       `json:"uuid"`
+	Name            string       `json:"name"`
+	Status          string       `json:"status"`
+	Flavor          Flavor       `json:"flavor"`
+	Image           Image        `json:"image"`
+	Volumes         []Volume     `json:"volumes"`
+	Interfaces      []Interface  `json:"interfaces"`
+	SSHFingerprints []string     `json:"ssh_fingerprints"`
+	SSHHostKeys     []string     `json:"ssh_host_keys"`
+	AntiAfinityWith []ServerStub `json:"anti_affinity_with"`
+}
+
+type ServerStub struct {
+	HREF string `json:"href"`
+	UUID string `json:"uuid"`
 }
 
 type Flavor struct {
@@ -53,7 +58,7 @@ type Interface struct {
 type Address struct {
 	Version      int    `json:"version"`
 	Address      string `json:"address"`
-	PrefixLenght int    `json:"prefix_length"`
+	PrefixLength int    `json:"prefix_length"`
 	Gateway      string `json:"gateway"`
 	ReversePtr   string `json:"reverse_ptr"`
 }
@@ -68,7 +73,7 @@ type ServerRequest struct {
 	UsePublicNetwork  *bool    `json:"use_public_network,omitempty"`
 	UsePrivateNetwork *bool    `json:"use_private_network,omitempty"`
 	UseIPV6           *bool    `json:"use_ipv6,omitempty"`
-	AntiAffinityWith  []string `json:"anti_affinity_with,omitempty"`
+	AntiAffinityWith  string   `json:"anti_affinity_with,omitempty"`
 	UserData          string   `json:"user_data,omitempty"`
 }
 
