@@ -10,8 +10,8 @@ provider "cloudscale" {
 # Create a New Server
 resource "cloudscale_server" "web" {
   name      			= "db-master"
-  flavor    			= "flex-4"
-  image     			= "debian-8"
-  volume_size_gb	= 10
+  flavor_slug    		= "flex-4"
+  image_slug     		= "debian-8"
+  volume_size_gb	    = 10
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
