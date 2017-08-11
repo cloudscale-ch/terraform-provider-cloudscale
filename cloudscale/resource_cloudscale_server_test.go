@@ -74,6 +74,29 @@ func TestAccCloudscaleServer_Basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleServer_AntiAffinity(t *testing.T) {
+	var serverA, serverB cloudscale.Server
+
+	aInt := acctest.RandInt()
+	bInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerConfig_anti_affinity_group(aInt, bInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.dbmaster", &serverA),
+					testAccCheckCloudscaleServerExists("cloudscale_server.web", &serverB),
+					testAccAntiAffinityGroup(t, &serverA, &serverB),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleServer_Update(t *testing.T) {
 	var afterCreate, afterUpdate cloudscale.Server
 
@@ -248,6 +271,19 @@ func testAccCheckServerChanged(t *testing.T,
 	}
 }
 
+func testAccAntiAffinityGroup(t *testing.T,
+	serverA, serverB *cloudscale.Server) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if serverA.UUID != serverB.AntiAfinityWith[0].UUID {
+			t.Fatalf("Server A (%s) not in anti_affinity_with", serverB.UUID)
+		}
+		if serverB.UUID != serverA.AntiAfinityWith[0].UUID {
+			t.Fatalf("Server B (%s) not in anti_affinity_with", serverB.UUID)
+		}
+		return nil
+	}
+}
+
 func testAccCheckServerRecreated(t *testing.T,
 	before, after *cloudscale.Server) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -279,6 +315,23 @@ resource "cloudscale_server" "basic" {
 	status 							= "stopped"
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
+}
+
+func testAccCheckCloudscaleServerConfig_anti_affinity_group(aInt, bInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "dbmaster" {
+  name      					= "terraform-%d"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "debian-8"
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+resource "cloudscale_server" "web" {
+  name      					= "terraform-%d"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "debian-8"
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+	anti_affinity_uuid 	= "${cloudscale_server.dbmaster.id}"
+}`, aInt, bInt)
 }
 
 func testAccCheckCloudscaleServerConfig_update_state_running(rInt int) string {
