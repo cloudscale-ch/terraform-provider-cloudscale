@@ -52,7 +52,7 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 		// Computed attributes
 
 		"network": &schema.Schema{
-			Type:     schema.TypeInt,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 		"next_hop": &schema.Schema{
