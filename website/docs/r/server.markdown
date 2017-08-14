@@ -78,6 +78,5 @@ The following attributes are exported:
 * `size` - The instance size
 * `disk` - The size of the instance's disk in GB
 * `vcpus` - The number of the instance's virtual CPUs
-* `status` - The status of the droplet
-* `tags` - The tags associated with the droplet
+* `status` - The status of the server
 * `volumes` -  A list of volumes attached to this server.
