@@ -78,10 +78,10 @@ are exported:
     * `type` - Either `public` or `private`. Public interfaces are connected
        to the internet, while private interfaces are not.
     * `addresses` - A list of address objects:
-        * address - An IPv4 or IPv6 address that is available for that server.
-        * gateway - Also an IPv4 or IPv6 address.
-        * prefix_length - The prefix length of the IP address, typically 24 for
+        * `address` - An IPv4 or IPv6 address that is available for that server.
+        * `gateway` - Also an IPv4 or IPv6 address.
+        * `prefix_length` - The prefix length of the IP address, typically 24 for
           IPv4 and 128 for IPv6.
-        * reverse_ptr - The reverse pointer for this IP address. If you use an
+        * `reverse_ptr` - The reverse pointer for this IP address. If you use an
           FQDN as your server name it will be used here.
-        * version - The IP version, either `4` or `6`.
+        * `version` - The IP version, either `4` or `6`.
