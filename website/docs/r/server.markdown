@@ -48,7 +48,7 @@ The following arguments are supported:
    network interface from the new server. Can be `true` or `false` (the default).
 * `use_ipv6` - (Optional) Enables/disables IPv6 on the public network interface 
    of the new server. Can be `true` (the default) or `false`.
-* `anti_affinity_with	` (Optional) - Pass the UUID of another server to
+* `anti_affinity_uuid	` (Optional) - Pass the UUID of another server to
    create an anti-affinity group with that server or add it to the same group
    as that server.
 * `user_data` (Optional) - Cloud-init configuration (cloud-config) data to use 
@@ -66,7 +66,8 @@ are exported:
 * `href` - The cloudscale.ch API URL of the server
 * `ssh_fingerprints` - A list of SSH host key fingerprints (strings) of your server.
 * `ssh_host_keys` - A list of SSH host keys (strings) of your server.
-* `anti_affinity_with` - 
+* `anti_affinity_with` - A list of server UUIDs that belong to the same
+   anti-affinity group.
 * `volumes` - A list of volume objects attached to this server. A volume object
    has three attributes:
     * `device_path` - A string, describes the path on your server (e.g. `/dev/vda`)
