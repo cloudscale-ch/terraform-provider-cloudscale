@@ -194,7 +194,7 @@ func testAccCheckCloudscaleServerDestroy(s *terraform.State) error {
 
 		id := rs.Primary.ID
 
-		// Try to find the Droplet
+		// Try to find the server
 		_, err := client.Servers.Get(context.Background(), id)
 
 		// Wait
@@ -224,7 +224,7 @@ func testAccCheckCloudscaleServerExists(n string, server *cloudscale.Server) res
 
 		id := rs.Primary.ID
 
-		// Try to find the Droplet
+		// Try to find the server
 		retrieveServer, err := client.Servers.Get(context.Background(), id)
 
 		if err != nil {

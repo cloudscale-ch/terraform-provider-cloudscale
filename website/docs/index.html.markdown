@@ -1,16 +1,16 @@
 ---
 layout: "cloudscale"
-page_title: "Provider: CloudScale"
+page_title: "Provider: cloudscale.ch"
 sidebar_current: "docs-cloudscale-index"
 description: |-
-  The CloudScale provider is used to interact with the resources supported by CloudScale. The provider needs to be configured with the proper credentials before it can be used.
+  The cloudscale.ch provider is used to interact with the resources supported by cloudscale.ch. The provider needs to be configured with the proper credentials before it can be used.
 ---
 
-# CloudScale Provider
+# cloudscale.ch Provider
 
-The CloudScale provider is used to interact with the
-resources supported by CloudScale. The provider needs to be configured
-with the proper credentials before it can be used.
+The cloudscale.ch provider is used to interact with the resources supported by
+cloudscale.ch. The provider needs to be configured with proper credentials
+before it can be used.
 
 Use the navigation to the left to read about the available resources.
 
@@ -18,15 +18,15 @@ Use the navigation to the left to read about the available resources.
 
 ```hcl
 # Set the variable value in *.tfvars file
-# or using -var="cloudscale_token=..." CLI option
+# or using the -var="cloudscale_token=..." CLI option
 variable "cloudscale_token" {}
 
-# Configure the CloudScale Provider
+# Configure the cloudscale.ch Provider
 provider "cloudscale" {
   token = "${var.cloudscale_token}"
 }
 
-# Create a web server
+# Create a New Server
 resource "cloudscale_server" "web" {
   # ...
 }
@@ -36,6 +36,6 @@ resource "cloudscale_server" "web" {
 
 The following arguments are supported:
 
-* `token` - (Required) This is the CloudScale API token. This can also be specified
-  with the `CLOUDSCALE_TOKEN` shell environment variable.
-
+* `token` - (Required) This is the cloudscale.ch API token. It can also be
+  specified as a shell environment variable called `CLOUDSCALE_TOKEN`. It can
+  be generated in the cloudscale control panel.
