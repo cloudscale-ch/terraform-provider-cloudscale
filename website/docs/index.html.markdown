@@ -35,7 +35,7 @@ resource "cloudscale_server" "web-worker01" {
 
 # Add a Floating IP
 resource "cloudscale_floating_ip" "web-worker01-vip" {
-  server 	= "${cloudscale_server.web-worker01.id}"
+  server = "${cloudscale_server.web-worker01.id}"
   # ...
 }
 ```
