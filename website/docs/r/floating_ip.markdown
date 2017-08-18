@@ -15,10 +15,10 @@ Provides a cloudscale.ch Floating IP to represent a publicly-accessible static I
 ```hcl
 # Create a new Server
 resource "cloudscale_server" "web-worker01" {
-  name     = "web-worker01"
-  flavor   = "flex-4"
-  image    = "debian-9"
-  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+  name        = "web-worker01"
+  flavor_slug = "flex-4"
+  image_slug  = "debian-9"
+  ssh_keys    = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
 
 # Add a Floating IPv4 address to web-worker01
@@ -40,8 +40,8 @@ resource "cloudscale_floating_ip" "web-worker01-net" {
 
 The following arguments are supported when adding Floating IPs:
 
-* `ip_version` - (Required) `4` or `6`, for an IPv4 or IPv6 address or network respectively.
 * `server` - (Required) Assign the Floating IP to this server (UUID).
+* `ip_version` - (Required) `4` or `6`, for an IPv4 or IPv6 address or network respectively.
 * `prefix_length` - (Optional) If you want to assign an entire network instead of a single IP address to your server, you must specify the prefix length. Currently, there is only support for `ip_version=6` and `prefix_length=56`.
 * `reverse_ptr` - (Optional) You can specify the PTR record (reverse DNS pointer) in case of a single Floating IP address.
 
