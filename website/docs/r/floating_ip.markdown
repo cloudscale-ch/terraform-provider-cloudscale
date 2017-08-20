@@ -23,14 +23,14 @@ resource "cloudscale_server" "web-worker01" {
 
 # Add a Floating IPv4 address to web-worker01
 resource "cloudscale_floating_ip" "web-worker01-vip" {
-  server      = "${cloudscale_server.web-worker01-vip.id}"
+  server      = "${cloudscale_server.web-worker01.id}"
   ip_version  = 4
   reverse_ptr = "vip.web-worker01.example.com"
 }
 
 # Add a Floating IPv6 network to web-worker01
 resource "cloudscale_floating_ip" "web-worker01-net" {
-  server        = "${cloudscale_server.web-worker01-net.id}"
+  server        = "${cloudscale_server.web-worker01.id}"
   ip_version    = 6
   prefix_length = 56
 }
