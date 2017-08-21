@@ -32,7 +32,15 @@ $ make build
 
 Using the provider
 ----------------------
-## Fill in for each provider
+1. Download and install [Terraform](https://www.terraform.io/downloads.html)
+2. Move `terraform-provider-cloudscale` executable to the root folder where main.tf is. 
+
+```shell
+  $ mv terraform-provider-cloudscale /path/to/main.tf/folder
+``` 
+
+3. Execute `terraform plan`
+4. `terraform init`
 
 Developing the Provider
 ---------------------------
