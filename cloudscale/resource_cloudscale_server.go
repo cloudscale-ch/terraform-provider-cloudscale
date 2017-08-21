@@ -226,6 +226,11 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.UserData = attr.(string)
 	}
 
+	originalStatus := ""
+	if attr, ok := d.GetOk("status"); ok {
+		originalStatus = attr.(string)
+	}
+
 	log.Printf("[DEBUG] Server create configuration: %#v", opts)
 
 	server, err := client.Servers.Create(context.Background(), opts)
@@ -240,6 +245,18 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "running")
 	if err != nil {
 		return fmt.Errorf("Error waiting for server (%s) to become ready %s", d.Id(), err)
+	}
+
+	if originalStatus == "stopped" {
+		err := client.Servers.Update(context.Background(), server.UUID, originalStatus)
+		if err != nil {
+			return fmt.Errorf("Error updating the Server (%s) status (%s) ", server.UUID, err)
+		}
+
+		_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
+		if err != nil {
+			return fmt.Errorf("Error updating the Server (%s) status (%s) ", server.UUID, err)
+		}
 	}
 
 	return resourceServerRead(d, meta)
@@ -303,19 +320,6 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			intsMap = append(intsMap, intMap)
 		}
 		d.Set("interfaces", intsMap)
-	}
-
-	if publicIPv4 := findIPv4AddrByType(server, "public"); publicIPv4 != "" {
-		d.Set("ipv4_address", publicIPv4)
-	}
-	if publicIPv6 := findIPv6AddrByType(server, "public"); publicIPv6 != "" {
-		d.Set("ipv6_address", publicIPv6)
-	}
-	if privateIPv4 := findIPv4AddrByType(server, "private"); privateIPv4 != "" {
-		d.Set("ipv4_private_address", privateIPv4)
-	}
-	if privateIPv6 := findIPv4AddrByType(server, "private"); privateIPv6 != "" {
-		d.Set("ipv6_private_address", privateIPv6)
 	}
 
 	d.Set("ssh_fingerprints", server.SSHFingerprints)
