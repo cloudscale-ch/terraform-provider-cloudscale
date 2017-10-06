@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -136,13 +137,22 @@ func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 func resourceFloatingIPDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
-
 	id := d.Id()
 
+	log.Printf("[INFO] Deleting FloatingIP: %s", d.Id())
 	err := client.FloatingIPs.Delete(context.Background(), id)
+
+	if err != nil && strings.Contains(err.Error(), "Not found") {
+		log.Printf("[WARN] FloatingIP (%s) not found", d.Id())
+		d.SetId("")
+		return fmt.Errorf("Error deleting FloatingIP: %s", err)
+	}
+
 	if err != nil {
 		return fmt.Errorf("Error deleting FloatingIP: %s", err)
 	}
+
+	d.SetId("")
 
 	return nil
 }

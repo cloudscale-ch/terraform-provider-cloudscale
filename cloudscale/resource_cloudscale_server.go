@@ -387,12 +387,16 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	err := client.Servers.Delete(context.Background(), id)
 
 	if err != nil && strings.Contains(err.Error(), "Not found") {
+		log.Printf("[WARN] Cloudscale Server (%s) not found", d.Id())
+		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
 		return fmt.Errorf("Error deleting Server: %s", err)
 	}
+
+	d.SetId("")
 
 	return nil
 }
