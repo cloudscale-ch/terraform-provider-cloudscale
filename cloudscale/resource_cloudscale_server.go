@@ -291,7 +291,12 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			v["size_gb"] = volume.SizeGB
 			volumesMaps = append(volumesMaps, v)
 		}
-		d.Set("volumes", volumesMaps)
+		err = d.Set("volumes", volumesMaps)
+		if err != nil {
+			log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
+			return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
+		}
+
 	}
 
 	d.Set("status", server.Status)
@@ -319,7 +324,11 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 			intsMap = append(intsMap, intMap)
 		}
-		d.Set("interfaces", intsMap)
+		err = d.Set("interfaces", intsMap)
+		if err != nil {
+			log.Printf("[DEBUG] Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
+			return fmt.Errorf("Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
+		}
 	}
 
 	d.Set("ssh_fingerprints", server.SSHFingerprints)
@@ -330,7 +339,11 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	for _, antiAf := range server.AntiAfinityWith {
 		antiAfs = append(antiAfs, antiAf.UUID)
 	}
-	d.Set("anti_affinity_with", antiAfs)
+	err = d.Set("anti_affinity_with", antiAfs)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
+		return fmt.Errorf("Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
+	}
 
 	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
 		d.SetConnInfo(map[string]string{
