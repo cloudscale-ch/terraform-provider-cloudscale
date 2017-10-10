@@ -44,7 +44,7 @@ func getServerSchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"ssh_keys": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			ForceNew: true,
@@ -184,16 +184,14 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		Image:  d.Get("image_slug").(string),
 	}
 
-	sshKeys := d.Get("ssh_keys.#").(int)
-	if sshKeys > 0 {
-		opts.SSHKeys = make([]string, 0, sshKeys)
-		for i := 0; i < sshKeys; i++ {
-			key := fmt.Sprintf("ssh_keys.%d", i)
-			sshkey := d.Get(key).(string)
-			opts.SSHKeys = append(opts.SSHKeys, sshkey)
+	sshKeys := d.Get("ssh_keys").(*schema.Set).List()
+	k := make([]string, len(sshKeys))
 
-		}
+	for i := range sshKeys {
+		k[i] = sshKeys[i].(string)
 	}
+
+	opts.SSHKeys = k
 
 	if attr, ok := d.GetOk("volume_size_gb"); ok {
 		opts.VolumeSizeGB = attr.(int)
