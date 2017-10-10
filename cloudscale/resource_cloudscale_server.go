@@ -154,17 +154,17 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"ssh_fingerprints": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"ssh_host_keys": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"anti_affinity_with": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
@@ -329,9 +329,17 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	d.Set("ssh_fingerprints", server.SSHFingerprints)
+	err = d.Set("ssh_fingerprints", server.SSHFingerprints)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
+		return fmt.Errorf("Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
+	}
 
-	d.Set("ssh_host_keys", server.SSHHostKeys)
+	err = d.Set("ssh_host_keys", server.SSHHostKeys)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
+		return fmt.Errorf("Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
+	}
 
 	var antiAfs []string
 	for _, antiAf := range server.AntiAfinityWith {
