@@ -68,6 +68,8 @@ func TestAccCloudscaleServer_Basic(t *testing.T) {
 						"cloudscale_server.basic", "flavor_slug", "flex-2"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", "debian-8"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "interfaces.0.type", "public"),
 				),
 			},
 		},
@@ -330,7 +332,7 @@ resource "cloudscale_server" "basic" {
   flavor_slug    			= "flex-2"
   image_slug     			= "debian-8"
   volume_size_gb			= 10
-  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)
 }
 
