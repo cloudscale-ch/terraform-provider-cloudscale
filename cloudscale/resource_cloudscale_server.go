@@ -94,7 +94,7 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"volumes": {
-			Type: schema.TypeList,
+			Type: schema.TypeSet,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
