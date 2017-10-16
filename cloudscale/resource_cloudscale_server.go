@@ -56,7 +56,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
-			Default:  10,
 		},
 		"bulk_volume_size_gb": &schema.Schema{
 			Type:     schema.TypeInt,
