@@ -145,7 +145,7 @@ func resourceFloatingIPDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil && strings.Contains(err.Error(), "Not found") {
 		log.Printf("[WARN] FloatingIP (%s) not found", d.Id())
 		d.SetId("")
-		return fmt.Errorf("Error deleting FloatingIP: %s", err)
+		return nil
 	}
 
 	if err != nil {
