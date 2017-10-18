@@ -44,7 +44,7 @@ func getServerSchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"ssh_keys": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			ForceNew: true,
@@ -94,7 +94,7 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"volumes": {
-			Type: schema.TypeList,
+			Type: schema.TypeSet,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
@@ -114,7 +114,7 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"interfaces": {
-			Type: schema.TypeList,
+			Type: schema.TypeSet,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
@@ -154,17 +154,17 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"ssh_fingerprints": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"ssh_host_keys": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"anti_affinity_with": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
@@ -184,16 +184,14 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		Image:  d.Get("image_slug").(string),
 	}
 
-	sshKeys := d.Get("ssh_keys.#").(int)
-	if sshKeys > 0 {
-		opts.SSHKeys = make([]string, 0, sshKeys)
-		for i := 0; i < sshKeys; i++ {
-			key := fmt.Sprintf("ssh_keys.%d", i)
-			sshkey := d.Get(key).(string)
-			opts.SSHKeys = append(opts.SSHKeys, sshkey)
+	sshKeys := d.Get("ssh_keys").(*schema.Set).List()
+	k := make([]string, len(sshKeys))
 
-		}
+	for i := range sshKeys {
+		k[i] = sshKeys[i].(string)
 	}
+
+	opts.SSHKeys = k
 
 	if attr, ok := d.GetOk("volume_size_gb"); ok {
 		opts.VolumeSizeGB = attr.(int)
@@ -291,7 +289,12 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			v["size_gb"] = volume.SizeGB
 			volumesMaps = append(volumesMaps, v)
 		}
-		d.Set("volumes", volumesMaps)
+		err = d.Set("volumes", volumesMaps)
+		if err != nil {
+			log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
+			return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
+		}
+
 	}
 
 	d.Set("status", server.Status)
@@ -319,18 +322,34 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 			intsMap = append(intsMap, intMap)
 		}
-		d.Set("interfaces", intsMap)
+		err = d.Set("interfaces", intsMap)
+		if err != nil {
+			log.Printf("[DEBUG] Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
+			return fmt.Errorf("Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
+		}
 	}
 
-	d.Set("ssh_fingerprints", server.SSHFingerprints)
+	err = d.Set("ssh_fingerprints", server.SSHFingerprints)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
+		return fmt.Errorf("Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
+	}
 
-	d.Set("ssh_host_keys", server.SSHHostKeys)
+	err = d.Set("ssh_host_keys", server.SSHHostKeys)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
+		return fmt.Errorf("Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
+	}
 
 	var antiAfs []string
 	for _, antiAf := range server.AntiAfinityWith {
 		antiAfs = append(antiAfs, antiAf.UUID)
 	}
-	d.Set("anti_affinity_with", antiAfs)
+	err = d.Set("anti_affinity_with", antiAfs)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
+		return fmt.Errorf("Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
+	}
 
 	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
 		d.SetConnInfo(map[string]string{
@@ -387,12 +406,16 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	err := client.Servers.Delete(context.Background(), id)
 
 	if err != nil && strings.Contains(err.Error(), "Not found") {
+		log.Printf("[WARN] Cloudscale Server (%s) not found", d.Id())
+		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
 		return fmt.Errorf("Error deleting Server: %s", err)
 	}
+
+	d.SetId("")
 
 	return nil
 }
