@@ -79,6 +79,10 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.PrefixLength = attr.(int)
 	}
 
+	if attr, ok := d.GetOk("reverse_ptr"); ok {
+		opts.ReversePointer = attr.(string)
+	}
+
 	log.Printf("[DEBUG] FloatingIP create configuration: %#v", opts)
 
 	floatingIP, err := client.FloatingIPs.Create(context.Background(), opts)

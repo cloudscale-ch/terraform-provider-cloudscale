@@ -56,6 +56,8 @@ func TestAccCloudscaleFloatingIP_Server(t *testing.T) {
 					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.gateway", "reverse_ptr", "vip.web-worker01.example.com"),
 				),
 			},
 		},
@@ -167,6 +169,7 @@ resource "cloudscale_server" "basic" {
 resource "cloudscale_floating_ip" "gateway" {
   server 					= "${cloudscale_server.basic.id}"
   ip_version     	= 4
+	reverse_ptr 		= "vip.web-worker01.example.com"
 }`, rInt)
 }
 
