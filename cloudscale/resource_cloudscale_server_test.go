@@ -216,8 +216,6 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 }
 
 func TestAccCloudscaleServer_PrivateNetwork(t *testing.T) {
-	var afterCreate, afterUpdate cloudscale.Server
-
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -228,12 +226,12 @@ func TestAccCloudscaleServer_PrivateNetwork(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleServerConfig_only_private_network(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleServerExists("cloudscale_server.private", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.private", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
+						"cloudscale_server.private", "interfaces.#", "1"),
+					resource.TestCheckResourceAttr(
 						"cloudscale_server.private", "interfaces.0.type", "private"),
-					testAccCheckServerRecreated(t, &afterCreate, &afterUpdate),
 				),
 			},
 		},
