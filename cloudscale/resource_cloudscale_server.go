@@ -156,17 +156,17 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"ssh_fingerprints": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"ssh_host_keys": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"anti_affinity_with": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
