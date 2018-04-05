@@ -75,7 +75,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
-			Default:  true,
 		},
 		"use_private_network": {
 			Type:     schema.TypeBool,
@@ -86,7 +85,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
-			Default:  true,
 		},
 
 		// Computed attributes
@@ -204,17 +202,19 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.BulkVolumeSizeGB = attr.(int)
 	}
 
-	use_public_network := d.Get("use_public_network")
-	use_public_network_bool := use_public_network.(bool)
-	opts.UsePublicNetwork = &use_public_network_bool
+	if attr, ok := d.GetOkExists("use_public_network"); ok {
+		val := attr.(bool)
+		opts.UsePublicNetwork = &val
+	}
 
-	use_ipv6 := d.Get("use_ipv6")
-	use_ipv6_bool := use_ipv6.(bool)
-	opts.UseIPV6 = &use_ipv6_bool
-
-	if attr, ok := d.GetOk("use_private_network"); ok {
+	if attr, ok := d.GetOkExists("use_private_network"); ok {
 		val := attr.(bool)
 		opts.UsePrivateNetwork = &val
+	}
+
+	if attr, ok := d.GetOkExists("use_ipv6"); ok {
+		val := attr.(bool)
+		opts.UseIPV6 = &val
 	}
 
 	if attr, ok := d.GetOk("anti_affinity_uuid"); ok {
