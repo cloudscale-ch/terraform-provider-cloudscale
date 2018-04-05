@@ -208,7 +208,32 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "flavor_slug", "flex-4"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "interfaces.#", "2"),
 					testAccCheckServerRecreated(t, &afterCreate, &afterUpdate),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleServer_PrivateNetwork(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerConfig_only_private_network(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.private", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.private", "interfaces.#", "1"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.private", "interfaces.0.type", "private"),
 				),
 			},
 		},
@@ -395,6 +420,20 @@ resource "cloudscale_server" "basic" {
   name      			    = "terraform-%d"
   flavor_slug    			= "flex-4"
   image_slug     			= "debian-8"
+  use_private_network		= true
+  volume_size_gb			= 10
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`, rInt)
+}
+
+func testAccCheckCloudscaleServerConfig_only_private_network(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "private" {
+  name      			    = "terraform-%d"
+  flavor_slug    			= "flex-4"
+  image_slug     			= "debian-8"
+  use_private_network		= true
+  use_public_network		= false
   volume_size_gb			= 10
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt)

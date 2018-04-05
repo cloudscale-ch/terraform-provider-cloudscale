@@ -94,7 +94,7 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"volumes": {
-			Type: schema.TypeSet,
+			Type: schema.TypeList,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
@@ -114,7 +114,7 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"interfaces": {
-			Type: schema.TypeSet,
+			Type: schema.TypeList,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
@@ -154,17 +154,17 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"ssh_fingerprints": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"ssh_host_keys": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
 		"anti_affinity_with": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
@@ -175,6 +175,7 @@ func getServerSchema() map[string]*schema.Schema {
 		},
 	}
 }
+
 func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
@@ -201,17 +202,17 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.BulkVolumeSizeGB = attr.(int)
 	}
 
-	if attr, ok := d.GetOk("use_public_network"); ok {
+	if attr, ok := d.GetOkExists("use_public_network"); ok {
 		val := attr.(bool)
 		opts.UsePublicNetwork = &val
 	}
 
-	if attr, ok := d.GetOk("use_private_network"); ok {
+	if attr, ok := d.GetOkExists("use_private_network"); ok {
 		val := attr.(bool)
 		opts.UsePrivateNetwork = &val
 	}
 
-	if attr, ok := d.GetOk("use_ipv6"); ok {
+	if attr, ok := d.GetOkExists("use_ipv6"); ok {
 		val := attr.(bool)
 		opts.UseIPV6 = &val
 	}
