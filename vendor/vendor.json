@@ -1,19 +1,7 @@
 {
 	"comment": "",
-	"ignore": "test",
+	"ignore": "test appengine appengine_internal",
 	"package": [
-		{
-			"path": "appengine",
-			"revision": ""
-		},
-		{
-			"path": "appengine_internal",
-			"revision": ""
-		},
-		{
-			"path": "appengine_internal/base",
-			"revision": ""
-		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
 			"origin": "github.com/hashicorp/terraform/vendor/github.com/agext/levenshtein",
