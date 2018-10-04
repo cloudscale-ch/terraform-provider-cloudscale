@@ -19,7 +19,7 @@ type Server struct {
 	Status          string       `json:"status"`
 	Flavor          Flavor       `json:"flavor"`
 	Image           Image        `json:"image"`
-	Volumes         []Volume     `json:"volumes"`
+	Volumes         []VolumeStub `json:"volumes"`
 	Interfaces      []Interface  `json:"interfaces"`
 	SSHFingerprints []string     `json:"ssh_fingerprints"`
 	SSHHostKeys     []string     `json:"ssh_host_keys"`
@@ -44,7 +44,7 @@ type Image struct {
 	OperatingSystem string `json:"operating_system"`
 }
 
-type Volume struct {
+type VolumeStub struct {
 	Type       string `json:"type"`
 	DevicePath string `json:"device_path"`
 	SizeGB     int    `json:"size_gb"`
