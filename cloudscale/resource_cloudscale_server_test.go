@@ -18,7 +18,6 @@ func init() {
 		Name: "cloudscale_server",
 		F:    testSweepServers,
 	})
-
 }
 
 func testSweepServers(region string) error {
@@ -34,17 +33,17 @@ func testSweepServers(region string) error {
 		return err
 	}
 
+	foundError := error(nil)
 	for _, s := range servers {
 		if strings.HasPrefix(s.Name, "terraform-") {
 			log.Printf("Destroying Server %s", s.Name)
 
 			if err := client.Servers.Delete(context.Background(), s.UUID); err != nil {
-				return err
+				foundError = err
 			}
 		}
 	}
-
-	return nil
+	return foundError
 }
 
 func TestAccCloudscaleServer_Basic(t *testing.T) {

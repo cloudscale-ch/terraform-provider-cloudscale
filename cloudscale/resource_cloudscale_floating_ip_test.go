@@ -32,13 +32,14 @@ func testSweepFloatingIps(region string) error {
 		return err
 	}
 
+	foundError := error(nil)
 	for _, ip := range ips {
 		if err := client.FloatingIPs.Delete(context.Background(), ip.IP()); err != nil {
-			return err
+			foundError = err
 		}
 	}
 
-	return nil
+	return foundError
 }
 
 func TestAccCloudscaleFloatingIP_Server(t *testing.T) {
