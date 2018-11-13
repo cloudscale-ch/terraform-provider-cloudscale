@@ -45,7 +45,7 @@ func getVolumeSchema() map[string]*schema.Schema {
 		"server_uuids": {
 			Type: schema.TypeList,
 			Elem: &schema.Schema{Type: schema.TypeString},
-			Computed: true,
+			Optional: true,
 		},
 
 		// Computed attributes
@@ -66,7 +66,7 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 		Type: d.Get("type").(string),
 	}
 
-	serverUUIDs := d.Get("server_uuids").(*schema.Set).List()
+	serverUUIDs := d.Get("server_uuids").([]interface{})
 	s := make([]string, len(serverUUIDs))
 
 	for i := range serverUUIDs {
@@ -138,7 +138,7 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 		if d.HasChange(attribute) {
 			opts := &cloudscale.Volume{}
 			if attribute == "server_uuids" {
-				serverUUIDs := d.Get("server_uuids").(*schema.Set).List()
+				serverUUIDs := d.Get("server_uuids").([]interface{})
 				s := make([]string, len(serverUUIDs))
 
 				for i := range serverUUIDs {
