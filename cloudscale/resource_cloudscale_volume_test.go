@@ -125,6 +125,43 @@ func TestAccCloudscaleVolume_Detach(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleVolume_Reattach(t *testing.T) {
+	var server1, server2 cloudscale.Server
+	var volume cloudscale.Volume
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+	rInt3 := acctest.RandInt()
+
+	serverConfig := testAccCheckCloudscaleServerConfig_basic(rInt1)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: serverConfig + "\n" + volumeConfig_attached(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server1),
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "server_uuids.#", "1"),
+					assertVolumeAttached(&server1, &volume),
+				),
+			},
+			{
+				Config: serverConfig + "\n" + volumeConfig_reattached_volume(rInt3, rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.reattach_server", &server2),
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					assertVolumeAttached(&server2, &volume),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleVolumeDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
@@ -214,4 +251,20 @@ resource "cloudscale_volume" "basic" {
   server_uuids = ["${cloudscale_server.basic.id}"]
   type         = "ssd"
 }`, rInt)
+}
+
+func volumeConfig_reattached_volume(serverInt int, volumeInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "reattach_server" {
+  name        = "terraform-%d"
+  flavor_slug = "flex-2"
+  image_slug  = "debian-8"
+  ssh_keys    = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+resource "cloudscale_volume" "basic" {
+  name         = "terraform-%d"
+  size_gb      = 50
+  server_uuids = ["${cloudscale_server.reattach_server.id}"]
+  type         = "ssd"
+}`, serverInt, volumeInt)
 }
