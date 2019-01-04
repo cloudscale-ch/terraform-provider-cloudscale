@@ -43,8 +43,8 @@ func getVolumeSchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"server_uuids": {
-			Type: schema.TypeList,
-			Elem: &schema.Schema{Type: schema.TypeString},
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
 			Optional: true,
 		},
 
@@ -63,7 +63,7 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	opts := &cloudscale.Volume{
 		Name:   d.Get("name").(string),
 		SizeGB: d.Get("size_gb").(int),
-		Type: d.Get("type").(string),
+		Type:   d.Get("type").(string),
 	}
 
 	serverUUIDs := d.Get("server_uuids").([]interface{})
