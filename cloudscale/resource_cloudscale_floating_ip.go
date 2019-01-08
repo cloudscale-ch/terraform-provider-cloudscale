@@ -26,25 +26,25 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 
 		// Required attributes
 
-		"ip_version": &schema.Schema{
+		"ip_version": {
 			Type:     schema.TypeInt,
 			Required: true,
 			ForceNew: true,
 		},
-		"server": &schema.Schema{
+		"server": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
 
 		// Optional attributes
 
-		"reverse_ptr": &schema.Schema{
+		"reverse_ptr": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
-		"prefix_length": &schema.Schema{
+		"prefix_length": {
 			Type:     schema.TypeInt,
 			ForceNew: true,
 			Optional: true,
@@ -52,15 +52,15 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 
 		// Computed attributes
 
-		"network": &schema.Schema{
+		"network": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"next_hop": &schema.Schema{
+		"next_hop": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"href": &schema.Schema{
+		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
