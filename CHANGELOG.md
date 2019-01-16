@@ -1,4 +1,11 @@
 ## 1.0.2 (Unreleased)
+
+
+IMPROVEMENTS:
+
+* Expose the first public/private IPv4 and IPv6 addresses as string attributes `public_ipv4`,
+  `public_ipv6`, `private_ipv4` and `private_ipv6`
+
 ## 1.0.1 (April 06, 2018)
 
 

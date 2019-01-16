@@ -58,6 +58,10 @@ In addition to the arguments listed above, the following computed attributes are
     * `device_path` - The path (string) to the volume on your server (e.g. `/dev/vda`)
     * `size_gb` - The size (int) of the volume in GB. Typically matches `volume_size_gb` or `bulk_volume_size_gb`.
     * `type` - A string. Either `ssd` or `bulk`.
+* `public_ipv4` - The first `public` IPv4 address of this server. The returned IP address may be `""` if the server does not have a public IPv4.
+* `private_ipv4` - The first `private` IPv4 address of this server. The returned IP address may be `""` if the server does not have private networking enabled.
+* `public_ipv6` - The first `public` IPv6 address of this server. The returned IP address may be `""` if the server does not have a public IPv6.
+* `private_ipv6` - The first `private` IPv6 address of this server. The returned IP address may be `""` if the server does not have private networking enabled.
 * `interfaces` - A list of interface objects attached to this server. Each interface object has two attributes:
     * `type` - Either `public` or `private`. Public interfaces are connected to the Internet, while private interfaces are not.
     * `addresses` - A list of address objects:

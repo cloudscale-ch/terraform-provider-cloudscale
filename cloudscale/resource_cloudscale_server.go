@@ -113,6 +113,22 @@ func getServerSchema() map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
+		"public_ipv4": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"public_ipv6": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"private_ipv4": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"private_ipv6": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"interfaces": {
 			Type: schema.TypeList,
 			Elem: &schema.Resource{
@@ -365,6 +381,11 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			})
 		}
 	}
+
+	d.Set("public_ipv4", findIPv4AddrByType(server, "public"))
+	d.Set("public_ipv6", findIPv6AddrByType(server, "public"))
+	d.Set("private_ipv4", findIPv4AddrByType(server, "private"))
+	d.Set("private_ipv6", findIPv6AddrByType(server, "private"))
 
 	return nil
 }
