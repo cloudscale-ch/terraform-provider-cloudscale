@@ -351,22 +351,17 @@ func testAccCheckServerIp(n string) resource.TestCheckFunc {
 		for _, networkInterface := range retrieveServer.Interfaces {
 			for _, ipAddress := range networkInterface.Adresses {
 				if ipAddress.Version == 4 && networkInterface.Type == "public" {
-					err := resource.TestCheckResourceAttr(n, "public_ipv4", ipAddress.Address)(s)
+					err := resource.TestCheckResourceAttr(n, "public_ipv4_address", ipAddress.Address)(s)
 					if err != nil {
 						return err
 					}
 				} else if ipAddress.Version == 4 && networkInterface.Type == "private" {
-					err := resource.TestCheckResourceAttr(n, "private_ipv4", ipAddress.Address)(s)
+					err := resource.TestCheckResourceAttr(n, "private_ipv4_address", ipAddress.Address)(s)
 					if err != nil {
 						return err
 					}
 				} else if ipAddress.Version == 6 && networkInterface.Type == "public" {
-					err := resource.TestCheckResourceAttr(n, "public_ipv6", ipAddress.Address)(s)
-					if err != nil {
-						return err
-					}
-				} else if ipAddress.Version == 6 && networkInterface.Type == "private" {
-					err := resource.TestCheckResourceAttr(n, "private_ipv6", ipAddress.Address)(s)
+					err := resource.TestCheckResourceAttr(n, "public_ipv6_address", ipAddress.Address)(s)
 					if err != nil {
 						return err
 					}
