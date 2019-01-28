@@ -219,7 +219,7 @@ func testAccCheckCloudscaleVolumeExists(n string, volume *cloudscale.Volume) res
 func assertVolumeAttached(server *cloudscale.Server, volume *cloudscale.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if server.UUID != (*volume.ServerUUIDs)[0] {
-			return fmt.Errorf("Server not properly attached to %s: %s", server.UUID, volume.ServerUUIDs)
+			return fmt.Errorf("Server not properly attached to %s: %v", server.UUID, volume.ServerUUIDs)
 		}
 		return nil
 	}
