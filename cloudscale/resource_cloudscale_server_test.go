@@ -70,6 +70,7 @@ func TestAccCloudscaleServer_Basic(t *testing.T) {
 						"cloudscale_server.basic", "image_slug", "debian-8"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "interfaces.0.type", "public"),
+					testAccCheckServerIp("cloudscale_server.basic"),
 				),
 			},
 		},
@@ -149,6 +150,7 @@ func TestAccCloudscaleServer_Update(t *testing.T) {
 						"cloudscale_server.basic", "flavor_slug", "flex-2"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", "debian-8"),
+					testAccCheckServerIp("cloudscale_server.basic"),
 				),
 			},
 			{
@@ -170,6 +172,7 @@ func TestAccCloudscaleServer_Update(t *testing.T) {
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "running"),
+					testAccCheckServerIp("cloudscale_server.basic"),
 					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
 				),
 			},
@@ -198,6 +201,7 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 						"cloudscale_server.basic", "flavor_slug", "flex-2"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", "debian-8"),
+					testAccCheckServerIp("cloudscale_server.basic"),
 				),
 			},
 			{
@@ -210,6 +214,7 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 						"cloudscale_server.basic", "flavor_slug", "flex-4"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "interfaces.#", "2"),
+					testAccCheckServerIp("cloudscale_server.basic"),
 					testAccCheckServerRecreated(t, &afterCreate, &afterUpdate),
 				),
 			},
@@ -234,6 +239,7 @@ func TestAccCloudscaleServer_PrivateNetwork(t *testing.T) {
 						"cloudscale_server.private", "interfaces.#", "1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.private", "interfaces.0.type", "private"),
+					testAccCheckServerIp("cloudscale_server.private"),
 				),
 			},
 		},
@@ -312,6 +318,56 @@ func testAccCheckCloudscaleServerAttributes(server *cloudscale.Server) resource.
 			return fmt.Errorf("Bad volumes_size_gb: %d", server.Volumes[0].SizeGB)
 		}
 
+		return nil
+	}
+}
+
+func testAccCheckServerIp(n string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Server ID is set")
+		}
+
+		client := testAccProvider.Meta().(*cloudscale.Client)
+
+		id := rs.Primary.ID
+
+		// Try to find the server
+		retrieveServer, err := client.Servers.Get(context.Background(), id)
+
+		if err != nil {
+			return err
+		}
+
+		if retrieveServer.UUID != rs.Primary.ID {
+			return fmt.Errorf("Server not found")
+		}
+
+		for _, networkInterface := range retrieveServer.Interfaces {
+			for _, ipAddress := range networkInterface.Adresses {
+				if ipAddress.Version == 4 && networkInterface.Type == "public" {
+					err := resource.TestCheckResourceAttr(n, "public_ipv4_address", ipAddress.Address)(s)
+					if err != nil {
+						return err
+					}
+				} else if ipAddress.Version == 4 && networkInterface.Type == "private" {
+					err := resource.TestCheckResourceAttr(n, "private_ipv4_address", ipAddress.Address)(s)
+					if err != nil {
+						return err
+					}
+				} else if ipAddress.Version == 6 && networkInterface.Type == "public" {
+					err := resource.TestCheckResourceAttr(n, "public_ipv6_address", ipAddress.Address)(s)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
 		return nil
 	}
 }
