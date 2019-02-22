@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 const (
@@ -27,10 +28,14 @@ type Client struct {
 	// Base URL for API requests.
 	BaseURL *url.URL
 
+	// Authentication token
+	AuthToken string
+
 	// User agent for client
 	UserAgent string
 
 	Servers     ServerService
+	Volumes     VolumeService
 	FloatingIPs FloatingIPsService
 }
 
@@ -40,11 +45,19 @@ func NewClient(httpClient *http.Client) *Client {
 		httpClient = http.DefaultClient
 	}
 
-	baseURL, _ := url.Parse(defaultBaseURL)
+	// To allow more complicated testing we allow changing the cloudscale.ch
+	// URL.
+	defaultURL := os.Getenv("CLOUDSCALE_URL")
+
+	if defaultURL == "" {
+		defaultURL = defaultBaseURL
+	}
+	baseURL, _ := url.Parse(defaultURL)
 
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 	c.Servers = ServerServiceOperations{client: c}
 	c.FloatingIPs = FloatingIPsServiceOperations{client: c}
+	c.Volumes = VolumeServiceOperations{client: c}
 
 	return c
 }
@@ -73,6 +86,11 @@ func (c *Client) NewRequest(ctx context.Context, method, urlStr string, body int
 	req.Header.Add("Content-Type", mediaType)
 	req.Header.Add("Accept", mediaType)
 	req.Header.Add("User-Agent", c.UserAgent)
+
+	if len(c.AuthToken) != 0 {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.AuthToken))
+	}
+
 	return req, nil
 }
 
@@ -128,12 +146,14 @@ func CheckResponse(r *http.Response) error {
 	}
 
 	return &ErrorResponse{
-		Message: res,
+		StatusCode: r.StatusCode,
+		Message:    res,
 	}
 }
 
 type ErrorResponse struct {
-	Message map[string]string
+	StatusCode int
+	Message    map[string]string
 }
 
 func (r *ErrorResponse) Error() string {

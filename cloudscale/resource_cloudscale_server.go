@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
@@ -280,12 +279,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	server, err := client.Servers.Get(context.Background(), id)
 	if err != nil {
-		if err.Error() == "detail: Not Found." {
-			log.Printf("[WARN] Cloudscale Server (%s) not found", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error retrieving server: %s", err)
+		return CheckDeleted(d, err, "Error retrieving server")
 	}
 
 	d.Set("href", server.HREF)
@@ -422,17 +416,9 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] Deleting Server: %s", d.Id())
 	err := client.Servers.Delete(context.Background(), id)
 
-	if err != nil && strings.Contains(err.Error(), "Not found") {
-		log.Printf("[WARN] Cloudscale Server (%s) not found", d.Id())
-		d.SetId("")
-		return nil
-	}
-
 	if err != nil {
-		return fmt.Errorf("Error deleting Server: %s", err)
+		return CheckDeleted(d, err, "Error deleting Server")
 	}
-
-	d.SetId("")
 
 	return nil
 }
