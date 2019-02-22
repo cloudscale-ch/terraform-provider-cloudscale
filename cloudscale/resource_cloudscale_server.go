@@ -28,17 +28,17 @@ func getServerSchema() map[string]*schema.Schema {
 
 		// Required attributes
 
-		"name": &schema.Schema{
+		"name": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"flavor_slug": &schema.Schema{
+		"flavor_slug": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"image_slug": &schema.Schema{
+		"image_slug": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -52,12 +52,12 @@ func getServerSchema() map[string]*schema.Schema {
 
 		// Optional attributes
 
-		"volume_size_gb": &schema.Schema{
+		"volume_size_gb": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
 		},
-		"bulk_volume_size_gb": &schema.Schema{
+		"bulk_volume_size_gb": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
@@ -89,7 +89,7 @@ func getServerSchema() map[string]*schema.Schema {
 
 		// Computed attributes
 
-		"href": &schema.Schema{
+		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
