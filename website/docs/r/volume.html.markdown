@@ -22,7 +22,7 @@ resource "cloudscale_server" "web-worker01" {
 }
 
 # Add a Volume to web-worker01
-resource "cloudscale_volume" "web-worker01-vip" {
+resource "cloudscale_volume" "web-worker01-volume" {
   name         = "web-worker-data"
   size_gb      = 100
   type         = "ssd"
@@ -35,7 +35,7 @@ resource "cloudscale_volume" "web-worker01-vip" {
 The following arguments are supported when creating/changing Volumes:
 
 * `name` - (Required) Name of the new volume.
-* `size_gb` - (Required) The volume size in GB. Valid values are multiples of 50 for type "ssd" and multiples of 100 for type "bulk".
+* `size_gb` - (Required) The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
 * `type` - (Optional) For SSD/NVMe volumes specify "ssd" (default) or use "bulk" for our HDD cluster with NVMe caching. This is the only attribute that cannot be altered.
 * `server_uuids` - (Optional) A list of server UUIDs. Default to an empty list. Currently a volume can only be attached to one server UUID.
 

@@ -101,8 +101,8 @@ func fillVolumeResourceData(d *schema.ResourceData, volume *cloudscale.Volume) e
 
 	err := d.Set("server_uuids", volume.ServerUUIDs)
 	if err != nil {
-		log.Printf("[DEBUG] Error setting ssh_fingerprins attribute: %#v, error: %#v", volume.ServerUUIDs, err)
-		return fmt.Errorf("Error setting ssh_fingerprins attribute: %#v, error: %#v", volume.ServerUUIDs, err)
+		log.Printf("[DEBUG] Error setting server_uuids attribute: %#v, error: %#v", volume.ServerUUIDs, err)
+		return fmt.Errorf("Error setting server_uuids attribute: %#v, error: %#v", volume.ServerUUIDs, err)
 	}
 	return nil
 }
