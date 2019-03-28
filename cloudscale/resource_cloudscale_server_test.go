@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -254,10 +255,13 @@ func testAccCheckCloudscaleServerDestroy(s *terraform.State) error {
 
 		// Wait
 
-		if err != nil && !strings.Contains(err.Error(), "Not found") {
+		if err != nil {
+			errorResponse, ok := err.(*cloudscale.ErrorResponse)
+			if !ok || errorResponse.StatusCode == http.StatusNotFound {
 			return fmt.Errorf(
 				"Error waiting for server (%s) to be destroyed: %s",
 				rs.Primary.ID, err)
+			}
 		}
 	}
 

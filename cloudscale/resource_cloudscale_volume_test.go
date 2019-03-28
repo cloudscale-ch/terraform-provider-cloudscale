@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -174,10 +175,13 @@ func testAccCheckCloudscaleVolumeDestroy(s *terraform.State) error {
 
 		// Try to find the volume
 		_, err := client.Volumes.Get(context.Background(), id)
-		if err != nil && !strings.Contains(err.Error(), "Not found") {
-			return fmt.Errorf(
-				"Error waiting for volume (%s) to be destroyed: %s",
-				rs.Primary.ID, err)
+		if err != nil {
+			errorResponse, ok := err.(*cloudscale.ErrorResponse)
+			if !ok || errorResponse.StatusCode == http.StatusNotFound {
+				return fmt.Errorf(
+					"Error waiting for volume (%s) to be destroyed: %s",
+					rs.Primary.ID, err)
+			}
 		}
 	}
 

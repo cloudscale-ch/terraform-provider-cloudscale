@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
+	"net/http"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -112,7 +112,8 @@ func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 
 	volume, err := client.Volumes.Get(context.Background(), d.Id())
 	if err != nil {
-		if err.Error() == "detail: Not Found." {
+		errorResponse, ok := err.(*cloudscale.ErrorResponse)
+		if ok && errorResponse.StatusCode == http.StatusNotFound {
 			log.Printf("[WARN] Cloudscale Volume (%s) not found", d.Id())
 			d.SetId("")
 			return nil
@@ -166,10 +167,13 @@ func resourceVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] Deleting Volume: %s", d.Id())
 	err := client.Volumes.Delete(context.Background(), id)
 
-	if err != nil && strings.Contains(err.Error(), "Not found") {
-		log.Printf("[WARN] Cloudscale Volume (%s) not found", d.Id())
-	} else if err != nil {
-		return fmt.Errorf("Error deleting Volume: %s", err)
+	if err != nil {
+		errorResponse, ok := err.(*cloudscale.ErrorResponse)
+		if ok && errorResponse.StatusCode == http.StatusNotFound {
+			log.Printf("[WARN] Cloudscale Volume (%s) not found", d.Id())
+		} else {
+			return fmt.Errorf("Error deleting Volume: %s", err)
+		}
 	}
 
 	d.SetId("")
