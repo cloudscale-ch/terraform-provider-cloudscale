@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -26,25 +25,25 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 
 		// Required attributes
 
-		"ip_version": &schema.Schema{
+		"ip_version": {
 			Type:     schema.TypeInt,
 			Required: true,
 			ForceNew: true,
 		},
-		"server": &schema.Schema{
+		"server": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
 
 		// Optional attributes
 
-		"reverse_ptr": &schema.Schema{
+		"reverse_ptr": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
-		"prefix_length": &schema.Schema{
+		"prefix_length": {
 			Type:     schema.TypeInt,
 			ForceNew: true,
 			Optional: true,
@@ -52,15 +51,15 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 
 		// Computed attributes
 
-		"network": &schema.Schema{
+		"network": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"next_hop": &schema.Schema{
+		"next_hop": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"href": &schema.Schema{
+		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -101,13 +100,7 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 
 	floatingIP, err := client.FloatingIPs.Get(context.Background(), id)
 	if err != nil {
-		errorResponse, ok := err.(*cloudscale.ErrorResponse)
-		if ok && errorResponse.StatusCode == http.StatusNotFound {
-			log.Printf("[WARN] Cloudscale FloatingIP (%s) not found", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error retrieving FloatingIP: %s", err)
+		return CheckDeleted(d, err, "Error retrieving FloatingIP")
 	}
 
 	d.Set("href", floatingIP.HREF)
@@ -148,19 +141,8 @@ func resourceFloatingIPDelete(d *schema.ResourceData, meta interface{}) error {
 	err := client.FloatingIPs.Delete(context.Background(), id)
 
 	if err != nil {
-		errorResponse, ok := err.(*cloudscale.ErrorResponse)
-		if ok && errorResponse.StatusCode == http.StatusNotFound {
-			log.Printf("[WARN] FloatingIP (%s) not found", d.Id())
-			d.SetId("")
-			return nil
-		}
+		return CheckDeleted(d, err, "Error deleting floating IP")
 	}
-
-	if err != nil {
-		return fmt.Errorf("Error deleting FloatingIP: %s", err)
-	}
-
-	d.SetId("")
 
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
@@ -28,17 +27,17 @@ func getServerSchema() map[string]*schema.Schema {
 
 		// Required attributes
 
-		"name": &schema.Schema{
+		"name": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"flavor_slug": &schema.Schema{
+		"flavor_slug": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"image_slug": &schema.Schema{
+		"image_slug": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -52,12 +51,12 @@ func getServerSchema() map[string]*schema.Schema {
 
 		// Optional attributes
 
-		"volume_size_gb": &schema.Schema{
+		"volume_size_gb": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
 		},
-		"bulk_volume_size_gb": &schema.Schema{
+		"bulk_volume_size_gb": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
@@ -89,7 +88,7 @@ func getServerSchema() map[string]*schema.Schema {
 
 		// Computed attributes
 
-		"href": &schema.Schema{
+		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -111,6 +110,18 @@ func getServerSchema() map[string]*schema.Schema {
 					},
 				},
 			},
+			Computed: true,
+		},
+		"public_ipv4_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"public_ipv6_address": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"private_ipv4_address": {
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 		"interfaces": {
@@ -268,13 +279,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	server, err := client.Servers.Get(context.Background(), id)
 	if err != nil {
-		errorResponse, ok := err.(*cloudscale.ErrorResponse)
-		if ok && errorResponse.StatusCode == http.StatusNotFound {
-			log.Printf("[WARN] Cloudscale Server (%s) not found", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error retrieving server: %s", err)
+		return CheckDeleted(d, err, "Error retrieving server")
 	}
 
 	d.Set("href", server.HREF)
@@ -367,6 +372,10 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	d.Set("public_ipv4_address", findIPv4AddrByType(server, "public"))
+	d.Set("public_ipv6_address", findIPv6AddrByType(server, "public"))
+	d.Set("private_ipv4_address", findIPv4AddrByType(server, "private"))
+
 	return nil
 }
 
@@ -408,19 +417,8 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	err := client.Servers.Delete(context.Background(), id)
 
 	if err != nil {
-		errorResponse, ok := err.(*cloudscale.ErrorResponse)
-		if ok && errorResponse.StatusCode == http.StatusNotFound {
-			log.Printf("[WARN] Cloudscale Server (%s) not found", d.Id())
-			d.SetId("")
-			return nil
-		}
+		return CheckDeleted(d, err, "Error deleting server")
 	}
-
-	if err != nil {
-		return fmt.Errorf("Error deleting Server: %s", err)
-	}
-
-	d.SetId("")
 
 	return nil
 }

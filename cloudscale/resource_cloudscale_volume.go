@@ -112,13 +112,7 @@ func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 
 	volume, err := client.Volumes.Get(context.Background(), d.Id())
 	if err != nil {
-		errorResponse, ok := err.(*cloudscale.ErrorResponse)
-		if ok && errorResponse.StatusCode == http.StatusNotFound {
-			log.Printf("[WARN] Cloudscale Volume (%s) not found", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error retrieving volume: %s", err)
+		return CheckDeleted(d, err, "Error retrieving volume")
 	}
 
 	err = fillVolumeResourceData(d, volume)
@@ -168,14 +162,7 @@ func resourceVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	err := client.Volumes.Delete(context.Background(), id)
 
 	if err != nil {
-		errorResponse, ok := err.(*cloudscale.ErrorResponse)
-		if ok && errorResponse.StatusCode == http.StatusNotFound {
-			log.Printf("[WARN] Cloudscale Volume (%s) not found", d.Id())
-		} else {
-			return fmt.Errorf("Error deleting Volume: %s", err)
-		}
+		return CheckDeleted(d, err, "Error deleting volume")
 	}
-
-	d.SetId("")
 	return nil
 }
