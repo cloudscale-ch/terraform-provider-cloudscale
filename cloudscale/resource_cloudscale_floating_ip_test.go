@@ -3,6 +3,7 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
@@ -141,6 +142,13 @@ func testAccCheckCloudScaleFloatingIPDestroy(s *terraform.State) error {
 
 		if err == nil {
 			return fmt.Errorf("Floating IP still exists")
+		} else {
+			errorResponse, ok := err.(*cloudscale.ErrorResponse)
+			if !ok || errorResponse.StatusCode != http.StatusNotFound {
+				return fmt.Errorf(
+					"Error waiting for floating IP (%s) to be destroyed: %s",
+					rs.Primary.ID, err)
+			}
 		}
 	}
 

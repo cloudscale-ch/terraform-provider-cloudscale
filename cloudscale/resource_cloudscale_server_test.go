@@ -259,13 +259,15 @@ func testAccCheckCloudscaleServerDestroy(s *terraform.State) error {
 		id := rs.Primary.ID
 
 		// Try to find the server
-		_, err := client.Servers.Get(context.Background(), id)
+		s, err := client.Servers.Get(context.Background(), id)
 
 		// Wait
 
-		if err != nil {
+		if err == nil {
+			return fmt.Errorf("The server %v remained, even though the resource was destoryed", s)
+		} else {
 			errorResponse, ok := err.(*cloudscale.ErrorResponse)
-			if !ok || errorResponse.StatusCode == http.StatusNotFound {
+			if !ok || errorResponse.StatusCode != http.StatusNotFound {
 				return fmt.Errorf(
 					"Error waiting for server (%s) to be destroyed: %s",
 					rs.Primary.ID, err)

@@ -174,10 +174,12 @@ func testAccCheckCloudscaleVolumeDestroy(s *terraform.State) error {
 		id := rs.Primary.ID
 
 		// Try to find the volume
-		_, err := client.Volumes.Get(context.Background(), id)
-		if err != nil {
+		v, err := client.Volumes.Get(context.Background(), id)
+		if err == nil {
+			return fmt.Errorf("Volume %v still exists", v)
+		} else {
 			errorResponse, ok := err.(*cloudscale.ErrorResponse)
-			if !ok || errorResponse.StatusCode == http.StatusNotFound {
+			if !ok || errorResponse.StatusCode != http.StatusNotFound {
 				return fmt.Errorf(
 					"Error waiting for volume (%s) to be destroyed: %s",
 					rs.Primary.ID, err)
@@ -262,7 +264,7 @@ func volumeConfig_reattached_volume(serverInt int, volumeInt int) string {
 resource "cloudscale_server" "reattach_server" {
   name        = "terraform-%d"
   flavor_slug = "flex-2"
-  image_slug  = "debian-8"
+  image_slug  = "%s"
   ssh_keys    = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
 resource "cloudscale_volume" "basic" {
@@ -270,5 +272,5 @@ resource "cloudscale_volume" "basic" {
   size_gb      = 50
   server_uuids = ["${cloudscale_server.reattach_server.id}"]
   type         = "ssd"
-}`, serverInt, volumeInt)
+}`, serverInt, DefaultImageSlug, volumeInt)
 }
