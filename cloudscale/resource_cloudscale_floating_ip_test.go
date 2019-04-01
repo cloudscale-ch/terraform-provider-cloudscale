@@ -162,7 +162,7 @@ func testAccCheckCloudScaleFloatingIPConfig_server(rInt int) string {
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
   flavor_slug    			= "flex-2"
-  image_slug     			= "debian-8"
+  image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
@@ -170,7 +170,7 @@ resource "cloudscale_floating_ip" "gateway" {
   server 					= "${cloudscale_server.basic.id}"
   ip_version     	= 4
 	reverse_ptr 		= "vip.web-worker01.example.com"
-}`, rInt)
+}`, rInt, DefaultImageSlug)
 }
 
 func testAccCheckCloudScaleFloatingIPConfig_update_first(rIntA, rIntB int) string {
@@ -178,7 +178,7 @@ func testAccCheckCloudScaleFloatingIPConfig_update_first(rIntA, rIntB int) strin
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
   flavor_slug    			= "flex-2"
-  image_slug     			= "debian-8"
+  image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
@@ -186,7 +186,7 @@ resource "cloudscale_server" "basic" {
 resource "cloudscale_server" "advanced" {
   name      					= "terraform-%d"
   flavor_slug    			= "flex-2"
-  image_slug     			= "debian-8"
+  image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
@@ -194,7 +194,7 @@ resource "cloudscale_server" "advanced" {
 resource "cloudscale_floating_ip" "gateway" {
   server 					= "${cloudscale_server.basic.id}"
   ip_version     	= 4
-}`, rIntA, rIntB)
+}`, rIntA, DefaultImageSlug, rIntB, DefaultImageSlug)
 }
 
 func testAccCheckCloudScaleFloatingIPConfig_update_second(rIntA, rIntB int) string {
@@ -202,7 +202,7 @@ func testAccCheckCloudScaleFloatingIPConfig_update_second(rIntA, rIntB int) stri
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
   flavor_slug    			= "flex-2"
-  image_slug     			= "debian-8"
+  image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
@@ -210,7 +210,7 @@ resource "cloudscale_server" "basic" {
 resource "cloudscale_server" "advanced" {
   name      					= "terraform-%d"
   flavor_slug    			= "flex-2"
-  image_slug     			= "debian-8"
+  image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
@@ -218,5 +218,5 @@ resource "cloudscale_server" "advanced" {
 resource "cloudscale_floating_ip" "gateway" {
   server 					= "${cloudscale_server.advanced.id}"
   ip_version     	= 4
-}`, rIntA, rIntB)
+}`, rIntA, DefaultImageSlug, rIntB, DefaultImageSlug)
 }
