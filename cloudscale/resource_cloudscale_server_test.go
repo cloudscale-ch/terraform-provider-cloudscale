@@ -266,9 +266,9 @@ func testAccCheckCloudscaleServerDestroy(s *terraform.State) error {
 		if err != nil {
 			errorResponse, ok := err.(*cloudscale.ErrorResponse)
 			if !ok || errorResponse.StatusCode == http.StatusNotFound {
-			return fmt.Errorf(
-				"Error waiting for server (%s) to be destroyed: %s",
-				rs.Primary.ID, err)
+				return fmt.Errorf(
+					"Error waiting for server (%s) to be destroyed: %s",
+					rs.Primary.ID, err)
 			}
 		}
 	}
