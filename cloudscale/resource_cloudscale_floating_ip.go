@@ -3,9 +3,10 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 )
 
 func resourceCloudScaleFloatingIP() *schema.Resource {
@@ -140,7 +141,7 @@ func resourceFloatingIPDelete(d *schema.ResourceData, meta interface{}) error {
 	err := client.FloatingIPs.Delete(context.Background(), id)
 
 	if err != nil {
-		return CheckDeleted(d, err, "Error deleting FloatingIP")
+		return CheckDeleted(d, err, "Error deleting floating IP")
 	}
 
 	return nil

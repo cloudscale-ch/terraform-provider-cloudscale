@@ -417,7 +417,7 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	err := client.Servers.Delete(context.Background(), id)
 
 	if err != nil {
-		return CheckDeleted(d, err, "Error deleting Server")
+		return CheckDeleted(d, err, "Error deleting server")
 	}
 
 	return nil

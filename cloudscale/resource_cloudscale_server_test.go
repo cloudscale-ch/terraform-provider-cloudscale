@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -20,7 +21,6 @@ func init() {
 		Name: "cloudscale_server",
 		F:    testSweepServers,
 	})
-
 }
 
 func testSweepServers(region string) error {
@@ -36,17 +36,17 @@ func testSweepServers(region string) error {
 		return err
 	}
 
+	foundError := error(nil)
 	for _, s := range servers {
 		if strings.HasPrefix(s.Name, "terraform-") {
 			log.Printf("Destroying Server %s", s.Name)
 
 			if err := client.Servers.Delete(context.Background(), s.UUID); err != nil {
-				return err
+				foundError = err
 			}
 		}
 	}
-
-	return nil
+	return foundError
 }
 
 func TestAccCloudscaleServer_Basic(t *testing.T) {
@@ -259,14 +259,19 @@ func testAccCheckCloudscaleServerDestroy(s *terraform.State) error {
 		id := rs.Primary.ID
 
 		// Try to find the server
-		_, err := client.Servers.Get(context.Background(), id)
+		s, err := client.Servers.Get(context.Background(), id)
 
 		// Wait
 
-		if err != nil && !strings.Contains(err.Error(), "Not found") {
-			return fmt.Errorf(
-				"Error waiting for server (%s) to be destroyed: %s",
-				rs.Primary.ID, err)
+		if err == nil {
+			return fmt.Errorf("The server %v remained, even though the resource was destoryed", s)
+		} else {
+			errorResponse, ok := err.(*cloudscale.ErrorResponse)
+			if !ok || errorResponse.StatusCode != http.StatusNotFound {
+				return fmt.Errorf(
+					"Error waiting for server (%s) to be destroyed: %s",
+					rs.Primary.ID, err)
+			}
 		}
 	}
 
