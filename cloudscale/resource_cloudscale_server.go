@@ -42,6 +42,7 @@ func getServerSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
+
 		"ssh_keys": {
 			Type:     schema.TypeSet,
 			Required: true,
@@ -84,6 +85,11 @@ func getServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
+		},
+
+		"allow_stopping_for_update": {
+			Type:     schema.TypeBool,
+			Optional: true,
 		},
 
 		// Computed attributes
