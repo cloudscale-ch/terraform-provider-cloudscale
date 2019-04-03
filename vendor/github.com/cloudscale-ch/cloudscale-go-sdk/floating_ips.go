@@ -81,7 +81,7 @@ func (f FloatingIPsServiceOperations) Get(ctx context.Context, ip string) (*Floa
 func (f FloatingIPsServiceOperations) Update(ctx context.Context, ip string, floatingIPUpdateRequest *FloatingIPUpdateRequest) (*FloatingIP, error) {
 	path := fmt.Sprintf("%s/%s", floatingIPsBasePath, ip)
 
-	req, err := f.client.NewRequest(ctx, http.MethodPost, path, floatingIPUpdateRequest)
+	req, err := f.client.NewRequest(ctx, http.MethodPatch, path, floatingIPUpdateRequest)
 	if err != nil {
 		return nil, err
 	}
