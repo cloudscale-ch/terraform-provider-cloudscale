@@ -258,7 +258,10 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if originalStatus == "stopped" {
-		err := client.Servers.Update(context.Background(), server.UUID, originalStatus)
+		updateRequest := &cloudscale.ServerUpdateRequest{
+			Status: originalStatus,
+		}
+		err := client.Servers.Update(context.Background(), server.UUID, updateRequest)
 		if err != nil {
 			return fmt.Errorf("Error updating the Server (%s) status (%s) ", server.UUID, err)
 		}
@@ -385,7 +388,10 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("status") {
 		status := d.Get("status").(string)
-		err := client.Servers.Update(context.Background(), id, status)
+		updateRequest := &cloudscale.ServerUpdateRequest{
+			Status: status,
+		}
+		err := client.Servers.Update(context.Background(), id, updateRequest)
 		if err != nil {
 			return fmt.Errorf("Error updating the Server (%s) status (%s) ", id, err)
 		}
