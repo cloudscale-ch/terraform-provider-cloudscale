@@ -30,12 +30,10 @@ func getServerSchema() map[string]*schema.Schema {
 		"name": {
 			Type:     schema.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 		"flavor_slug": {
 			Type:     schema.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 		"image_slug": {
 			Type:     schema.TypeString,
@@ -392,21 +390,67 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	if d.HasChange("status") {
-		status := d.Get("status").(string)
+	wantedStatus := d.Get("status").(string)
+	// Since starting stoppin the server changes the state, get the wanted
+	// things here.
+	wantedFlavor := d.Get("flavor_slug").(string)
+	wantedName := d.Get("name").(string)
+	needStart := false
+
+	if d.HasChange("flavor_slug") {
+		if !d.Get("allow_stopping_for_update").(bool) {
+			return fmt.Errorf("Changing the flavor requires stopping the server. " +
+				"To acknowledge this, please set allow_stopping_for_update = true in your config.")
+		}
+
+		server, err := client.Servers.Get(context.Background(), id)
+		if err != nil {
+			return fmt.Errorf("Error retrieving server %s", err)
+		}
+		if server.Status != cloudscale.ServerStopped {
+			updateRequest := &cloudscale.ServerUpdateRequest{
+				Status: cloudscale.ServerStopped,
+			}
+			err := client.Servers.Update(context.Background(), id, updateRequest)
+			if err != nil {
+				return fmt.Errorf("Error retrieving server %s", err)
+			}
+
+			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
+			if err != nil {
+				return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
+			}
+		}
+
+		updateRequest := &cloudscale.ServerUpdateRequest{Flavor: wantedFlavor}
+
+		err = client.Servers.Update(context.Background(), id, updateRequest)
+		if err != nil {
+			return fmt.Errorf("Error scaling the Server (%s) status (%s) ", id, err)
+		}
+		_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "stopped")
+
+		// Signal that we want to start the server again
+		if wantedStatus == "running" {
+			needStart = true
+		}
+		d.SetPartial("flavor_slug")
+	}
+
+	if d.HasChange("status") || needStart {
 		updateRequest := &cloudscale.ServerUpdateRequest{
-			Status: status,
+			Status: wantedStatus,
 		}
 		err := client.Servers.Update(context.Background(), id, updateRequest)
 		if err != nil {
 			return fmt.Errorf("Error updating the Server (%s) status (%s) ", id, err)
 		}
 
-		if status == "rebooted" {
-			return fmt.Errorf("Status (%s) not supported", status)
+		if wantedStatus == "rebooted" {
+			return fmt.Errorf("Status (%s) not supported", wantedStatus)
 		}
 
-		if status == "stopped" {
+		if wantedStatus == "stopped" {
 			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
 		} else {
 			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running")
@@ -415,7 +459,17 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
 		}
+		d.SetPartial("status")
 
+	}
+
+	if d.HasChange("name") {
+		updateRequest := &cloudscale.ServerUpdateRequest{Name: wantedName}
+		err := client.Servers.Update(context.Background(), id, updateRequest)
+		if err != nil {
+			return fmt.Errorf("Error renaming the Server (%s) status (%s) ", id, err)
+		}
+		d.SetPartial("name")
 	}
 
 	return resourceServerRead(d, meta)
