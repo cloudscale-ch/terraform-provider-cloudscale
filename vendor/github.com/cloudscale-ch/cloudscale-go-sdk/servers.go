@@ -80,7 +80,7 @@ type ServerRequest struct {
 type ServerService interface {
 	Create(ctx context.Context, createRequest *ServerRequest) (*Server, error)
 	Get(ctx context.Context, serverID string) (*Server, error)
-	Update(ctx context.Context, serverID, status string) error
+	Update(ctx context.Context, serverID string, updateRequest *ServerUpdateRequest) error
 	Delete(ctx context.Context, serverID string) error
 	List(ctx context.Context) ([]Server, error)
 	Reboot(ctx context.Context, serverID string) error
@@ -110,17 +110,48 @@ func (s ServerServiceOperations) Create(ctx context.Context, createRequest *Serv
 	return server, nil
 }
 
-func (s ServerServiceOperations) Update(ctx context.Context, serverID, status string) error {
-	switch status {
-	case ServerRunning:
-		return s.Start(ctx, serverID)
-	case ServerStopped:
-		return s.Stop(ctx, serverID)
-	case ServerRebooted:
-		return s.Reboot(ctx, serverID)
-	default:
-		return fmt.Errorf("Status Not Supported %s", status)
+type ServerUpdateRequest struct {
+	Name            string   `json:"name,omitempty"`
+	Status          string   `json:"status,omitempty"`
+	Flavor          string   `json:"flavor,omitempty"`
+}
+
+func (s ServerServiceOperations) Update(ctx context.Context, serverID string, updateRequest *ServerUpdateRequest) error {
+	if updateRequest.Status != "" {
+		err := error(nil)
+		switch updateRequest.Status {
+		case ServerRunning:
+			err = s.Start(ctx, serverID)
+		case ServerStopped:
+			err = s.Stop(ctx, serverID)
+		case ServerRebooted:
+			err = s.Reboot(ctx, serverID)
+		default:
+			return fmt.Errorf("Status Not Supported %s", updateRequest.Status)
+		}
+		if err != nil {
+			return err
+		}
+		// Get rid of status
+		updateRequest = &ServerUpdateRequest{
+			Name: updateRequest.Name,
+			Flavor: updateRequest.Flavor,
+		}
 	}
+	if updateRequest.Name != "" || updateRequest.Flavor != "" {
+		path := fmt.Sprintf("%s/%s", serverBasePath, serverID)
+
+		req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+		if err != nil {
+			return err
+		}
+
+		err = s.client.Do(ctx, req, nil)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s ServerServiceOperations) Get(ctx context.Context, serverID string) (*Server, error) {

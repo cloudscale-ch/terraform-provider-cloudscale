@@ -30,6 +30,7 @@ The following arguments are supported when creating new servers:
 
 * `name` - (Required) Name of the new server. The name has to be a valid host name or a fully qualified domain name (FQDN).
 * `flavor_slug` - (Required) The slug (name) of the flavor to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#flavors).
+    **Note:** If you want to update this value after initial creation, you must set [`allow_stopping_for_update`](#allow_stopping_for_update) to `true`.
 * `image_slug` - (Required) The slug (name) of the image to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#images).
 * `ssh_keys` - (Required) A list of SSH public keys. Use the full content of your \*.pub file here.
 * `volume_size_gb` - (Optional) The size in GB of the SSD root volume of the new server. If this parameter is not specified, the value will be set to 10. Valid values are either 10 or multiples of 50.
@@ -40,6 +41,7 @@ The following arguments are supported when creating new servers:
 * `anti_affinity_uuid` - (Optional) Pass the UUID of another server to either create a new anti-affinity group with that server or add the new server to the same (existing) group as the other server.
 * `user_data` - (Optional) User data (custom cloud-config settings) to use for the new server. Needs to be valid YAML. A default configuration will be used if this parameter is not specified or set to null. Use only if you are an advanced user with knowledge of cloud-config and cloud-init.
 * `status` - (Optional) The desired state of a server. Can be `running` (default) or `stopped`.
+* `allow_stopping_for_update` - (Optional) If true, allows Terraform to stop the instance to update its properties. If you try to update a property that requires stopping the instance without setting this field, the update will fail.
 
 The following arguments are supported when updating servers:
 

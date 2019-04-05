@@ -126,7 +126,7 @@ func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
 			Server: serverUUID,
 		}
 
-		_, err := client.FloatingIPs.Update(context.Background(), id, opts)
+		err := client.FloatingIPs.Update(context.Background(), id, opts)
 		if err != nil {
 			return fmt.Errorf("Error assigning FloatingIP (%s) to Server: %s", id, err)
 		}

@@ -131,7 +131,7 @@ func TestAccCloudscaleServer_AntiAffinity(t *testing.T) {
 	})
 }
 
-func TestAccCloudscaleServer_Update(t *testing.T) {
+func TestAccCloudscaleServer_UpdateStatus(t *testing.T) {
 	var afterCreate, afterUpdate cloudscale.Server
 
 	rInt := acctest.RandInt()
@@ -242,6 +242,47 @@ func TestAccCloudscaleServer_PrivateNetwork(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.private", "interfaces.0.type", "private"),
 					testAccCheckServerIp("cloudscale_server.private"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleServer_UpdateNameAndFlavor(t *testing.T) {
+	var afterCreate, afterUpdate cloudscale.Server
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterCreate),
+					testAccCheckCloudscaleServerAttributes(&afterCreate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "status", "running"),
+					testAccCheckServerIp("cloudscale_server.basic"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerConfig_scaled_and_renamed(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "flavor_slug", "flex-4"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d-foobar", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "status", "running"),
+					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
 				),
 			},
 		},
@@ -418,6 +459,7 @@ func testAccCheckCloudscaleServerConfig_basic(rInt int) string {
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
   flavor_slug    			= "flex-2"
+  allow_stopping_for_update = true
   image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
@@ -443,7 +485,7 @@ resource "cloudscale_server" "basic" {
   flavor_slug    			= "flex-2"
   image_slug     			= "%s"
   volume_size_gb			= 10
-	status 							= "stopped"
+  status 							= "stopped"
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
 }
@@ -461,7 +503,7 @@ resource "cloudscale_server" "web" {
   flavor_slug    			= "flex-2"
   image_slug     			= "%s"
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
-	anti_affinity_uuid 	= "${cloudscale_server.dbmaster.id}"
+  anti_affinity_uuid 	= "${cloudscale_server.dbmaster.id}"
 }`, aInt, DefaultImageSlug, bInt, DefaultImageSlug)
 }
 
@@ -472,7 +514,7 @@ resource "cloudscale_server" "basic" {
   flavor_slug    			= "flex-2"
   image_slug     			= "%s"
   volume_size_gb			= 10
-	status 							= "running"
+  status 							= "running"
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
 }
@@ -499,5 +541,17 @@ resource "cloudscale_server" "private" {
   use_public_network		= false
   volume_size_gb			= 10
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`, rInt, DefaultImageSlug)
+}
+
+func testAccCheckCloudscaleServerConfig_scaled_and_renamed(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "basic" {
+  name      					= "terraform-%d-foobar"
+  flavor_slug    			= "flex-4"
+  allow_stopping_for_update = true
+  image_slug     			= "%s"
+  volume_size_gb			= 10
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
 }
