@@ -19,7 +19,6 @@ resource "cloudscale_server" "web-worker01" {
   flavor_slug         = "flex-4"
   image_slug          = "debian-9"
   volume_size_gb      = 10
-  bulk_volume_size_gb = 200
   ssh_keys            = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
 }
 ```
@@ -34,7 +33,7 @@ The following arguments are supported when creating new servers:
 * `image_slug` - (Required) The slug (name) of the image to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#images).
 * `ssh_keys` - (Required) A list of SSH public keys. Use the full content of your \*.pub file here.
 * `volume_size_gb` - (Optional) The size in GB of the SSD root volume of the new server. If this parameter is not specified, the value will be set to 10. Valid values are either 10 or multiples of 50.
-* `bulk_volume_size_gb` - (Optional) The size in GB of the bulk storage volume of the new server. If this parameter is not specified, no bulk storage volume will be attached to the server. Valid values are multiples of 100.
+* `bulk_volume_size_gb` - (Optional, Deprecated) The size in GB of the bulk storage volume of the new server. If this parameter is not specified, no bulk storage volume will be attached to the server. Valid values are multiples of 100.
 * `use_public_network` - (Optional) Attach/detach the public network interface to/from the new server. Can be `true` (default) or `false`.
 * `use_private_network` - (Optional) Attach/detach the private network interface to/from the new server. Can be `true` or `false` (default).
 * `use_ipv6` - (Optional) Enable/disable IPv6 on the public network interface of the new server. Can be `true` (default) or `false`.
