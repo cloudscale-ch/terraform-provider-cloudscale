@@ -248,7 +248,7 @@ func TestAccCloudscaleServer_PrivateNetwork(t *testing.T) {
 	})
 }
 
-func TestAccCloudscaleServer_UpdateNameAndFlavor(t *testing.T) {
+func TestAccCloudscaleServer_UpdateNameAndFlavorAndVolumeSize(t *testing.T) {
 	var afterCreate, afterUpdate cloudscale.Server
 
 	rInt := acctest.RandInt()
@@ -269,6 +269,8 @@ func TestAccCloudscaleServer_UpdateNameAndFlavor(t *testing.T) {
 						"cloudscale_server.basic", "flavor_slug", "flex-2"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "running"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "volume_size_gb", "10"),
 					testAccCheckServerIp("cloudscale_server.basic"),
 				),
 			},
@@ -282,6 +284,8 @@ func TestAccCloudscaleServer_UpdateNameAndFlavor(t *testing.T) {
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d-foobar", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "running"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "volume_size_gb", "11"),
 					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
 				),
 			},
@@ -551,7 +555,7 @@ resource "cloudscale_server" "basic" {
   flavor_slug    			= "flex-4"
   allow_stopping_for_update = true
   image_slug     			= "%s"
-  volume_size_gb			= 10
+  volume_size_gb			= 11
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
 }
