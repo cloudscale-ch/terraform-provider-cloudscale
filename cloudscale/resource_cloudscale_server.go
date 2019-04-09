@@ -53,7 +53,6 @@ func getServerSchema() map[string]*schema.Schema {
 		"volume_size_gb": {
 			Type:     schema.TypeInt,
 			Optional: true,
-			ForceNew: true,
 		},
 		"bulk_volume_size_gb": {
 			Type:     schema.TypeInt,
@@ -105,6 +104,10 @@ func getServerSchema() map[string]*schema.Schema {
 						Computed: true,
 					},
 					"device_path": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"uuid": {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
@@ -301,6 +304,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			v["type"] = volume.Type
 			v["device_path"] = volume.DevicePath
 			v["size_gb"] = volume.SizeGB
+			v["uuid"] = volume.UUID
 			volumesMaps = append(volumesMaps, v)
 		}
 		err = d.Set("volumes", volumesMaps)
@@ -396,6 +400,17 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	wantedFlavor := d.Get("flavor_slug").(string)
 	wantedName := d.Get("name").(string)
 	needStart := false
+
+	if d.HasChange("volume_size_gb") {
+		// The root volume is the first volume.
+		volumeUUID := d.Get("volumes.0.uuid").(string)
+		opts := &cloudscale.Volume{SizeGB: d.Get("volume_size_gb").(int)}
+		err := client.Volumes.Update(context.Background(), volumeUUID, opts)
+		if err != nil {
+			return fmt.Errorf("Error scaling the Volume (%s) status (%s) ", volumeUUID, err)
+		}
+		d.SetPartial("volume_size_gb")
+	}
 
 	if d.HasChange("flavor_slug") {
 		if !d.Get("allow_stopping_for_update").(bool) {

@@ -48,6 +48,7 @@ type VolumeStub struct {
 	Type       string `json:"type"`
 	DevicePath string `json:"device_path"`
 	SizeGB     int    `json:"size_gb"`
+	UUID       string `json:"uuid"`
 }
 
 type Interface struct {
