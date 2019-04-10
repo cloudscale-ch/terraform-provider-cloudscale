@@ -1,10 +1,17 @@
-## 1.0.2 (Unreleased)
+## 1.1.0 (April 10, 2019)
 
+FEATURES:
+
+* **New Resource**: `cloudscale_volume` is now available (#5)
+
+ENHANCEMENTS:
+* Added support for scaling servers (#13)
+* Added support for scaling root volumes (#14)
 
 IMPROVEMENTS:
 
 * Expose the first public/private IPv4 and IPv6 addresses as string attributes `public_ipv4`,
-  `public_ipv6` and `private_ipv4`
+  `public_ipv6` and `private_ipv4` (#8)
 
 ## 1.0.1 (April 06, 2018)
 
