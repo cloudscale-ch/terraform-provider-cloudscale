@@ -7,11 +7,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	getter "github.com/hashicorp/go-getter"
 	"github.com/hashicorp/terraform/registry"
 	"github.com/hashicorp/terraform/registry/regsrc"
-	"github.com/hashicorp/terraform/svchost/auth"
 	"github.com/hashicorp/terraform/svchost/disco"
 	"github.com/mitchellh/cli"
 )
@@ -64,22 +64,19 @@ type Storage struct {
 	// StorageDir is the full path to the directory where all modules will be
 	// stored.
 	StorageDir string
-	// Services is a required *disco.Disco, which may have services and
-	// credentials pre-loaded.
-	Services *disco.Disco
-	// Creds optionally provides credentials for communicating with service
-	// providers.
-	Creds auth.CredentialsSource
+
 	// Ui is an optional cli.Ui for user output
 	Ui cli.Ui
+
 	// Mode is the GetMode that will be used for various operations.
 	Mode GetMode
 
 	registry *registry.Client
 }
 
-func NewStorage(dir string, services *disco.Disco, creds auth.CredentialsSource) *Storage {
-	regClient := registry.NewClient(services, creds, nil)
+// NewStorage returns a new initialized Storage object.
+func NewStorage(dir string, services *disco.Disco) *Storage {
+	regClient := registry.NewClient(services, nil)
 
 	return &Storage{
 		StorageDir: dir,
@@ -104,6 +101,26 @@ func (s Storage) loadManifest() (moduleManifest, error) {
 	if err := json.Unmarshal(data, &manifest); err != nil {
 		return manifest, err
 	}
+
+	filtered := manifest.Modules[:0]
+	for i, rec := range manifest.Modules {
+		// If the path was recorded before we changed to always using a
+		// slash as separator, we filter the record from the manifest so
+		// it can be discovered again and will be recorded using a slash.
+		if strings.Contains(rec.Dir, "\\") {
+			continue
+		}
+
+		// Make sure we use the correct path separator.
+		rec.Dir = filepath.FromSlash(rec.Dir)
+
+		// Add the module to the filtered module slice.
+		filtered = append(filtered, manifest.Modules[i])
+	}
+
+	// Update the manifest modules.
+	manifest.Modules = filtered
+
 	return manifest, nil
 }
 
@@ -114,18 +131,18 @@ func (s Storage) loadManifest() (moduleManifest, error) {
 func (s Storage) recordModule(rec moduleRecord) error {
 	manifest, err := s.loadManifest()
 	if err != nil {
-		// if there was a problem with the file, we will attempt to write a new
+		// If there was a problem with the file, we will attempt to write a new
 		// one. Any non-data related error should surface there.
 		log.Printf("[WARN] error reading module manifest: %s", err)
 	}
 
-	// do nothing if we already have the exact module
+	// Do nothing if we already have the exact module.
 	for i, stored := range manifest.Modules {
 		if rec == stored {
 			return nil
 		}
 
-		// they are not equal, but if the storage path is the same we need to
+		// They are not equal, but if the storage path is the same we need to
 		// remove this rec to be replaced.
 		if rec.Dir == stored.Dir {
 			manifest.Modules[i] = manifest.Modules[len(manifest.Modules)-1]
@@ -133,6 +150,9 @@ func (s Storage) recordModule(rec moduleRecord) error {
 			break
 		}
 	}
+
+	// Make sure we always use a slash separator.
+	rec.Dir = filepath.ToSlash(rec.Dir)
 
 	manifest.Modules = append(manifest.Modules, rec)
 
