@@ -25,18 +25,18 @@ func getVolumeSchema() map[string]*schema.Schema {
 
 		// Required attributes
 
-		"name": &schema.Schema{
+		"name": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"size_gb": &schema.Schema{
+		"size_gb": {
 			Type:     schema.TypeInt,
 			Required: true,
 		},
 
 		// Optional attributes
 
-		"type": &schema.Schema{
+		"type": {
 			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
@@ -49,7 +49,7 @@ func getVolumeSchema() map[string]*schema.Schema {
 
 		// Computed attributes
 
-		"href": &schema.Schema{
+		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
