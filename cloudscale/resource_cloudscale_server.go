@@ -420,7 +420,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		server, err := client.Servers.Get(context.Background(), id)
 		if err != nil {
-			return fmt.Errorf("Error retrieving server %s", err)
+			return fmt.Errorf("Error retrieving server for update %s", err)
 		}
 		if server.Status != cloudscale.ServerStopped {
 			updateRequest := &cloudscale.ServerUpdateRequest{
@@ -428,7 +428,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 			err := client.Servers.Update(context.Background(), id, updateRequest)
 			if err != nil {
-				return fmt.Errorf("Error retrieving server %s", err)
+				return fmt.Errorf("Error updating server (%s), %s", server.Status, err)
 			}
 
 			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
@@ -534,7 +534,7 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interfa
 		if attr, ok := d.GetOk(attribute); ok {
 			server, err := client.Servers.Get(context.Background(), id)
 			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving server %s", err)
+				return nil, "", fmt.Errorf("Error retrieving server (refresh) %s", err)
 			}
 
 			if server.Status == "errored" {
