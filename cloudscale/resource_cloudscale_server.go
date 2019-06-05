@@ -270,12 +270,12 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 		err := client.Servers.Update(context.Background(), server.UUID, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error updating the Server (%s) status (%s) ", server.UUID, err)
+			return fmt.Errorf("Error stopping the server (%s) status (%s) ", server.UUID, err)
 		}
 
 		_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
 		if err != nil {
-			return fmt.Errorf("Error updating the Server (%s) status (%s) ", server.UUID, err)
+			return fmt.Errorf("Error waiting for server status (%s) (%s) ", server.UUID, err)
 		}
 	}
 
@@ -458,7 +458,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 		err := client.Servers.Update(context.Background(), id, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error updating the Server (%s) status (%s) ", id, err)
+			return fmt.Errorf("Error changing status (%s) (%s) ", id, err)
 		}
 
 		if wantedStatus == "rebooted" {
