@@ -49,15 +49,8 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ServerGroupRequest{
-		Name:   d.Get("name").(string),
-		Type:   d.Get("type").(string),
-	}
-
-	serverUUIDs := d.Get("server_uuids").([]interface{})
-	s := make([]string, len(serverUUIDs))
-
-	for i := range serverUUIDs {
-		s[i] = serverUUIDs[i].(string)
+		Name: d.Get("name").(string),
+		Type: d.Get("type").(string),
 	}
 
 	log.Printf("[DEBUG] ServerGroup create configuration: %#v", opts)

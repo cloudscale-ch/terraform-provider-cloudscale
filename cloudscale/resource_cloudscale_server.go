@@ -40,7 +40,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-
 		"ssh_keys": {
 			Type:     schema.TypeSet,
 			Required: true,
@@ -83,10 +82,15 @@ func getServerSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
-
 		"allow_stopping_for_update": {
 			Type:     schema.TypeBool,
 			Optional: true,
+		},
+		"server_group_ids": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
 		},
 
 		// Computed attributes
@@ -189,6 +193,26 @@ func getServerSchema() map[string]*schema.Schema {
 		"status": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
+		},
+		"server_groups": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"href": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"uuid": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
 			Computed: true,
 		},
 	}
