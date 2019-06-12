@@ -61,8 +61,8 @@ github.com/chzyer/readline v0.0.0-20161106042343-c914be64f07d h1:aG5FcWiZTOhPQzY
 github.com/chzyer/readline v0.0.0-20161106042343-c914be64f07d/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20160617131543-bea8f082b6fd/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
-github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190408093528-d0e770f5e061 h1:NN/tY4qBksh3l9pkgGlhZ3/sRlf1iYBVPK5JHy49GtQ=
-github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190408093528-d0e770f5e061/go.mod h1:s2Xf//x5EYCL/jsAvEspx4QlreM20NsBxYwsiaIwPug=
+github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612140536-4cdb2737dc2c h1:FC/91jNB6MRTMNN/ZHe37v1pQ1/JtNSW7hU6Bz5PY7c=
+github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612140536-4cdb2737dc2c/go.mod h1:FhOTOCgKAVvRRMQc1mC0D7xK/3zYnmcZBWFXNkacvMc=
 github.com/coreos/bbolt v1.3.1-coreos.1/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/etcd v3.2.0-rc.1.0.20170908195435-80aa810309d4+incompatible h1:VLCxgrfBsnJtqTy0WFP0GsjjwWZQiuQiNgiWnY6g6Gc=
 github.com/coreos/etcd v3.2.0-rc.1.0.20170908195435-80aa810309d4+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=

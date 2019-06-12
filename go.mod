@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190408093528-d0e770f5e061
+	github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612140536-4cdb2737dc2c
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-getter v1.2.0 // indirect
