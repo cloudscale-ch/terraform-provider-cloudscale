@@ -24,5 +24,5 @@ require (
 	github.com/zclconf/go-cty v0.0.0-20190430221426-d36a6f0dbffd // indirect
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734 // indirect
 	golang.org/x/net v0.0.0-20190501004415-9ce7a6920f09 // indirect
-	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890
+	golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07
 )

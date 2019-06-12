@@ -55,7 +55,7 @@ github.com/bgentry/go-netrc/netrc
 github.com/bgentry/speakeasy
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
-# github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190408093528-d0e770f5e061
+# github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612140536-4cdb2737dc2c
 github.com/cloudscale-ch/cloudscale-go-sdk
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
@@ -234,7 +234,7 @@ golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/http/httpguts
-# golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890
+# golang.org/x/oauth2 v0.0.0-20190517181255-950ef44c6e07
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/google
@@ -259,7 +259,7 @@ google.golang.org/api/internal
 google.golang.org/api/gensupport
 google.golang.org/api/googleapi/transport
 google.golang.org/api/transport/http/internal/propagation
-# google.golang.org/appengine v1.3.0
+# google.golang.org/appengine v1.4.0
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/urlfetch

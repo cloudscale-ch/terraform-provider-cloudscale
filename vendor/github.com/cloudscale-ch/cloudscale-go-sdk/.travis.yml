@@ -1,0 +1,10 @@
+language: go
+go:
+  - stable
+
+env:
+  - GO111MODULE=on
+
+script:
+  - make test
+  - CLOUDSCALE_TOKEN=$CLOUDSCALE_TOKEN make integration

@@ -75,6 +75,7 @@ type ServerRequest struct {
 	UsePrivateNetwork *bool    `json:"use_private_network,omitempty"`
 	UseIPV6           *bool    `json:"use_ipv6,omitempty"`
 	AntiAffinityWith  string   `json:"anti_affinity_with,omitempty"`
+	ServerGroups      []string `json:"server_groups,omitempty"`
 	UserData          string   `json:"user_data,omitempty"`
 }
 
@@ -171,16 +172,11 @@ func (s ServerServiceOperations) Get(ctx context.Context, serverID string) (*Ser
 
 	return server, nil
 }
+
 func (s ServerServiceOperations) Delete(ctx context.Context, serverID string) error {
-	path := fmt.Sprintf("%s/%s", serverBasePath, serverID)
-
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
-	if err != nil {
-		return err
-	}
-	return s.client.Do(ctx, req, nil)
-
+	return genericDelete(s.client, ctx, serverBasePath, serverID)
 }
+
 func (s ServerServiceOperations) Reboot(ctx context.Context, serverID string) error {
 	path := fmt.Sprintf("%s/%s/reboot", serverBasePath, serverID)
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, nil)
