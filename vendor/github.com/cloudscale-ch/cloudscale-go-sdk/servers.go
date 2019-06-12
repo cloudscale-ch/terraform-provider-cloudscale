@@ -13,22 +13,29 @@ const ServerStopped = "stopped"
 const ServerRebooted = "rebooted"
 
 type Server struct {
-	HREF            string       `json:"href"`
-	UUID            string       `json:"uuid"`
-	Name            string       `json:"name"`
-	Status          string       `json:"status"`
-	Flavor          Flavor       `json:"flavor"`
-	Image           Image        `json:"image"`
-	Volumes         []VolumeStub `json:"volumes"`
-	Interfaces      []Interface  `json:"interfaces"`
-	SSHFingerprints []string     `json:"ssh_fingerprints"`
-	SSHHostKeys     []string     `json:"ssh_host_keys"`
-	AntiAfinityWith []ServerStub `json:"anti_affinity_with"`
+	HREF            string			  `json:"href"`
+	UUID            string            `json:"uuid"`
+	Name            string            `json:"name"`
+	Status          string            `json:"status"`
+	Flavor          Flavor            `json:"flavor"`
+	Image           Image             `json:"image"`
+	Volumes         []VolumeStub      `json:"volumes"`
+	Interfaces      []Interface       `json:"interfaces"`
+	SSHFingerprints []string          `json:"ssh_fingerprints"`
+	SSHHostKeys     []string          `json:"ssh_host_keys"`
+	AntiAfinityWith []ServerStub      `json:"anti_affinity_with"`
+	ServerGroups    []ServerGroupStub `json:"server_groups"`
 }
 
 type ServerStub struct {
 	HREF string `json:"href"`
 	UUID string `json:"uuid"`
+}
+
+type ServerGroupStub struct {
+	HREF string `json:"href"`
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
 }
 
 type Flavor struct {
