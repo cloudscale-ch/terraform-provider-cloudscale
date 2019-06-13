@@ -47,6 +47,7 @@ func testSweepServerGroups(region string) error {
 
 func TestAccCloudscaleServerGroup_Basic(t *testing.T) {
 	rInt := acctest.RandInt()
+	groupName := fmt.Sprintf("terraform-%d-group", rInt)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -59,7 +60,20 @@ func TestAccCloudscaleServerGroup_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.some_server", "server_groups.#", "1"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.some_server", "server_groups.0.name", fmt.Sprintf("terraform-%d-group", rInt)),
+						"cloudscale_server.some_server", "server_groups.0.name", groupName),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigAddServer(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.some_server", "server_groups.#", "1"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.some_server", "server_groups.0.name", groupName),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.some_server2", "server_groups.#", "1"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.some_server2", "server_groups.0.name", groupName),
 				),
 			},
 		},
@@ -79,5 +93,17 @@ resource "cloudscale_server" "some_server" {
   flavor_slug               = "flex-4"
   image_slug                = "%s"
   ssh_keys                  = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
-}`, rInt, rInt, DefaultImageSlug)
+}
+`, rInt, rInt, DefaultImageSlug)
+}
+
+func testAccCheckCloudscaleServerGroupConfigAddServer(rInt int) string {
+	return testAccCheckCloudscaleServerGroupConfig(rInt) + fmt.Sprintf(`
+resource "cloudscale_server" "some_server2" {
+  name                      = "terraform-%d-foobar2"
+  server_group_ids          = ["${cloudscale_server_group.ayyy.id}"]
+  flavor_slug               = "flex-4"
+  image_slug                = "%s"
+  ssh_keys                  = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`, rInt, DefaultImageSlug)
 }

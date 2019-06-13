@@ -58,10 +58,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
-		"anti_affinity_uuid": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
 		"user_data": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -185,11 +181,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
-		"anti_affinity_with": {
-			Type:     schema.TypeList,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			Computed: true,
-		},
 		"status": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -263,10 +254,6 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOkExists("use_ipv6"); ok {
 		val := attr.(bool)
 		opts.UseIPV6 = &val
-	}
-
-	if attr, ok := d.GetOk("anti_affinity_uuid"); ok {
-		opts.AntiAffinityWith = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {
@@ -400,16 +387,6 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		log.Printf("[DEBUG] Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
 		return fmt.Errorf("Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
-	}
-
-	var antiAfs []string
-	for _, antiAf := range server.AntiAfinityWith {
-		antiAfs = append(antiAfs, antiAf.UUID)
-	}
-	err = d.Set("anti_affinity_with", antiAfs)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
-		return fmt.Errorf("Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
 	}
 
 	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
