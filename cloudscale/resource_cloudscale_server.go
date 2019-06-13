@@ -233,8 +233,14 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	for i := range sshKeys {
 		k[i] = sshKeys[i].(string)
 	}
-
 	opts.SSHKeys = k
+
+	serverGroupIds := d.Get("server_group_ids").(*schema.Set).List()
+	g := make([]string, len(serverGroupIds))
+	for i := range serverGroupIds {
+		g[i] = serverGroupIds[i].(string)
+	}
+	opts.ServerGroups = g
 
 	if attr, ok := d.GetOk("volume_size_gb"); ok {
 		opts.VolumeSizeGB = attr.(int)
@@ -337,6 +343,19 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
 		}
 
+	}
+	serverGroupMaps := make([]map[string]interface{}, 0, len(server.ServerGroups))
+	for _, serverGroup := range server.ServerGroups {
+		g := make(map[string]interface{})
+		g["uuid"] = serverGroup.UUID
+		g["name"] = serverGroup.Name
+		g["href"] = serverGroup.HREF
+		serverGroupMaps = append(serverGroupMaps, g)
+	}
+	err = d.Set("server_groups", serverGroupMaps)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
+		return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
 	}
 
 	d.Set("status", server.Status)

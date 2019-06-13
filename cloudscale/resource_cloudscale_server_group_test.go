@@ -57,6 +57,8 @@ func TestAccCloudscaleServerGroup_Basic(t *testing.T) {
 				Config: testAccCheckCloudscaleServerGroupConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
+						"cloudscale_server.some_server", "server_groups.#", "1"),
+					resource.TestCheckResourceAttr(
 						"cloudscale_server.some_server", "server_groups.0.name", fmt.Sprintf("terraform-%d-group", rInt)),
 				),
 			},
