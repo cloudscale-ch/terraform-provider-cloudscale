@@ -21,7 +21,7 @@ resource "cloudscale_server_group" "web-worker-group" {
 # Create three new servers in that group
 resource "cloudscale_server" "web-worker01" {
   count            = 3
-  name             = "web-worker01"
+  name             = "web-worker${count.index}"
   flavor_slug      = "flex-4"
   image_slug       = "debian-9"
   server_group_ids = ["${cloudscale_server_group.web-worker-group.id}"]
