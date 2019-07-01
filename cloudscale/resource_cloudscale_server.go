@@ -40,7 +40,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-
 		"ssh_keys": {
 			Type:     schema.TypeSet,
 			Required: true,
@@ -58,10 +57,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
-		},
-		"anti_affinity_uuid": {
-			Type:     schema.TypeString,
-			Optional: true,
 		},
 		"user_data": {
 			Type:     schema.TypeString,
@@ -83,10 +78,15 @@ func getServerSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
-
 		"allow_stopping_for_update": {
 			Type:     schema.TypeBool,
 			Optional: true,
+		},
+		"server_group_ids": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
 		},
 
 		// Computed attributes
@@ -181,14 +181,29 @@ func getServerSchema() map[string]*schema.Schema {
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
 		},
-		"anti_affinity_with": {
-			Type:     schema.TypeList,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			Computed: true,
-		},
 		"status": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
+		},
+		"server_groups": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"href": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"uuid": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
 			Computed: true,
 		},
 	}
@@ -209,8 +224,14 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	for i := range sshKeys {
 		k[i] = sshKeys[i].(string)
 	}
-
 	opts.SSHKeys = k
+
+	serverGroupIds := d.Get("server_group_ids").(*schema.Set).List()
+	g := make([]string, len(serverGroupIds))
+	for i := range serverGroupIds {
+		g[i] = serverGroupIds[i].(string)
+	}
+	opts.ServerGroups = g
 
 	if attr, ok := d.GetOk("volume_size_gb"); ok {
 		opts.VolumeSizeGB = attr.(int)
@@ -233,10 +254,6 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOkExists("use_ipv6"); ok {
 		val := attr.(bool)
 		opts.UseIPV6 = &val
-	}
-
-	if attr, ok := d.GetOk("anti_affinity_uuid"); ok {
-		opts.AntiAffinityWith = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {
@@ -314,6 +331,19 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 	}
+	serverGroupMaps := make([]map[string]interface{}, 0, len(server.ServerGroups))
+	for _, serverGroup := range server.ServerGroups {
+		g := make(map[string]interface{})
+		g["uuid"] = serverGroup.UUID
+		g["name"] = serverGroup.Name
+		g["href"] = serverGroup.HREF
+		serverGroupMaps = append(serverGroupMaps, g)
+	}
+	err = d.Set("server_groups", serverGroupMaps)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
+		return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
+	}
 
 	d.Set("status", server.Status)
 
@@ -357,16 +387,6 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		log.Printf("[DEBUG] Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
 		return fmt.Errorf("Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
-	}
-
-	var antiAfs []string
-	for _, antiAf := range server.AntiAfinityWith {
-		antiAfs = append(antiAfs, antiAf.UUID)
-	}
-	err = d.Set("anti_affinity_with", antiAfs)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
-		return fmt.Errorf("Error setting anti_affinity_with attribute: %#v, error: %#v", antiAfs, err)
 	}
 
 	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {

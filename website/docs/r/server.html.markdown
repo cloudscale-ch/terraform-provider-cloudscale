@@ -37,7 +37,6 @@ The following arguments are supported when creating new servers:
 * `use_public_network` - (Optional) Attach/detach the public network interface to/from the new server. Can be `true` (default) or `false`.
 * `use_private_network` - (Optional) Attach/detach the private network interface to/from the new server. Can be `true` or `false` (default).
 * `use_ipv6` - (Optional) Enable/disable IPv6 on the public network interface of the new server. Can be `true` (default) or `false`.
-* `anti_affinity_uuid` - (Optional) Pass the UUID of another server to either create a new anti-affinity group with that server or add the new server to the same (existing) group as the other server.
 * `user_data` - (Optional) User data (custom cloud-config settings) to use for the new server. Needs to be valid YAML. A default configuration will be used if this parameter is not specified or set to null. Use only if you are an advanced user with knowledge of cloud-config and cloud-init.
 * `status` - (Optional) The desired state of a server. Can be `running` (default) or `stopped`.
 * `allow_stopping_for_update` - (Optional) If true, allows Terraform to stop the instance to update its properties. If you try to update a property that requires stopping the instance without setting this field, the update will fail.
@@ -54,7 +53,6 @@ In addition to the arguments listed above, the following computed attributes are
 * `href` - The cloudscale.ch API URL of the current resource.
 * `ssh_fingerprints` - A list of SSH host key fingerprints (strings) of this server.
 * `ssh_host_keys` - A list of SSH host keys (strings) of this server.
-* `anti_affinity_with` - A list of server UUIDs that belong to the same anti-affinity group as this server.
 * `volumes` - A list of volume objects attached to this server. Each volume object has three attributes:
     * `device_path` - The path (string) to the volume on your server (e.g. `/dev/vda`)
     * `size_gb` - The size (int) of the volume in GB. Typically matches `volume_size_gb` or `bulk_volume_size_gb`.

@@ -78,6 +78,7 @@ func (f FloatingIPsServiceOperations) Get(ctx context.Context, ip string) (*Floa
 
 	return floatingIP, nil
 }
+
 func (f FloatingIPsServiceOperations) Update(ctx context.Context, ip string, floatingIPUpdateRequest *FloatingIPUpdateRequest) error {
 	path := fmt.Sprintf("%s/%s", floatingIPsBasePath, ip)
 
@@ -88,15 +89,11 @@ func (f FloatingIPsServiceOperations) Update(ctx context.Context, ip string, flo
 
 	return f.client.Do(ctx, req, nil)
 }
-func (f FloatingIPsServiceOperations) Delete(ctx context.Context, ip string) error {
-	path := fmt.Sprintf("%s/%s", floatingIPsBasePath, ip)
 
-	req, err := f.client.NewRequest(ctx, http.MethodDelete, path, nil)
-	if err != nil {
-		return err
-	}
-	return f.client.Do(ctx, req, nil)
+func (f FloatingIPsServiceOperations) Delete(ctx context.Context, ip string) error {
+	return genericDelete(f.client, ctx, floatingIPsBasePath, ip)
 }
+
 func (f FloatingIPsServiceOperations) List(ctx context.Context) ([]FloatingIP, error) {
 	path := floatingIPsBasePath
 

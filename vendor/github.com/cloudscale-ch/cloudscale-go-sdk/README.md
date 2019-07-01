@@ -1,4 +1,5 @@
 # cloudscale.ch Go API SDK
+[![Build Status](https://travis-ci.org/cloudscale-ch/cloudscale-go-sdk.svg?branch=master)](https://travis-ci.org/cloudscale-ch/cloudscale-go-sdk)
 
 If you want to manage your cloudscale.ch server resources with Go, you are at
 the right place.
