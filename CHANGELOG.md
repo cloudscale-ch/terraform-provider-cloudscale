@@ -1,4 +1,14 @@
-## 1.1.1 (Unreleased)
+## 2.0.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `cloudscale_server_group` is now available (#16)
+
+BACKWARDS INCOMPATIBILITIES:
+
+* Implicit server groups are no longer supported. This means that you cannot
+  just use `anti_affinity_with` anymore.
+
 ## 1.1.0 (April 11, 2019)
 
 FEATURES:
