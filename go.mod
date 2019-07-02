@@ -4,32 +4,33 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.40.0 // indirect
-	git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999 // indirect
-	github.com/apparentlymart/go-cidr v1.0.0 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
+	github.com/chzyer/logex v1.1.11-0.20160617073814-96a4d311aa9b // indirect
 	github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612154026-d152e53c1fe2
-	github.com/golang/mock v1.3.1 // indirect
+	github.com/coreos/bbolt v1.3.1-coreos.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20190515194954-54271f7e092f // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.5.0 // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
+	github.com/hashicorp/atlas-go v0.0.0-20161107204910-1792bd8de119 // indirect
+	github.com/hashicorp/aws-sdk-go-base v0.3.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
-	github.com/hashicorp/go-getter v1.2.0 // indirect
 	github.com/hashicorp/go-hclog v0.9.0 // indirect
-	github.com/hashicorp/go-plugin v1.0.0 // indirect
+	github.com/hashicorp/go-immutable-radix v1.0.0 // indirect
+	github.com/hashicorp/go-sockaddr v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/hcl2 v0.0.0-20190430183046-3dfebdfc4595 // indirect
 	github.com/hashicorp/hil v0.0.0-20190212132231-97b3a9cdfa93 // indirect
-	github.com/hashicorp/logutils v1.0.0 // indirect
-	github.com/hashicorp/terraform v0.11.14-0.20190429193930-20e17ec86f19
+	github.com/hashicorp/serf v0.8.2-0.20171022020050-c20a0b1b1ea9 // indirect
+	github.com/hashicorp/terraform v0.12.3
 	github.com/kr/pty v1.1.5 // indirect
-	github.com/mitchellh/cli v1.0.0 // indirect
-	github.com/mitchellh/copystructure v1.0.0 // indirect
+	github.com/masterzen/azure-sdk-for-go v0.0.0-20161014135628-ee4f0065d00c // indirect
+	github.com/miekg/dns v1.0.14 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/hashstructure v1.0.0 // indirect
-	github.com/openzipkin/zipkin-go v0.1.1 // indirect
-	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910 // indirect
-	github.com/zclconf/go-cty v0.0.0-20190430221426-d36a6f0dbffd // indirect
+	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275 // indirect
+	github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a // indirect
+	github.com/ryanuber/columnize v0.0.0-20161220214920-0fbbb3f0e3fb // indirect
+	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07 // indirect
+	github.com/smartystreets/assertions v0.0.0-20190116191733-b6c0e53d7304 // indirect
+	github.com/smartystreets/goconvey v0.0.0-20181108003508-044398e4856c // indirect
 	go.opencensus.io v0.22.0 // indirect
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8 // indirect
 	golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522 // indirect
