@@ -78,7 +78,7 @@ func TestAccCloudscaleFloatingIP_ServerWithZone(t *testing.T) {
 			{
 				Config: testAccCheckCloudScaleFloatingIPConfig_server_with_zone(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &floatingIP),
+					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.minfloating", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.minfloating", "ip_version", "6"),
 					resource.TestCheckResourceAttr(
@@ -266,7 +266,7 @@ resource "cloudscale_server" "minlpg" {
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
 resource "cloudscale_floating_ip" "minfloating" {
-  server = "${cloudscale_server.basic.id}"
+  server = "${cloudscale_server.minlpg.id}"
   ip_version = 6
   region_slug = "lpg"
   reverse_ptr = "vip.web-worker01.example.com"

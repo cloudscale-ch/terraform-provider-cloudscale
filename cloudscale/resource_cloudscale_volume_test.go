@@ -98,8 +98,8 @@ func TestAccCloudscaleVolume_Change(t *testing.T) {
 						"cloudscale_volume.basic", "size_gb", "50"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume.basic", "server_uuids.#", "0"),
-					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "zone_slug", ""),
+					resource.TestCheckNoResourceAttr(
+						"cloudscale_volume.basic", "zone_slug"),
 				),
 			},
 			{

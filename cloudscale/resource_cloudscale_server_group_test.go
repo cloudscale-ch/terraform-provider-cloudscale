@@ -92,9 +92,9 @@ func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
 				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_server_group.hanenzone", "server_groups.type", "anti-affinity"),
+						"cloudscale_server_group.servergroup", "type", "anti-affinity"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server_group.hanenzone", "server_groups.zone_slug", "lpg1"),
+						"cloudscale_server_group.servergroup", "zone_slug", "lpg1"),
 				),
 			},
 		},
