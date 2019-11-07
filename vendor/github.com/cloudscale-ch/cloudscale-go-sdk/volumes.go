@@ -9,6 +9,7 @@ import (
 const volumeBasePath = "v1/volumes"
 
 type Volume struct {
+	ZonalResource
 	// Just use omitempty everywhere. This makes it easy to use restful. Errors
 	// will be coming from the API if something is disabled.
 	HREF        string    `json:"href,omitempty"`
@@ -23,11 +24,19 @@ type ListVolumeParams struct {
 	Name string `json:"name,omitempty"`
 }
 
+type VolumeRequest struct {
+	ZonalResourceRequest
+	Name        string    `json:"name,omitempty"`
+	SizeGB      int       `json:"size_gb,omitempty"`
+	Type        string    `json:"type,omitempty"`
+	ServerUUIDs *[]string `json:"server_uuids,omitempty"`
+}
+
 type VolumeService interface {
-	Create(ctx context.Context, createRequest *Volume) (*Volume, error)
+	Create(ctx context.Context, createRequest *VolumeRequest) (*Volume, error)
 	Get(ctx context.Context, volumeID string) (*Volume, error)
 	List(ctx context.Context, params *ListVolumeParams) ([]Volume, error)
-	Update(ctx context.Context, volumeID string, updateRequest *Volume) error
+	Update(ctx context.Context, volumeID string, updateRequest *VolumeRequest) error
 	Delete(ctx context.Context, volumeID string) error
 }
 
@@ -35,7 +44,7 @@ type VolumeServiceOperations struct {
 	client *Client
 }
 
-func (s VolumeServiceOperations) Create(ctx context.Context, createRequest *Volume) (*Volume, error) {
+func (s VolumeServiceOperations) Create(ctx context.Context, createRequest *VolumeRequest) (*Volume, error) {
 	path := volumeBasePath
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
@@ -53,7 +62,7 @@ func (s VolumeServiceOperations) Create(ctx context.Context, createRequest *Volu
 	return volume, nil
 }
 
-func (f VolumeServiceOperations) Update(ctx context.Context, volumeID string, updateRequest *Volume) error {
+func (f VolumeServiceOperations) Update(ctx context.Context, volumeID string, updateRequest *VolumeRequest) error {
 	path := fmt.Sprintf("%s/%s", volumeBasePath, volumeID)
 
 	req, err := f.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
