@@ -37,6 +37,11 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 
 		// Optional attributes
 
+		"region_slug": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 		"reverse_ptr": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -80,6 +85,10 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if attr, ok := d.GetOk("reverse_ptr"); ok {
 		opts.ReversePointer = attr.(string)
+	}
+
+	if attr, ok := d.GetOk("region_slug"); ok {
+		opts.Region = attr.(string)
 	}
 
 	log.Printf("[DEBUG] FloatingIP create configuration: %#v", opts)

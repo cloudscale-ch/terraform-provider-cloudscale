@@ -66,6 +66,31 @@ func TestAccCloudscaleFloatingIP_Server(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleFloatingIP_ServerWithZone(t *testing.T) {
+	var floatingIP cloudscale.FloatingIP
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudScaleFloatingIPConfig_server_with_zone(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &floatingIP),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.minfloating", "ip_version", "6"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.minfloating", "region_slug", "lpg"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.minlpg", "zone_slug", "lpg1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 	var beforeUpdate, afterUpdate cloudscale.FloatingIP
 	rIntA := acctest.RandInt()
@@ -228,4 +253,22 @@ resource "cloudscale_floating_ip" "gateway" {
   server 					= "${cloudscale_server.advanced.id}"
   ip_version     	= 4
 }`, rIntA, DefaultImageSlug, rIntB, DefaultImageSlug)
+}
+
+func testAccCheckCloudScaleFloatingIPConfig_server_with_zone(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "minlpg" {
+  name = "terraform-%d"
+  flavor_slug = "flex-2"
+  image_slug = "%s"
+  volume_size_gb = 10
+  zone_slug = "lpg1"
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+resource "cloudscale_floating_ip" "minfloating" {
+  server = "${cloudscale_server.basic.id}"
+  ip_version = 6
+  region_slug = "lpg"
+  reverse_ptr = "vip.web-worker01.example.com"
+}`, rInt, DefaultImageSlug)
 }

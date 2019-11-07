@@ -58,6 +58,11 @@ func getServerSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
+		"zone_slug": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 		"user_data": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -260,6 +265,10 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.UserData = attr.(string)
 	}
 
+	if attr, ok := d.GetOk("zone_slug"); ok {
+		opts.Zone = attr.(string)
+	}
+
 	originalStatus := ""
 	if attr, ok := d.GetOk("status"); ok {
 		originalStatus = attr.(string)
@@ -424,7 +433,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("volume_size_gb") {
 		// The root volume is the first volume.
 		volumeUUID := d.Get("volumes.0.uuid").(string)
-		opts := &cloudscale.Volume{SizeGB: d.Get("volume_size_gb").(int)}
+		opts := &cloudscale.VolumeRequest{SizeGB: d.Get("volume_size_gb").(int)}
 		err := client.Volumes.Update(context.Background(), volumeUUID, opts)
 		if err != nil {
 			return fmt.Errorf("Error scaling the Volume (%s) status (%s) ", volumeUUID, err)

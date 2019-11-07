@@ -80,6 +80,27 @@ func TestAccCloudscaleServerGroup_Basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.hanenzone", "server_groups.type", "anti-affinity"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.hanenzone", "server_groups.zone_slug", "lpg1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleServerGroupConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server_group" "ayyy" {
@@ -106,4 +127,13 @@ resource "cloudscale_server" "some_server2" {
   image_slug                = "%s"
   ssh_keys                  = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
+}
+
+func testAccCheckCloudscaleServerGroupConfigWithZone(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server_group" "servergroup" {
+  name = "terraform-%d-group"
+  type = "anti-affinity"
+  zone_slug = "lpg1"
+}`, rInt)
 }
