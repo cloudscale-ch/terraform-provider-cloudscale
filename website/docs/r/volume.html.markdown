@@ -36,6 +36,7 @@ The following arguments are supported when creating/changing Volumes:
 
 * `name` - (Required) Name of the new volume.
 * `size_gb` - (Required) The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
+* `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.
 * `type` - (Optional) For SSD/NVMe volumes specify "ssd" (default) or use "bulk" for our HDD cluster with NVMe caching. This is the only attribute that cannot be altered.
 * `server_uuids` - (Optional) A list of server UUIDs. Default to an empty list. Currently a volume can only be attached to one server UUID.
 

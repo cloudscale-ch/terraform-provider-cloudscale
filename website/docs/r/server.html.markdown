@@ -32,6 +32,7 @@ The following arguments are supported when creating new servers:
     **Note:** If you want to update this value after initial creation, you must set [`allow_stopping_for_update`](#allow_stopping_for_update) to `true`.
 * `image_slug` - (Required) The slug (name) of the image to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#images).
 * `ssh_keys` - (Required) A list of SSH public keys. Use the full content of your \*.pub file here.
+* `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.
 * `volume_size_gb` - (Optional) The size in GB of the SSD root volume of the new server. If this parameter is not specified, the value will be set to 10. Valid values are either 10 or multiples of 50.
 * `bulk_volume_size_gb` - (Optional, Deprecated) The size in GB of the bulk storage volume of the new server. If this parameter is not specified, no bulk storage volume will be attached to the server. Valid values are multiples of 100.
 * `use_public_network` - (Optional) Attach/detach the public network interface to/from the new server. Can be `true` (default) or `false`.
