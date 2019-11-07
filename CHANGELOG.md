@@ -1,4 +1,9 @@
-## 2.0.1 (Unreleased)
+## 2.1.0 (Unreleased)
+
+FEATURES:
+
+* Support for Terraform 0.12.x
+
 ## 2.0.0 (July 12, 2019)
 
 FEATURES:
