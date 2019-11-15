@@ -43,6 +43,27 @@ func getNetworkSchema() map[string]*schema.Schema {
 		"auto_create_ipv4_subnet": {
 			Type:     schema.TypeBool,
 			Optional: true,
+			ForceNew: true,
+		},
+		"subnets": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"href": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"uuid": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"cidr": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Computed: true,
 		},
 
 		// Computed attributes
@@ -67,8 +88,9 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOk("mtu"); ok {
 		opts.MTU = attr.(int)
 	}
-	if attr, ok := d.GetOk("auto_create_ipv4_subnet"); ok {
-		opts.AutoCreateIPV4Subnet = attr.(*bool)
+	if attr, ok := d.GetOkExists("auto_create_ipv4_subnet"); ok {
+		val := attr.(bool)
+		opts.AutoCreateIPV4Subnet = &val
 	}
 
 	log.Printf("[DEBUG] Network create configuration: %#v", opts)
@@ -94,7 +116,20 @@ func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network
 	d.Set("name", network.Name)
 	d.Set("mtu", network.MTU)
 	d.Set("zone_slug", network.Zone.Slug)
-	//d.Set("type", network.Type)
+
+	subnets := make([]map[string]interface{}, 0, len(network.Subnets))
+	for _, subnet := range network.Subnets {
+		g := make(map[string]interface{})
+		g["uuid"] = subnet.UUID
+		g["cidr"] = subnet.CIDR
+		g["href"] = subnet.HREF
+		subnets = append(subnets, g)
+	}
+	err := d.Set("subnets", subnets)
+	if err != nil {
+		log.Printf("[DEBUG] Error setting subnets attribute: %#v, error: %#v", subnets, err)
+		return fmt.Errorf("Error setting subnets attribute: %#v, error: %#v", subnets, err)
+	}
 
 	return nil
 }

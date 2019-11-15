@@ -352,8 +352,8 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	err = d.Set("server_groups", serverGroupMaps)
 	if err != nil {
-		log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
-		return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
+		log.Printf("[DEBUG] Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
+		return fmt.Errorf("Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
 	}
 
 	d.Set("status", server.Status)

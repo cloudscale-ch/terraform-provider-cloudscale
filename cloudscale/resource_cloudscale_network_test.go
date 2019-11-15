@@ -61,6 +61,9 @@ func TestAccCloudscaleNetwork_DetachedWithZone(t *testing.T) {
 				Config: networkconfigWithZone(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 0),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_network.basic", "href"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -87,6 +90,7 @@ func TestAccCloudscaleNetwork_Change(t *testing.T) {
 				Config: networkConfig_baseline(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -109,6 +113,15 @@ func TestAccCloudscaleNetwork_Change(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccCheckCloudscaleNetworkSubnetCount(n string, network *cloudscale.Network, expectedCount int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if actualSubnetCount := len(network.Subnets); actualSubnetCount != expectedCount {
+			return fmt.Errorf("Subnet count does not match, got=%#v, want=%#v.", actualSubnetCount, expectedCount)
+		}
+		return nil
+	}
 }
 
 func testAccCheckCloudscaleNetworkExists(n string, network *cloudscale.Network) resource.TestCheckFunc {
@@ -191,8 +204,9 @@ resource "cloudscale_network" "basic" {
 func networkconfigWithZone(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "basic" {
-  name         = "terraform-%d"
-  mtu          = "3421"
-  zone_slug    = "lpg1"
+  name                    = "terraform-%d"
+  mtu                     = "3421"
+  zone_slug               = "lpg1"
+  auto_create_ipv4_subnet = false
 }`, rInt)
 }
