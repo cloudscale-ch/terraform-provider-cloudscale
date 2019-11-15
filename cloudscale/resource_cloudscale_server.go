@@ -364,8 +364,8 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		for _, intr := range server.Interfaces {
 
 			intMap := make(map[string]interface{})
-			addrssMap := make([]map[string]interface{}, 0, len(intr.Adresses))
-			for _, addr := range intr.Adresses {
+			addrssMap := make([]map[string]interface{}, 0, len(intr.Addresses))
+			for _, addr := range intr.Addresses {
 				i := make(map[string]interface{})
 				i["address"] = addr.Address
 				i["version"] = addr.Version
@@ -585,7 +585,7 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interfa
 func findIPv6AddrByType(s *cloudscale.Server, addrType string) string {
 	for _, interf := range s.Interfaces {
 		if interf.Type == addrType {
-			for _, addr := range interf.Adresses {
+			for _, addr := range interf.Addresses {
 				if addr.Version == 6 {
 					return addr.Address
 				}
@@ -598,7 +598,7 @@ func findIPv6AddrByType(s *cloudscale.Server, addrType string) string {
 func findIPv4AddrByType(s *cloudscale.Server, addrType string) string {
 	for _, interf := range s.Interfaces {
 		if interf.Type == addrType {
-			for _, addr := range interf.Adresses {
+			for _, addr := range interf.Addresses {
 				if addr.Version == 4 {
 					return addr.Address
 				}
