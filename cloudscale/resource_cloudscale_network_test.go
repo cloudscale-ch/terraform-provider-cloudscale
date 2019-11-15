@@ -87,12 +87,12 @@ func TestAccCloudscaleNetwork_Change(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkConfig_baseline(rInt),
+				Config: networkConfig_baseline(1, rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d-0", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic", "mtu", "1500"),
 					resource.TestCheckResourceAttr(
@@ -109,6 +109,139 @@ func TestAccCloudscaleNetwork_Change(t *testing.T) {
 						"cloudscale_network.basic", "mtu", "9000"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic", "zone_slug", "rma1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleNetwork_Attach(t *testing.T) {
+	var network cloudscale.Network
+	var server cloudscale.Server
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	networkConfig := networkConfig_baseline(1, rInt1)
+	serverConfig := serverConfigWithPrivateNetwork(rInt2, 0)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+				),
+			},
+			{
+				Config: networkConfig + "\n" + serverConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic",
+						"interfaces.0.network_name",
+						fmt.Sprintf("terraform-%d-0", rInt1),
+					),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleNetwork_Reattach(t *testing.T) {
+	var network0, network1 cloudscale.Network
+	var server cloudscale.Server
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	networkConfig := networkConfig_baseline(2, rInt1)
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network0),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.1", &network1),
+				),
+			},
+			{
+				Config: networkConfig + "\n" + serverConfigWithPrivateNetwork(rInt2, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network0),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.1", &network1),
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.#", "1"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-0", rInt1)),
+				),
+			},
+			{
+				Config: networkConfig + "\n" + serverConfigWithPrivateNetwork(rInt2, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network0),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.1", &network1),
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.#", "1"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-1", rInt1)),
+				),
+			},
+			{
+				Config: networkConfig + "\n" + serverConfigWithPrivateNetwork(rInt2, 1, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network0),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.1", &network1),
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.#", "2"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-1", rInt1)),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.network_name", fmt.Sprintf("terraform-%d-0", rInt1)),
+				),
+			},
+			{
+				Config: networkConfig + "\n" + serverConfigWithPrivateNetwork(rInt2, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network0),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.1", &network1),
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.#", "1"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-0", rInt1)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleNetwork_ServerWithPublicAndLayerTwo(t *testing.T) {
+	var network cloudscale.Network
+	var server cloudscale.Server
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	networkConfig := networkconfigWithZone(rInt1)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkConfig + "\n" + serverConfigWithPublicAndLayerTwo(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.#", "2"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.type", "public"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.addresses.#", "2"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.type", "private"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.network_name", fmt.Sprintf("terraform-%d", rInt1)),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.addresses.#", "0"),
 				),
 			},
 		},
@@ -183,13 +316,14 @@ func testAccCheckCloudscaleNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func networkConfig_baseline(rInt int) string {
+func networkConfig_baseline(count int, rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "basic" {
-  name         = "terraform-%d"
+  count        = "%v"
+  name         = "terraform-%d-${count.index}"
   mtu          = "1500"
   zone_slug    = "rma1"
-}`, rInt)
+}`, count, rInt)
 }
 
 func networkConfig_multiple_changes(rInt int) string {
@@ -209,4 +343,56 @@ resource "cloudscale_network" "basic" {
   zone_slug               = "lpg1"
   auto_create_ipv4_subnet = false
 }`, rInt)
+}
+
+func serverConfigWithPrivateNetwork(rInt int, networkIndexes ...int) string {
+	template := `
+resource "cloudscale_server" "basic" {
+  name      				= "terraform-%d"
+  zone_slug                 = "rma1"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "%s"
+  %s
+  volume_size_gb			= 10
+  ssh_keys 					= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`
+
+	var interfaceConfigs strings.Builder
+	for _, networkIndex := range networkIndexes {
+		interfaceConfigs.WriteString(
+			fmt.Sprintf(`
+interfaces                {
+  type                    = "private"
+  network_uuid            = "${cloudscale_network.basic.%v.id}"
+  addresses {
+  }
+}`, networkIndex))
+	}
+
+	result := fmt.Sprintf(template, rInt, DefaultImageSlug, interfaceConfigs.String())
+	return result
+}
+
+func serverConfigWithPublicAndLayerTwo(rInt int) string {
+	template := `
+resource "cloudscale_server" "basic" {
+  name      				= "terraform-%d"
+  zone_slug                 = "lpg1"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "%s"
+  interfaces                {
+    type                    = "public"
+    addresses {
+    }
+    addresses {
+    }
+  }
+  interfaces                {
+    type                    = "private"
+    network_uuid            = "${cloudscale_network.basic.id}"
+  }
+  volume_size_gb			= 10
+  ssh_keys 					= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`
+	return fmt.Sprintf(template, rInt, DefaultImageSlug)
 }

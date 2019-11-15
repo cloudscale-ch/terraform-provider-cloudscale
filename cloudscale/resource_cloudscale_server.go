@@ -143,6 +143,19 @@ func getServerSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"type": {
 						Type:     schema.TypeString,
+						Required: true,
+					},
+					"network_uuid": {
+						Type:     schema.TypeString,
+						Computed: true,
+						Optional: true,
+					},
+					"network_name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"network_href": {
+						Type:     schema.TypeString,
 						Computed: true,
 					},
 					"addresses": {
@@ -171,11 +184,12 @@ func getServerSchema() map[string]*schema.Schema {
 								},
 							},
 						},
-						Computed: true,
+						Optional: true,
 					},
 				},
 			},
 			Computed: true,
+			Optional: true,
 		},
 		"ssh_fingerprints": {
 			Type:     schema.TypeList,
@@ -238,6 +252,12 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		g[i] = serverGroupIds[i].(string)
 	}
 	opts.ServerGroups = g
+
+	interfacesCount := d.Get("interfaces.#").(int)
+	if interfacesCount > 0 {
+		interfaceRequests := createInterfaceOptions(d)
+		opts.Interfaces = &interfaceRequests
+	}
 
 	if attr, ok := d.GetOk("volume_size_gb"); ok {
 		opts.VolumeSizeGB = attr.(int)
@@ -309,6 +329,38 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceServerRead(d, meta)
 }
 
+func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceRequest {
+	interfacesCount := d.Get("interfaces.#").(int)
+	result := make([]cloudscale.InterfaceRequest, interfacesCount)
+	for i := 0; i < interfacesCount; i++ {
+		prefix := fmt.Sprintf("interfaces.%d", i)
+		intType := d.Get(prefix + ".type").(string)
+
+		addresses := createAddressesOption(d, prefix)
+
+		if intType == "public" {
+			result[i] = cloudscale.InterfaceRequest{
+				Network: "public",
+			}
+		} else {
+			result[i] = cloudscale.InterfaceRequest{
+				Network:   d.Get(prefix + ".network_uuid").(string),
+				Addresses: addresses,
+			}
+		}
+	}
+	return result
+}
+
+func createAddressesOption(d *schema.ResourceData, prefix string) *[]string {
+	addressCount := d.Get(prefix + ".addresses.#")
+	if addressCount == 0 {
+		ret := []string{}
+		return &ret
+	}
+	return nil
+}
+
 func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
@@ -364,6 +416,11 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		for _, intr := range server.Interfaces {
 
 			intMap := make(map[string]interface{})
+
+			intMap["network_href"] = intr.Network.HREF
+			intMap["network_name"] = intr.Network.Name
+			intMap["network_uuid"] = intr.Network.UUID
+
 			addrssMap := make([]map[string]interface{}, 0, len(intr.Addresses))
 			for _, addr := range intr.Addresses {
 				i := make(map[string]interface{})
@@ -516,6 +573,16 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error renaming the Server (%s) status (%s) ", id, err)
 		}
 		d.SetPartial("name")
+	}
+
+	if d.HasChange("interfaces") {
+		interfaceRequests := createInterfaceOptions(d)
+		updateRequest := &cloudscale.ServerUpdateRequest{Interfaces: &interfaceRequests}
+		err := client.Servers.Update(context.Background(), id, updateRequest)
+		if err != nil {
+			return fmt.Errorf("Error changing the Server (%s) interfaces (%s) ", id, err)
+		}
+		d.SetPartial("interfaces")
 	}
 
 	return resourceServerRead(d, meta)
