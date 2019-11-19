@@ -44,6 +44,7 @@ func getVolumeSchema() map[string]*schema.Schema {
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 		"server_uuids": {
@@ -106,6 +107,7 @@ func fillVolumeResourceData(d *schema.ResourceData, volume *cloudscale.Volume) e
 	d.Set("name", volume.Name)
 	d.Set("size_gb", volume.SizeGB)
 	d.Set("type", volume.Type)
+	d.Set("zone_slug", volume.Zone.Slug)
 
 	err := d.Set("server_uuids", volume.ServerUUIDs)
 	if err != nil {

@@ -41,6 +41,7 @@ func getServerGroupSchema() map[string]*schema.Schema {
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 
@@ -87,6 +88,7 @@ func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale
 	d.Set("href", serverGroup.HREF)
 	d.Set("name", serverGroup.Name)
 	d.Set("type", serverGroup.Type)
+	d.Set("zone_slug", serverGroup.Zone.Slug)
 
 	return nil
 }

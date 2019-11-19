@@ -40,6 +40,7 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 		"region_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 		"reverse_ptr": {
@@ -117,6 +118,7 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("next_hop", floatingIP.NextHop)
 	d.Set("reverse_ptr", floatingIP.ReversePointer)
 	d.Set("server", floatingIP.Server.UUID)
+	d.Set("region_slug", floatingIP.Region.Slug)
 
 	return nil
 

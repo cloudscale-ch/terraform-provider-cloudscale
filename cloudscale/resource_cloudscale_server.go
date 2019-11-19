@@ -61,6 +61,7 @@ func getServerSchema() map[string]*schema.Schema {
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 		"user_data": {
@@ -322,6 +323,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", server.Name)
 	d.Set("flavor_slug", server.Flavor.Slug)
 	d.Set("image_slug", server.Image.Slug)
+	d.Set("zone_slug", server.Zone.Slug)
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]interface{}, 0, volumes)
