@@ -35,6 +35,7 @@ The following arguments are supported when creating server groups:
 
 * `name` - (Required) Name of the new server group.
 * `type` - (Required) The type of the server group can currently only be `"anti-affinity"`.
+* `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.
 
 ## Attributes Reference
 

@@ -36,6 +36,15 @@ func getServerGroupSchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 
+		// Optional attributes
+
+		"zone_slug": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+		},
+
 		// Computed attributes
 
 		"href": {
@@ -51,6 +60,10 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	opts := &cloudscale.ServerGroupRequest{
 		Name: d.Get("name").(string),
 		Type: d.Get("type").(string),
+	}
+
+	if attr, ok := d.GetOk("zone_slug"); ok {
+		opts.Zone = attr.(string)
 	}
 
 	log.Printf("[DEBUG] ServerGroup create configuration: %#v", opts)
@@ -75,6 +88,7 @@ func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale
 	d.Set("href", serverGroup.HREF)
 	d.Set("name", serverGroup.Name)
 	d.Set("type", serverGroup.Type)
+	d.Set("zone_slug", serverGroup.Zone.Slug)
 
 	return nil
 }

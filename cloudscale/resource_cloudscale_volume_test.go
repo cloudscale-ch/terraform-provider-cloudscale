@@ -48,6 +48,34 @@ func testSweepVolumes(region string) error {
 	return foundError
 }
 
+func TestAccCloudscaleVolume_DetachedWithZone(t *testing.T) {
+	var volume cloudscale.Volume
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: volumeConfig_detached_with_zone(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "type", "bulk"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "size_gb", "100"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "zone_slug", "lpg1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleVolume_Change(t *testing.T) {
 	var volume cloudscale.Volume
 
@@ -70,6 +98,8 @@ func TestAccCloudscaleVolume_Change(t *testing.T) {
 						"cloudscale_volume.basic", "size_gb", "50"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume.basic", "server_uuids.#", "0"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "zone_slug", "rma1"),
 				),
 			},
 			{
@@ -273,4 +303,14 @@ resource "cloudscale_volume" "basic" {
   server_uuids = ["${cloudscale_server.reattach_server.id}"]
   type         = "ssd"
 }`, serverInt, DefaultImageSlug, volumeInt)
+}
+
+func volumeConfig_detached_with_zone(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_volume" "basic" {
+  name         = "terraform-%d"
+  size_gb      = 100
+  zone_slug    = "lpg1"
+  type         = "bulk"
+}`, rInt)
 }

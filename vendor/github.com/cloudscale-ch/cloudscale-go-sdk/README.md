@@ -7,6 +7,12 @@ the right place.
 There's a possibility to specify the `CLOUDSCALE_URL` environment variable to
 change the default url of https://api.cloudscale.ch.
 
+## Download from Github
+
+```console
+GO111MODULE=on go get github.com/cloudscale-ch/cloudscale-go-sdk
+```
+
 ## Testing
 
 The test directory contains integration tests, aside from the unit tests in the

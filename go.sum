@@ -100,6 +100,8 @@ github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612140536-4cdb2737dc2c h1
 github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612140536-4cdb2737dc2c/go.mod h1:FhOTOCgKAVvRRMQc1mC0D7xK/3zYnmcZBWFXNkacvMc=
 github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612154026-d152e53c1fe2 h1:GO6jtAZvkHCDLyl2CZmUTW4tsFfPodJmvoUAgGUd8Ew=
 github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612154026-d152e53c1fe2/go.mod h1:FhOTOCgKAVvRRMQc1mC0D7xK/3zYnmcZBWFXNkacvMc=
+github.com/cloudscale-ch/cloudscale-go-sdk v1.0.0 h1:tX04ghZf2RYPbT4eCD9CZ6qhhGUUzNJ/hL8TUjpFt2A=
+github.com/cloudscale-ch/cloudscale-go-sdk v1.0.0/go.mod h1:FhOTOCgKAVvRRMQc1mC0D7xK/3zYnmcZBWFXNkacvMc=
 github.com/coreos/bbolt v1.3.0/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/bbolt v1.3.1-coreos.1/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/etcd v3.2.0-rc.1.0.20170908195435-80aa810309d4+incompatible h1:VLCxgrfBsnJtqTy0WFP0GsjjwWZQiuQiNgiWnY6g6Gc=

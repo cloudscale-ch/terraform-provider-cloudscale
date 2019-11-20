@@ -5,7 +5,7 @@ go 1.12
 require (
 	cloud.google.com/go v0.40.0 // indirect
 	github.com/chzyer/logex v1.1.11-0.20160617073814-96a4d311aa9b // indirect
-	github.com/cloudscale-ch/cloudscale-go-sdk v0.0.0-20190612154026-d152e53c1fe2
+	github.com/cloudscale-ch/cloudscale-go-sdk v1.0.0
 	github.com/coreos/bbolt v1.3.1-coreos.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20190515194954-54271f7e092f // indirect
