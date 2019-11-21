@@ -34,11 +34,13 @@ func getNetworkSchema() map[string]*schema.Schema {
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 		"mtu": {
 			Type:     schema.TypeInt,
 			Optional: true,
+			Computed: true,
 		},
 		"auto_create_ipv4_subnet": {
 			Type:     schema.TypeBool,
@@ -64,6 +66,7 @@ func getNetworkSchema() map[string]*schema.Schema {
 				},
 			},
 			Computed: true,
+			Optional: true,
 		},
 
 		// Computed attributes

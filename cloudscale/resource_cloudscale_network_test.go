@@ -47,6 +47,28 @@ func testSweepNetworks(region string) error {
 	return foundError
 }
 
+func TestAccCloudscaleNetwork_DetachedMinimal(t *testing.T) {
+	var network cloudscale.Network
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkconfigMinimal(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
+					resource.TestCheckResourceAttr("cloudscale_network.basic", "mtu", "9000"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleNetwork_DetachedWithZone(t *testing.T) {
 	var network cloudscale.Network
 
@@ -314,6 +336,13 @@ func testAccCheckCloudscaleNetworkDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func networkconfigMinimal(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_network" "basic" {
+  name         = "terraform-%d"
+}`, rInt)
 }
 
 func networkConfig_baseline(count int, rInt int) string {
