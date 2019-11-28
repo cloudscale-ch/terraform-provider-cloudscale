@@ -42,9 +42,16 @@ func getServerSchema() map[string]*schema.Schema {
 		},
 		"ssh_keys": {
 			Type:     schema.TypeSet,
-			Required: true,
+			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			ForceNew: true,
+		},
+		"password": {
+			Type:      schema.TypeString,
+			Optional:  true,
+			Elem:      &schema.Schema{Type: schema.TypeString},
+			ForceNew:  true,
+			Sensitive: true,
 		},
 
 		// Optional attributes
@@ -241,6 +248,10 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if attr, ok := d.GetOk("volume_size_gb"); ok {
 		opts.VolumeSizeGB = attr.(int)
+	}
+
+	if attr, ok := d.GetOk("password"); ok {
+		opts.Password = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("bulk_volume_size_gb"); ok {

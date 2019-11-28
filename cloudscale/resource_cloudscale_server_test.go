@@ -159,6 +159,27 @@ func TestAccCloudscaleServer_UpdateStatus(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleServer_Password(t *testing.T) {
+	var afterCreate cloudscale.Server
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testServerPasswordConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.password", &afterCreate),
+					resource.TestCheckResourceAttr("cloudscale_server.password", "ssh_keys.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleServer_Recreated(t *testing.T) {
 	var afterCreate, afterUpdate cloudscale.Server
 
@@ -505,4 +526,17 @@ resource "cloudscale_server" "basic" {
   volume_size_gb			= 11
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
+}
+
+func testServerPasswordConfig(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "password" {
+  name                      = "terraform-%d"
+  flavor_slug    			= "flex-2"
+  allow_stopping_for_update = true
+  image_slug     			= "pfsense-2.4.4"
+  volume_size_gb			= 10
+  password                  = "rivella17"
+  use_private_network       = true
+}`, rInt)
 }
