@@ -83,7 +83,7 @@ func TestAccCloudscaleNetwork_DetachedWithZone(t *testing.T) {
 				Config: networkconfigWithZone(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
-					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 0),
+					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
 					resource.TestCheckResourceAttrSet(
 						"cloudscale_network.basic", "href"),
 					resource.TestCheckResourceAttr(
@@ -239,7 +239,7 @@ func TestAccCloudscaleNetwork_Reattach(t *testing.T) {
 	})
 }
 
-func TestAccCloudscaleNetwork_ServerWithPublicAndLayerTwo(t *testing.T) {
+func TestAccCloudscaleNetwork_ServerWithPublicAndPrivate(t *testing.T) {
 	var network cloudscale.Network
 	var server cloudscale.Server
 
@@ -263,7 +263,7 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndLayerTwo(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.addresses.#", "2"),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.type", "private"),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.network_name", fmt.Sprintf("terraform-%d", rInt1)),
-					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.addresses.#", "0"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.addresses.#", "1"),
 				),
 			},
 		},
@@ -370,7 +370,6 @@ resource "cloudscale_network" "basic" {
   name                    = "terraform-%d"
   mtu                     = "3421"
   zone_slug               = "lpg1"
-  auto_create_ipv4_subnet = false
 }`, rInt)
 }
 
@@ -393,8 +392,6 @@ resource "cloudscale_server" "basic" {
 interfaces                {
   type                    = "private"
   network_uuid            = "${cloudscale_network.basic.%v.id}"
-  addresses {
-  }
 }`, networkIndex))
 	}
 
@@ -411,10 +408,6 @@ resource "cloudscale_server" "basic" {
   image_slug     			= "%s"
   interfaces                {
     type                    = "public"
-    addresses {
-    }
-    addresses {
-    }
   }
   interfaces                {
     type                    = "private"

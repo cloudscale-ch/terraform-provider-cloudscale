@@ -184,7 +184,7 @@ func getServerSchema() map[string]*schema.Schema {
 								},
 							},
 						},
-						Optional: true,
+						Computed: true,
 					},
 				},
 			},
@@ -336,29 +336,17 @@ func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceReques
 		prefix := fmt.Sprintf("interfaces.%d", i)
 		intType := d.Get(prefix + ".type").(string)
 
-		addresses := createAddressesOption(d, prefix)
-
 		if intType == "public" {
 			result[i] = cloudscale.InterfaceRequest{
 				Network: "public",
 			}
 		} else {
 			result[i] = cloudscale.InterfaceRequest{
-				Network:   d.Get(prefix + ".network_uuid").(string),
-				Addresses: addresses,
+				Network: d.Get(prefix + ".network_uuid").(string),
 			}
 		}
 	}
 	return result
-}
-
-func createAddressesOption(d *schema.ResourceData, prefix string) *[]string {
-	addressCount := d.Get(prefix + ".addresses.#")
-	if addressCount == 0 {
-		ret := []string{}
-		return &ret
-	}
-	return nil
 }
 
 func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
