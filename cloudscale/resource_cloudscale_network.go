@@ -61,7 +61,6 @@ func getNetworkSchema() map[string]*schema.Schema {
 				},
 			},
 			Computed: true,
-			Optional: true,
 		},
 
 		// Computed attributes
