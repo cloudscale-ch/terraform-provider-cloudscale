@@ -25,7 +25,7 @@ resource "cloudscale_server" "web-worker01" {
   name             = "web-worker${count.index}"
   flavor_slug      = "flex-4"
   image_slug       = "debian-9"
-  server_group_ids = ["${cloudscale_server_group.web-worker-group.id}"]
+  server_group_ids = [cloudscale_server_group.web-worker-group.id]
   ssh_keys         = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
 }
 ```

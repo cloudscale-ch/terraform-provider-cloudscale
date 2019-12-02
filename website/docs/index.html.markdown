@@ -25,7 +25,7 @@ Use the navigation to the left to read about the available resources.
 variable "cloudscale_token" {}
 
 provider "cloudscale" {
-  token = "${var.cloudscale_token}"
+  token = var.cloudscale_token
 }
 
 # Create a new Server
@@ -35,13 +35,13 @@ resource "cloudscale_server" "web-worker01" {
 
 # Add a Volume
 resource "cloudscale_volume" "web-worker01-volume" {
-  server_uuids = ["${cloudscale_server.web-worker01.id}"]
+  server_uuids = [cloudscale_server.web-worker01.id]
   # ...
 }
 
 # Add a Floating IP
 resource "cloudscale_floating_ip" "web-worker01-vip" {
-  server = "${cloudscale_server.web-worker01.id}"
+  server = cloudscale_server.web-worker01.id
   # ...
 }
 ```

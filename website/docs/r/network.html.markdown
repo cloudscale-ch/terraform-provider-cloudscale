@@ -35,7 +35,7 @@ resource "cloudscale_server" "gw" {
   }
   interfaces {
     type              = "private"
-    network_uuid      = "${cloudscale_network.privnet.id}"
+    network_uuid      = cloudscale_network.privnet.id
   }
 }
 ```

@@ -26,7 +26,7 @@ resource "cloudscale_volume" "web-worker01-volume" {
   name         = "web-worker-data"
   size_gb      = 100
   type         = "ssd"
-  server_uuids = ["${cloudscale_server.web-worker01.id}"]
+  server_uuids = [cloudscale_server.web-worker01.id]
 }
 ```
 
