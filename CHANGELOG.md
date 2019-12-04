@@ -1,4 +1,10 @@
 ## 2.1.1 (Unreleased)
+
+FEATURES:
+
+* Add Support for Networks (#20)
+* Add Password Option to Server (#21)
+
 ## 2.1.0 (November 20, 2019)
 
 FEATURES:
