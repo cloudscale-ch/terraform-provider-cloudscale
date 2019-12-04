@@ -60,8 +60,9 @@ type VolumeStub struct {
 }
 
 type Interface struct {
-	Type     string    `json:"type"`
-	Adresses []Address `json:"addresses"`
+	Type      string      `json:"type,omitempty"`
+	Network   NetworkStub `json:"network,omitempty"`
+	Addresses []Address   `json:"addresses,omitempty"`
 }
 
 type Address struct {
@@ -74,20 +75,27 @@ type Address struct {
 
 type ServerRequest struct {
 	ZonalResourceRequest
-	Name              string    `json:"name"`
-	Flavor            string    `json:"flavor"`
-	Image             string    `json:"image"`
-	Zone              string   `json:"zone,omitempty"`
-	VolumeSizeGB      int       `json:"volume_size_gb,omitempty"`
-	Volumes           *[]Volume `json:"volumes,omitempty"`
-	BulkVolumeSizeGB  int       `json:"bulk_volume_size_gb,omitempty"`
-	SSHKeys           []string  `json:"ssh_keys"`
-	UsePublicNetwork  *bool     `json:"use_public_network,omitempty"`
-	UsePrivateNetwork *bool     `json:"use_private_network,omitempty"`
-	UseIPV6           *bool     `json:"use_ipv6,omitempty"`
-	AntiAffinityWith  string    `json:"anti_affinity_with,omitempty"`
-	ServerGroups      []string  `json:"server_groups,omitempty"`
-	UserData          string    `json:"user_data,omitempty"`
+	Name              string              `json:"name"`
+	Flavor            string              `json:"flavor"`
+	Image             string              `json:"image"`
+	Zone              string              `json:"zone,omitempty"`
+	VolumeSizeGB      int                 `json:"volume_size_gb,omitempty"`
+	Volumes           *[]Volume           `json:"volumes,omitempty"`
+	Interfaces        *[]InterfaceRequest `json:"interfaces,omitempty"`
+	BulkVolumeSizeGB  int                 `json:"bulk_volume_size_gb,omitempty"`
+	SSHKeys           []string            `json:"ssh_keys"`
+	Password		  string    `json:"password,omitempty"`
+	UsePublicNetwork  *bool               `json:"use_public_network,omitempty"`
+	UsePrivateNetwork *bool               `json:"use_private_network,omitempty"`
+	UseIPV6           *bool               `json:"use_ipv6,omitempty"`
+	AntiAffinityWith  string              `json:"anti_affinity_with,omitempty"`
+	ServerGroups      []string            `json:"server_groups,omitempty"`
+	UserData          string              `json:"user_data,omitempty"`
+}
+
+type InterfaceRequest struct {
+	Network   string   `json:"network,omitempty"`
+	Addresses *[]string `json:"addresses,omitempty"`
 }
 
 type ServerService interface {
@@ -124,9 +132,10 @@ func (s ServerServiceOperations) Create(ctx context.Context, createRequest *Serv
 }
 
 type ServerUpdateRequest struct {
-	Name   string `json:"name,omitempty"`
-	Status string `json:"status,omitempty"`
-	Flavor string `json:"flavor,omitempty"`
+	Name       string              `json:"name,omitempty"`
+	Status     string              `json:"status,omitempty"`
+	Flavor     string              `json:"flavor,omitempty"`
+	Interfaces *[]InterfaceRequest `json:"interfaces,omitempty"`
 }
 
 func (s ServerServiceOperations) Update(ctx context.Context, serverID string, updateRequest *ServerUpdateRequest) error {
@@ -146,12 +155,11 @@ func (s ServerServiceOperations) Update(ctx context.Context, serverID string, up
 			return err
 		}
 		// Get rid of status
-		updateRequest = &ServerUpdateRequest{
-			Name:   updateRequest.Name,
-			Flavor: updateRequest.Flavor,
-		}
+		updateRequest.Status = ""
 	}
-	if updateRequest.Name != "" || updateRequest.Flavor != "" {
+
+	emptyRequest := ServerUpdateRequest{}
+	if *updateRequest != emptyRequest {
 		path := fmt.Sprintf("%s/%s", serverBasePath, serverID)
 
 		req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)

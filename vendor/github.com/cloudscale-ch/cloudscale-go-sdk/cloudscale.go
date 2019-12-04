@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	libraryVersion = "1.0"
+	libraryVersion = "1.1"
 	defaultBaseURL = "https://api.cloudscale.ch/"
 	userAgent      = "cloudscale/" + libraryVersion
 	mediaType      = "application/json"
@@ -37,6 +37,8 @@ type Client struct {
 	Regions      RegionService
 	Servers      ServerService
 	Volumes      VolumeService
+	Networks     NetworkService
+	Subnets		 SubnetService
 	FloatingIPs  FloatingIPsService
 	ServerGroups ServerGroupService
 	ObjectsUsers ObjectsUsersService
@@ -60,6 +62,8 @@ func NewClient(httpClient *http.Client) *Client {
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 	c.Regions = RegionServiceOperations{client: c}
 	c.Servers = ServerServiceOperations{client: c}
+	c.Networks = NetworkServiceOperations{client: c}
+	c.Subnets = SubnetServiceOperations{client: c}
 	c.FloatingIPs = FloatingIPsServiceOperations{client: c}
 	c.Volumes = VolumeServiceOperations{client: c}
 	c.ServerGroups = ServerGroupServiceOperations{client: c}

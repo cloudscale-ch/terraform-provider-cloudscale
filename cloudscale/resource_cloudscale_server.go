@@ -143,6 +143,19 @@ func getServerSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"type": {
 						Type:     schema.TypeString,
+						Required: true,
+					},
+					"network_uuid": {
+						Type:     schema.TypeString,
+						Computed: true,
+						Optional: true,
+					},
+					"network_name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"network_href": {
+						Type:     schema.TypeString,
 						Computed: true,
 					},
 					"addresses": {
@@ -176,6 +189,7 @@ func getServerSchema() map[string]*schema.Schema {
 				},
 			},
 			Computed: true,
+			Optional: true,
 		},
 		"ssh_fingerprints": {
 			Type:     schema.TypeList,
@@ -238,6 +252,12 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		g[i] = serverGroupIds[i].(string)
 	}
 	opts.ServerGroups = g
+
+	interfacesCount := d.Get("interfaces.#").(int)
+	if interfacesCount > 0 {
+		interfaceRequests := createInterfaceOptions(d)
+		opts.Interfaces = &interfaceRequests
+	}
 
 	if attr, ok := d.GetOk("volume_size_gb"); ok {
 		opts.VolumeSizeGB = attr.(int)
@@ -309,6 +329,26 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceServerRead(d, meta)
 }
 
+func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceRequest {
+	interfacesCount := d.Get("interfaces.#").(int)
+	result := make([]cloudscale.InterfaceRequest, interfacesCount)
+	for i := 0; i < interfacesCount; i++ {
+		prefix := fmt.Sprintf("interfaces.%d", i)
+		intType := d.Get(prefix + ".type").(string)
+
+		if intType == "public" {
+			result[i] = cloudscale.InterfaceRequest{
+				Network: "public",
+			}
+		} else {
+			result[i] = cloudscale.InterfaceRequest{
+				Network: d.Get(prefix + ".network_uuid").(string),
+			}
+		}
+	}
+	return result
+}
+
 func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
@@ -352,8 +392,8 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	err = d.Set("server_groups", serverGroupMaps)
 	if err != nil {
-		log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
-		return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", serverGroupMaps, err)
+		log.Printf("[DEBUG] Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
+		return fmt.Errorf("Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
 	}
 
 	d.Set("status", server.Status)
@@ -364,8 +404,13 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		for _, intr := range server.Interfaces {
 
 			intMap := make(map[string]interface{})
-			addrssMap := make([]map[string]interface{}, 0, len(intr.Adresses))
-			for _, addr := range intr.Adresses {
+
+			intMap["network_href"] = intr.Network.HREF
+			intMap["network_name"] = intr.Network.Name
+			intMap["network_uuid"] = intr.Network.UUID
+
+			addrssMap := make([]map[string]interface{}, 0, len(intr.Addresses))
+			for _, addr := range intr.Addresses {
 				i := make(map[string]interface{})
 				i["address"] = addr.Address
 				i["version"] = addr.Version
@@ -518,6 +563,16 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		d.SetPartial("name")
 	}
 
+	if d.HasChange("interfaces") {
+		interfaceRequests := createInterfaceOptions(d)
+		updateRequest := &cloudscale.ServerUpdateRequest{Interfaces: &interfaceRequests}
+		err := client.Servers.Update(context.Background(), id, updateRequest)
+		if err != nil {
+			return fmt.Errorf("Error changing the Server (%s) interfaces (%s) ", id, err)
+		}
+		d.SetPartial("interfaces")
+	}
+
 	return resourceServerRead(d, meta)
 }
 
@@ -585,7 +640,7 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interfa
 func findIPv6AddrByType(s *cloudscale.Server, addrType string) string {
 	for _, interf := range s.Interfaces {
 		if interf.Type == addrType {
-			for _, addr := range interf.Adresses {
+			for _, addr := range interf.Addresses {
 				if addr.Version == 6 {
 					return addr.Address
 				}
@@ -598,7 +653,7 @@ func findIPv6AddrByType(s *cloudscale.Server, addrType string) string {
 func findIPv4AddrByType(s *cloudscale.Server, addrType string) string {
 	for _, interf := range s.Interfaces {
 		if interf.Type == addrType {
-			for _, addr := range interf.Adresses {
+			for _, addr := range interf.Addresses {
 				if addr.Version == 4 {
 					return addr.Address
 				}

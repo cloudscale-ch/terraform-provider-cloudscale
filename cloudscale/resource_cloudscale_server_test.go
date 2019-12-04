@@ -378,7 +378,7 @@ func testAccCheckServerIp(n string) resource.TestCheckFunc {
 		}
 
 		for _, networkInterface := range retrieveServer.Interfaces {
-			for _, ipAddress := range networkInterface.Adresses {
+			for _, ipAddress := range networkInterface.Addresses {
 				if ipAddress.Version == 4 && networkInterface.Type == "public" {
 					err := resource.TestCheckResourceAttr(n, "public_ipv4_address", ipAddress.Address)(s)
 					if err != nil {

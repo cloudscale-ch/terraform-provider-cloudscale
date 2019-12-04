@@ -8,7 +8,7 @@ description: |-
 
 # cloudscale\_server\_group
 
-Provides a cloudscale.ch server group resource. This can be used to create, and delete server groups.
+Provides a cloudscale.ch Server Group resource. This can be used to create, and delete server groups.
 
 ## Example Usage
 
@@ -18,13 +18,14 @@ resource "cloudscale_server_group" "web-worker-group" {
   name = "web-worker-group"
   type = "anti-affinity"
 }
+
 # Create three new servers in that group
 resource "cloudscale_server" "web-worker01" {
   count            = 3
   name             = "web-worker${count.index}"
   flavor_slug      = "flex-4"
   image_slug       = "debian-9"
-  server_group_ids = ["${cloudscale_server_group.web-worker-group.id}"]
+  server_group_ids = [cloudscale_server_group.web-worker-group.id]
   ssh_keys         = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
 }
 ```
