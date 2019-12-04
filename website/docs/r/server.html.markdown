@@ -31,7 +31,8 @@ The following arguments are supported when creating new servers:
 * `flavor_slug` - (Required) The slug (name) of the flavor to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#flavors).
     **Note:** If you want to update this value after initial creation, you must set [`allow_stopping_for_update`](#allow_stopping_for_update) to `true`.
 * `image_slug` - (Required) The slug (name) of the image to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#images).
-* `ssh_keys` - (Required) A list of SSH public keys. Use the full content of your \*.pub file here.
+* `ssh_keys` - (Optional) A list of SSH public keys. Use the full content of your \*.pub file here.
+* `password` - (Optional) The password of the default user of the new server. When omitted, no password will be set.
 * `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.
 * `volume_size_gb` - (Optional) The size in GB of the SSD root volume of the new server. If this parameter is not specified, the value will be set to 10. The minimum value is 10.
 * `bulk_volume_size_gb` - (Optional, Deprecated) The size in GB of the bulk storage volume of the new server. If this parameter is not specified, no bulk storage volume will be attached to the server. Valid values are multiples of 100.
