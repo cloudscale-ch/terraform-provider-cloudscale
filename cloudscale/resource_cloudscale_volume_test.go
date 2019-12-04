@@ -53,7 +53,7 @@ func TestAccCloudscaleVolume_DetachedWithZone(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
@@ -81,7 +81,7 @@ func TestAccCloudscaleVolume_Change(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
@@ -129,7 +129,7 @@ func TestAccCloudscaleVolume_Detach(t *testing.T) {
 
 	serverConfig := testAccCheckCloudscaleServerConfig_basic(rInt1)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
@@ -166,7 +166,7 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 
 	serverConfig := testAccCheckCloudscaleServerConfig_basic(rInt1)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,

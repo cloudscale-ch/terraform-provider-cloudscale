@@ -47,7 +47,7 @@ func TestAccCloudscaleFloatingIP_Server(t *testing.T) {
 	var floatingIP cloudscale.FloatingIP
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
@@ -70,7 +70,7 @@ func TestAccCloudscaleFloatingIP_ServerWithZone(t *testing.T) {
 	var floatingIP cloudscale.FloatingIP
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
@@ -96,7 +96,7 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 	rIntA := acctest.RandInt()
 	rIntB := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,

@@ -15,7 +15,7 @@ test: fmtcheck
 
 testacc: fmtcheck
 	go clean -testcache  # Force retesting of code
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
+	TF_ACC=1 go test $(TEST) -v -parallel 5 $(TESTARGS) -timeout 120m
 
 vet:
 	@echo "go vet ."
