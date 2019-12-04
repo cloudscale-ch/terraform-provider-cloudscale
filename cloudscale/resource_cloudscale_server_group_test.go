@@ -49,7 +49,7 @@ func TestAccCloudscaleServerGroup_Basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	groupName := fmt.Sprintf("terraform-%d-group", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleServerDestroy,
@@ -83,7 +83,7 @@ func TestAccCloudscaleServerGroup_Basic(t *testing.T) {
 func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleServerDestroy,

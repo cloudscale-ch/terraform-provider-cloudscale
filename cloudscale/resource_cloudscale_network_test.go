@@ -52,7 +52,7 @@ func TestAccCloudscaleNetwork_DetachedMinimal(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
@@ -74,7 +74,7 @@ func TestAccCloudscaleNetwork_DetachedWithZone(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
@@ -103,7 +103,7 @@ func TestAccCloudscaleNetwork_Change(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
@@ -147,7 +147,7 @@ func TestAccCloudscaleNetwork_Attach(t *testing.T) {
 	networkConfig := networkConfig_baseline(1, rInt1)
 	serverConfig := serverConfigWithPrivateNetwork(rInt2, 0)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
@@ -182,7 +182,7 @@ func TestAccCloudscaleNetwork_Reattach(t *testing.T) {
 	rInt2 := acctest.RandInt()
 
 	networkConfig := networkConfig_baseline(2, rInt1)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
@@ -248,7 +248,7 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndPrivate(t *testing.T) {
 
 	networkConfig := networkconfigWithZone(rInt1)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
