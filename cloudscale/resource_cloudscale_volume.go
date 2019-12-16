@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceCloudScaleVolume() *schema.Resource {

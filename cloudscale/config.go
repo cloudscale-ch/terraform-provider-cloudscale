@@ -2,7 +2,7 @@ package cloudscale
 
 import (
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
-	"github.com/hashicorp/terraform/helper/logging"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	"golang.org/x/oauth2"
 )
 
