@@ -58,10 +58,32 @@ func TestAccCloudscaleNetwork_DetachedMinimal(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigMinimal(rInt),
+				Config: networkconfigMinimal(rInt, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
+					resource.TestCheckResourceAttr("cloudscale_network.basic", "mtu", "9000"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleNetwork_DetachedNoSubnet(t *testing.T) {
+	var network cloudscale.Network
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkconfigMinimal(rInt, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 0),
 					resource.TestCheckResourceAttr("cloudscale_network.basic", "mtu", "9000"),
 				),
 			},
@@ -338,11 +360,12 @@ func testAccCheckCloudscaleNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func networkconfigMinimal(rInt int) string {
+func networkconfigMinimal(rInt int, autoCrateSubnet bool) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "basic" {
-  name         = "terraform-%d"
-}`, rInt)
+  name                    = "terraform-%d"
+  auto_create_ipv4_subnet = "%t"
+}`, rInt, autoCrateSubnet)
 }
 
 func networkConfig_baseline(count int, rInt int) string {
