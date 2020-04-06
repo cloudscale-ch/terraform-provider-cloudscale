@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 )
 
 const serverBasePath = "v1/servers"
@@ -14,6 +15,7 @@ const ServerRebooted = "rebooted"
 
 type Server struct {
 	ZonalResource
+	TaggedResource
 	HREF            string            `json:"href"`
 	UUID            string            `json:"uuid"`
 	Name            string            `json:"name"`
@@ -75,6 +77,7 @@ type Address struct {
 
 type ServerRequest struct {
 	ZonalResourceRequest
+	TaggedResourceRequest
 	Name              string              `json:"name"`
 	Flavor            string              `json:"flavor"`
 	Image             string              `json:"image"`
@@ -84,7 +87,7 @@ type ServerRequest struct {
 	Interfaces        *[]InterfaceRequest `json:"interfaces,omitempty"`
 	BulkVolumeSizeGB  int                 `json:"bulk_volume_size_gb,omitempty"`
 	SSHKeys           []string            `json:"ssh_keys"`
-	Password		  string    `json:"password,omitempty"`
+	Password          string              `json:"password,omitempty"`
 	UsePublicNetwork  *bool               `json:"use_public_network,omitempty"`
 	UsePrivateNetwork *bool               `json:"use_private_network,omitempty"`
 	UseIPV6           *bool               `json:"use_ipv6,omitempty"`
@@ -94,8 +97,13 @@ type ServerRequest struct {
 }
 
 type InterfaceRequest struct {
-	Network   string   `json:"network,omitempty"`
-	Addresses *[]string `json:"addresses,omitempty"`
+	Network   string            `json:"network,omitempty"`
+	Addresses *[]AddressRequest `json:"addresses,omitempty"`
+}
+
+type AddressRequest struct {
+	Subnet  string `json:"subnet,omitempty"`
+	Address string `json:"address,omitempty"`
 }
 
 type ServerService interface {
@@ -103,7 +111,7 @@ type ServerService interface {
 	Get(ctx context.Context, serverID string) (*Server, error)
 	Update(ctx context.Context, serverID string, updateRequest *ServerUpdateRequest) error
 	Delete(ctx context.Context, serverID string) error
-	List(ctx context.Context) ([]Server, error)
+	List(ctx context.Context, modifiers ...ListRequestModifier) ([]Server, error)
 	Reboot(ctx context.Context, serverID string) error
 	Start(ctx context.Context, serverID string) error
 	Stop(ctx context.Context, serverID string) error
@@ -132,6 +140,7 @@ func (s ServerServiceOperations) Create(ctx context.Context, createRequest *Serv
 }
 
 type ServerUpdateRequest struct {
+	TaggedResourceRequest
 	Name       string              `json:"name,omitempty"`
 	Status     string              `json:"status,omitempty"`
 	Flavor     string              `json:"flavor,omitempty"`
@@ -159,7 +168,7 @@ func (s ServerServiceOperations) Update(ctx context.Context, serverID string, up
 	}
 
 	emptyRequest := ServerUpdateRequest{}
-	if *updateRequest != emptyRequest {
+	if !reflect.DeepEqual(emptyRequest, *updateRequest) {
 		path := fmt.Sprintf("%s/%s", serverBasePath, serverID)
 
 		req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
@@ -223,13 +232,17 @@ func (s ServerServiceOperations) Stop(ctx context.Context, serverID string) erro
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s ServerServiceOperations) List(ctx context.Context) ([]Server, error) {
+func (s ServerServiceOperations) List(ctx context.Context, modifiers ...ListRequestModifier) ([]Server, error) {
 	path := serverBasePath
 
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
+	for _, modifier := range modifiers {
+		modifier(req)
+	}
+
 	servers := []Server{}
 	err = s.client.Do(ctx, req, &servers)
 	if err != nil {

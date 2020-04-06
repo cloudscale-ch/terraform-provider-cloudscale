@@ -10,18 +10,22 @@ import (
 const floatingIPsBasePath = "v1/floating-ips"
 
 type FloatingIP struct {
-	RegionalResource
+	Region         *Region    `json:"region"` // not using RegionalResource here, as FloatingIP can be regional or global
+	TaggedResource
 	HREF           string     `json:"href"`
 	Network        string     `json:"network"`
 	NextHop        string     `json:"next_hop"`
 	Server         ServerStub `json:"server"`
+	Type           string     `json:"type"`
 	ReversePointer string     `json:"reverse_ptr,omitempty"`
 }
 
 type FloatingIPCreateRequest struct {
 	RegionalResourceRequest
+	TaggedResourceRequest
 	IPVersion      int    `json:"ip_version"`
 	Server         string `json:"server"`
+	Type           string `json:"type,omitempty"`
 	PrefixLength   int    `json:"prefix_length,omitempty"`
 	ReversePointer string `json:"reverse_ptr,omitempty"`
 }
@@ -31,7 +35,8 @@ func (f FloatingIP) IP() string {
 }
 
 type FloatingIPUpdateRequest struct {
-	Server string `json:"server"`
+	TaggedResourceRequest
+	Server string `json:"server,omitempty"`
 }
 
 type FloatingIPsService interface {
@@ -39,7 +44,7 @@ type FloatingIPsService interface {
 	Get(ctx context.Context, ip string) (*FloatingIP, error)
 	Update(ctx context.Context, ip string, FloatingIPRequest *FloatingIPUpdateRequest) error
 	Delete(ctx context.Context, ip string) error
-	List(ctx context.Context) ([]FloatingIP, error)
+	List(ctx context.Context, modifiers ...ListRequestModifier) ([]FloatingIP, error)
 }
 
 type FloatingIPsServiceOperations struct {
@@ -96,13 +101,17 @@ func (f FloatingIPsServiceOperations) Delete(ctx context.Context, ip string) err
 	return genericDelete(f.client, ctx, floatingIPsBasePath, ip)
 }
 
-func (f FloatingIPsServiceOperations) List(ctx context.Context) ([]FloatingIP, error) {
+func (f FloatingIPsServiceOperations) List(ctx context.Context, modifiers ...ListRequestModifier) ([]FloatingIP, error) {
 	path := floatingIPsBasePath
 
 	req, err := f.client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
+	for _, modifier := range modifiers {
+		modifier(req)
+	}
+
 	floatingIps := []FloatingIP{}
 	err = f.client.Do(ctx, req, &floatingIps)
 	if err != nil {

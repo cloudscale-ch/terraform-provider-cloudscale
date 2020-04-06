@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	libraryVersion = "1.1"
+	libraryVersion = "1.4.1"
 	defaultBaseURL = "https://api.cloudscale.ch/"
 	userAgent      = "cloudscale/" + libraryVersion
 	mediaType      = "application/json"
@@ -173,3 +173,6 @@ func (r *ErrorResponse) Error() string {
 	}
 	return err
 }
+
+type ListRequestModifier func(r *http.Request)
+
