@@ -21,6 +21,7 @@ func Provider() terraform.ResourceProvider {
 			"cloudscale_server_group": resourceCloudScaleServerGroup(),
 			"cloudscale_volume":       resourceCloudScaleVolume(),
 			"cloudscale_network":      resourceCloudScaleNetwork(),
+			"cloudscale_subnet":       resourceCloudScaleSubnet(),
 			"cloudscale_floating_ip":  resourceCloudScaleFloatingIP(),
 		},
 		ConfigureFunc: providerConfigureClient,
