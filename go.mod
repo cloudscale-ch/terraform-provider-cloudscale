@@ -9,3 +9,5 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk v1.1.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 )
+
+replace github.com/cloudscale-ch/cloudscale-go-sdk => github.com/alakae/cloudscale-go-sdk v0.0.0-20200408102057-f2f32c968005

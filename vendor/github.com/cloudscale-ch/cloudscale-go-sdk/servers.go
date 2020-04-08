@@ -68,11 +68,12 @@ type Interface struct {
 }
 
 type Address struct {
-	Version      int    `json:"version"`
-	Address      string `json:"address"`
-	PrefixLength int    `json:"prefix_length"`
-	Gateway      string `json:"gateway"`
-	ReversePtr   string `json:"reverse_ptr"`
+	Version      int        `json:"version"`
+	Address      string     `json:"address"`
+	PrefixLength int        `json:"prefix_length"`
+	Gateway      string     `json:"gateway"`
+	ReversePtr   string     `json:"reverse_ptr"`
+	Subnet       SubnetStub `json:"subnet"`
 }
 
 type ServerRequest struct {
