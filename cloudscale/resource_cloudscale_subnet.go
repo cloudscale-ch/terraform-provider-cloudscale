@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -155,6 +156,8 @@ func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
 	log.Printf("[INFO] Deleting Subnet: %s", d.Id())
+	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
+	time.Sleep(5 * time.Second)
 	err := client.Subnets.Delete(context.Background(), id)
 
 	if err != nil {

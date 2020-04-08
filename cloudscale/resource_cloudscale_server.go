@@ -176,6 +176,7 @@ func getServerSchema() map[string]*schema.Schema {
 								"address": {
 									Type:     schema.TypeString,
 									Computed: true,
+									Optional: true,
 								},
 								"prefix_length": {
 									Type:     schema.TypeInt,
@@ -189,9 +190,23 @@ func getServerSchema() map[string]*schema.Schema {
 									Type:     schema.TypeString,
 									Computed: true,
 								},
+								"subnet_uuid": {
+									Type:     schema.TypeString,
+									Computed: true,
+									Optional: true,
+								},
+								"subnet_cidr": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
+								"subnet_href": {
+									Type:     schema.TypeString,
+									Computed: true,
+								},
 							},
 						},
 						Computed: true,
+						Optional: true,
 					},
 				},
 			},
@@ -352,9 +367,43 @@ func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceReques
 				Network: "public",
 			}
 		} else {
-			result[i] = cloudscale.InterfaceRequest{
-				Network: d.Get(prefix + ".network_uuid").(string),
-			}
+			result[i] = createPrivateInterfaceOptions(d, prefix)
+		}
+	}
+	return result
+}
+
+func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) cloudscale.InterfaceRequest {
+	result := cloudscale.InterfaceRequest{}
+
+	addressKey := prefix + ".addresses"
+	if d.HasChange(addressKey) {
+		addresses := d.Get(addressKey).([]interface{})
+		if len(addresses) > 0 {
+			addresses := createAddressesOptions(addresses)
+			result.Addresses = &addresses
+		}
+		// we don't need to update the network
+		return result
+	}
+
+	networkUUID := d.Get(prefix + ".network_uuid").(string)
+	if networkUUID != "" {
+		result.Network = networkUUID
+	}
+
+	return result
+}
+
+func createAddressesOptions(addresses []interface{}) []cloudscale.AddressRequest {
+	result := make([]cloudscale.AddressRequest, len(addresses))
+	for i, address := range addresses {
+		a := address.(map[string]interface{})
+		if a["subnet_uuid"] != "" {
+			result[i].Subnet = a["subnet_uuid"].(string)
+		}
+		if a["address"] != "" {
+			result[i].Address = a["address"].(string)
 		}
 	}
 	return result
@@ -428,6 +477,9 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 				i["prefix_length"] = addr.PrefixLength
 				i["gateway"] = addr.Gateway
 				i["reverse_ptr"] = addr.ReversePtr
+				i["subnet_uuid"] = addr.Subnet.UUID
+				i["subnet_cidr"] = addr.Subnet.CIDR
+				i["subnet_href"] = addr.Subnet.HREF
 
 				addrssMap = append(addrssMap, i)
 			}
