@@ -47,7 +47,7 @@ The following arguments are supported when creating/changing Networks:
 * `name` - (Required) Name of the network.
 * `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.
 * `mtu` - (Optional) You can specify the MTU size for the network, defaults to 9000.
-* `auto_create_ipv4_subnet` - (Optional) Automatically create an IPv4 Subnet on the network Can be `true` (default) or `false`.
+* `auto_create_ipv4_subnet` - (Optional) Automatically create an IPv4 Subnet on the network. Can be `true` (default) or `false`.
 
 
 ## Attributes Reference
