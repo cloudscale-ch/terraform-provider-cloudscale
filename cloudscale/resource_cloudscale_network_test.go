@@ -360,12 +360,12 @@ func testAccCheckCloudscaleNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func networkconfigMinimal(rInt int, autoCrateSubnet bool) string {
+func networkconfigMinimal(rInt int, autoCreateSubnet bool) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "basic" {
   name                    = "terraform-%d"
   auto_create_ipv4_subnet = "%t"
-}`, rInt, autoCrateSubnet)
+}`, rInt, autoCreateSubnet)
 }
 
 func networkConfig_baseline(count int, rInt int) string {
