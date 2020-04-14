@@ -28,6 +28,26 @@ resource "cloudscale_subnet" "privnet-subnet" {
   gateway_address = "10.11.12.10"
   dns_servers     = ["1.2.3.4", "5.6.7.8", "9.10.11.12"]
 }
+
+# Create a server with fixed IP address
+resource "cloudscale_server" "fixed" {
+  name            = "fix"
+  zone_slug       = "rma1"
+  flavor_slug     = "flex-2"
+  image_slug      = "debian-9"
+  interfaces      {
+    type          = "public"
+  }
+  interfaces      {
+    type          = "private"
+    addresses {
+      subnet_uuid = "${cloudscale_subnet.privnet-subnet.id}"     
+      address     = "10.11.12.13"
+    }
+  }
+  volume_size_gb  = 10
+  ssh_keys        = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
 ```
 
 ## Argument Reference
