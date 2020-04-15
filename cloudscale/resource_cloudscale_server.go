@@ -208,6 +208,10 @@ func getServerSchema() map[string]*schema.Schema {
 						Computed: true,
 						Optional: true,
 					},
+					"no_address": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
 				},
 			},
 			Computed: true,
@@ -392,6 +396,10 @@ func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) clouds
 		result.Network = networkUUID
 	}
 
+	if d.Get(prefix + ".no_address").(bool) {
+		result.Addresses = &[]cloudscale.AddressRequest{}
+	}
+
 	return result
 }
 
@@ -486,6 +494,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 			intMap["type"] = intr.Type
 			intMap["addresses"] = addrssMap
+			intMap["no_address"] = len(addrssMap) == 0
 
 			intsMap = append(intsMap, intMap)
 		}
