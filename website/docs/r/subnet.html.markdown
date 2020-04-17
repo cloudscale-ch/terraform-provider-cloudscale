@@ -32,7 +32,7 @@ resource "cloudscale_subnet" "privnet-subnet" {
 # Create a server with fixed IP address
 resource "cloudscale_server" "fixed" {
   name            = "fix"
-  zone_slug       = "rma1"
+  zone_slug       = "lpg1"
   flavor_slug     = "flex-2"
   image_slug      = "debian-9"
   interfaces      {
@@ -41,7 +41,7 @@ resource "cloudscale_server" "fixed" {
   interfaces      {
     type          = "private"
     addresses {
-      subnet_uuid = "${cloudscale_subnet.privnet-subnet.id}"     
+      subnet_uuid = "cloudscale_subnet.privnet-subnet.id"     
       address     = "10.11.12.13"
     }
   }
