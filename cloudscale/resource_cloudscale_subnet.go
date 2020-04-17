@@ -79,6 +79,13 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.GatewayAddress = attr.(string)
 	}
 
+	dnsServers := d.Get("dns_servers").([]interface{})
+	s := make([]string, len(dnsServers))
+	for i := range dnsServers {
+		s[i] = dnsServers[i].(string)
+	}
+	opts.DNSServers = s
+
 	log.Printf("[DEBUG] Subnet create configuration: %#v", opts)
 
 	subnet, err := client.Subnets.Create(context.Background(), opts)

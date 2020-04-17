@@ -47,6 +47,37 @@ func TestAccCloudscaleSubnet_Minimal(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleSubnet_AllAttrs(t *testing.T) {
+	var subnet cloudscale.Subnet
+	var network cloudscale.Network
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkconfigMinimal(rInt, false) + "\n" + subnetconfigAllAttrs(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
+					testAccCheckCloudscaleSubnetOnNetwork(&subnet, &network),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "cidr", "10.11.12.0/24"),
+					resource.TestCheckResourceAttrSet("cloudscale_subnet.basic", "network_href"),
+					resource.TestCheckResourceAttrSet("cloudscale_subnet.basic", "network_uuid"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "network_name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "gateway_address", "10.11.12.99"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.#", "2"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.0", "8.8.4.4"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.1", "8.8.8.8"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleSubnet_Update(t *testing.T) {
 	var subnet cloudscale.Subnet
 	var network cloudscale.Network
@@ -351,6 +382,17 @@ func subnetconfigMinimal() string {
 resource "cloudscale_subnet" "basic" {
   cidr            = "10.11.12.0/24"
   network_uuid    = cloudscale_network.basic.id
+}
+`)
+}
+
+func subnetconfigAllAttrs() string {
+	return fmt.Sprintf(`
+resource "cloudscale_subnet" "basic" {
+  cidr            = "10.11.12.0/24"
+  network_uuid    = cloudscale_network.basic.id
+  dns_servers     = ["8.8.4.4", "8.8.8.8"]
+  gateway_address = "10.11.12.99"
 }
 `)
 }
