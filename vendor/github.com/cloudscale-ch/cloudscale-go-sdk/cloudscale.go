@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	libraryVersion = "1.4.1"
+	libraryVersion = "1.5.0"
 	defaultBaseURL = "https://api.cloudscale.ch/"
 	userAgent      = "cloudscale/" + libraryVersion
 	mediaType      = "application/json"
