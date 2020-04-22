@@ -42,6 +42,11 @@ func getNetworkSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"auto_create_ipv4_subnet": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
 		"subnets": {
 			Type: schema.TypeList,
 			Elem: &schema.Resource{
@@ -84,6 +89,10 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	if attr, ok := d.GetOk("mtu"); ok {
 		opts.MTU = attr.(int)
+	}
+	if attr, ok := d.GetOkExists("auto_create_ipv4_subnet"); ok {
+		val := attr.(bool)
+		opts.AutoCreateIPV4Subnet = &val
 	}
 
 	log.Printf("[DEBUG] Network create configuration: %#v", opts)

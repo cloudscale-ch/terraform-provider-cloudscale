@@ -36,8 +36,8 @@ github.com/bsm/go-vlq v0.0.0-20150828105119-ec6e8d4f5f4e/go.mod h1:N+BjUcTjSxc2m
 github.com/cenkalti/backoff v2.1.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
-github.com/cloudscale-ch/cloudscale-go-sdk v1.1.0 h1:dV0WXIMOsch5OF+dbDObd3/b7ZV4HZmoZraJA+qlA1g=
-github.com/cloudscale-ch/cloudscale-go-sdk v1.1.0/go.mod h1:FhOTOCgKAVvRRMQc1mC0D7xK/3zYnmcZBWFXNkacvMc=
+github.com/cloudscale-ch/cloudscale-go-sdk v1.5.0 h1:P+FFFG7AoVW58TMx3rthMmbrrnCol/E4Er60E1hCHwk=
+github.com/cloudscale-ch/cloudscale-go-sdk v1.5.0/go.mod h1:FhOTOCgKAVvRRMQc1mC0D7xK/3zYnmcZBWFXNkacvMc=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

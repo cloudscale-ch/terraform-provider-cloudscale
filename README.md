@@ -69,3 +69,16 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 ```sh
 $ make testacc
 ```
+
+In order to run run a subset of the tests:
+
+``` sh
+$ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
+```
+
+In order to upgrade the `cloudscale-go-sdk`.
+
+```sh
+go get -u github.com/cloudscale-ch/cloudscale-go-sdk
+go mod vendor
+```

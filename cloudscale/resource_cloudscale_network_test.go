@@ -58,10 +58,32 @@ func TestAccCloudscaleNetwork_DetachedMinimal(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigMinimal(rInt),
+				Config: networkconfigMinimal(rInt, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
+					resource.TestCheckResourceAttr("cloudscale_network.basic", "mtu", "9000"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleNetwork_DetachedNoSubnet(t *testing.T) {
+	var network cloudscale.Network
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkconfigMinimal(rInt, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 0),
 					resource.TestCheckResourceAttr("cloudscale_network.basic", "mtu", "9000"),
 				),
 			},
@@ -254,7 +276,7 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndPrivate(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkConfig + "\n" + serverConfigWithPublicAndLayerTwo(rInt2),
+				Config: networkConfig + "\n" + serverConfigWithPublicAndPrivate(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
@@ -264,6 +286,39 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndPrivate(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.type", "private"),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.network_name", fmt.Sprintf("terraform-%d", rInt1)),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.addresses.#", "1"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.no_address", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleNetwork_ServerWithPublicAndPrivateWithoutAddress(t *testing.T) {
+	var network cloudscale.Network
+	var server cloudscale.Server
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	networkConfig := networkconfigNoSubnet(rInt1)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkConfig + "\n" + serverConfigWithPublicAndPrivateNoAddress(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.#", "2"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.type", "public"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.addresses.#", "2"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.type", "private"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.network_name", fmt.Sprintf("terraform-%d", rInt1)),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.addresses.#", "0"),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.no_address", "true"),
 				),
 			},
 		},
@@ -338,11 +393,12 @@ func testAccCheckCloudscaleNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func networkconfigMinimal(rInt int) string {
+func networkconfigMinimal(rInt int, autoCreateSubnet bool) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "basic" {
-  name         = "terraform-%d"
-}`, rInt)
+  name                    = "terraform-%d"
+  auto_create_ipv4_subnet = "%t"
+}`, rInt, autoCreateSubnet)
 }
 
 func networkConfig_baseline(count int, rInt int) string {
@@ -373,6 +429,15 @@ resource "cloudscale_network" "basic" {
 }`, rInt)
 }
 
+func networkconfigNoSubnet(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_network" "basic" {
+  name                    = "terraform-%d"
+  zone_slug               = "lpg1"
+  auto_create_ipv4_subnet = false
+}`, rInt)
+}
+
 func serverConfigWithPrivateNetwork(rInt int, networkIndexes ...int) string {
 	template := `
 resource "cloudscale_server" "basic" {
@@ -399,7 +464,7 @@ interfaces                {
 	return result
 }
 
-func serverConfigWithPublicAndLayerTwo(rInt int) string {
+func serverConfigWithPublicAndPrivate(rInt int) string {
 	template := `
 resource "cloudscale_server" "basic" {
   name      				= "terraform-%d"
@@ -412,6 +477,27 @@ resource "cloudscale_server" "basic" {
   interfaces                {
     type                    = "private"
     network_uuid            = "${cloudscale_network.basic.id}"
+  }
+  volume_size_gb			= 10
+  ssh_keys 					= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`
+	return fmt.Sprintf(template, rInt, DefaultImageSlug)
+}
+
+func serverConfigWithPublicAndPrivateNoAddress(rInt int) string {
+	template := `
+resource "cloudscale_server" "basic" {
+  name      				= "terraform-%d"
+  zone_slug                 = "lpg1"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "%s"
+  interfaces                {
+    type                    = "public"
+  }
+  interfaces                {
+    type                    = "private"
+    network_uuid            = "${cloudscale_network.basic.id}"
+    no_address              = true
   }
   volume_size_gb			= 10
   ssh_keys 					= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
