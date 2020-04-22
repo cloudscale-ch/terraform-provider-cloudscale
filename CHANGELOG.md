@@ -1,4 +1,9 @@
 ## 2.1.2 (Unreleased)
+
+FEATURES:
+
+* Add Subnets and Addresses (#25)
+
 ## 2.1.1 (December 04, 2019)
 
 FEATURES:
