@@ -30,7 +30,7 @@ func testSweepVolumes(region string) error {
 
 	client := meta.(*cloudscale.Client)
 
-	volumes, err := client.Volumes.List(context.Background(), nil)
+	volumes, err := client.Volumes.List(context.Background())
 	if err != nil {
 		return err
 	}
