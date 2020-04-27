@@ -534,7 +534,7 @@ resource "cloudscale_server" "password" {
   name                      = "terraform-%d"
   flavor_slug    			= "flex-2"
   allow_stopping_for_update = true
-  image_slug     			= "pfsense-2.4.4"
+  image_slug     			= "pfsense-2.4.5"
   volume_size_gb			= 10
   password                  = "rivella17"
   use_private_network       = true
