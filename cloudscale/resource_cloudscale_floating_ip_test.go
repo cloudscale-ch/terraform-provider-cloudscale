@@ -43,6 +43,30 @@ func testSweepFloatingIps(region string) error {
 	return foundError
 }
 
+func TestAccCloudscaleFloatingIP_Detached(t *testing.T) {
+	var floatingIP cloudscale.FloatingIP
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudScaleFloatingIPConfig_detached(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.detached", &floatingIP),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "ip_version", "6"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "region_slug", "lpg"),
+					resource.TestCheckNoResourceAttr(
+						"cloudscale_floating_ip.detached", "server"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleFloatingIP_Server(t *testing.T) {
 	var floatingIP cloudscale.FloatingIP
 	rInt := acctest.RandInt()
@@ -189,6 +213,14 @@ func testAccCheckFloaingIPChanged(t *testing.T,
 		}
 		return nil
 	}
+}
+
+func testAccCheckCloudScaleFloatingIPConfig_detached() string {
+	return fmt.Sprintf(`
+resource "cloudscale_floating_ip" "detached" {
+  ip_version = 6
+  region_slug = "lpg"
+}`)
 }
 
 func testAccCheckCloudScaleFloatingIPConfig_server(rInt int) string {
