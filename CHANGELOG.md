@@ -1,4 +1,7 @@
 ## 2.2.0 (Unreleased)
+
+* Allow creating unattached Floating IPs (#30)
+
 ## 2.1.2 (April 22, 2020)
 
 FEATURES:
