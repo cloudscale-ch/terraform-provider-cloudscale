@@ -1,4 +1,7 @@
 ## 2.2.0 (Unreleased)
+
+* **New Resource**: `cloudscale_objects_user` is now available (#29)
+
 ## 2.1.2 (April 22, 2020)
 
 FEATURES:
