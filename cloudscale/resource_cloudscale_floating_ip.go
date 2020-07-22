@@ -32,7 +32,7 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 		},
 		"server": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 
 		// Optional attributes
@@ -77,7 +77,10 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	opts := &cloudscale.FloatingIPCreateRequest{
 		IPVersion: d.Get("ip_version").(int),
-		Server:    d.Get("server").(string),
+	}
+
+	if attr, ok := d.GetOk("server"); ok {
+		opts.Server = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("prefix_length"); ok {
@@ -117,7 +120,9 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("network", floatingIP.Network)
 	d.Set("next_hop", floatingIP.NextHop)
 	d.Set("reverse_ptr", floatingIP.ReversePointer)
-	d.Set("server", floatingIP.Server.UUID)
+	if floatingIP.Server != nil {
+		d.Set("server", floatingIP.Server.UUID)
+	}
 	d.Set("region_slug", floatingIP.Region.Slug)
 
 	return nil
