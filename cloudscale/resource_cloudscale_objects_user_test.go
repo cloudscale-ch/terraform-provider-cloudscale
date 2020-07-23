@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"log"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
@@ -13,7 +15,36 @@ import (
 )
 
 func init() {
-	// it's sufficient to sweep networks
+	resource.AddTestSweepers("cloudscale_objects_user", &resource.Sweeper{
+		Name: "cloudscale_objects_user",
+		F:    testSweepObjectsUsers,
+	})
+}
+
+func testSweepObjectsUsers(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*cloudscale.Client)
+
+	ObjectsUsers, err := client.ObjectsUsers.List(context.Background())
+	if err != nil {
+		return err
+	}
+
+	foundError := error(nil)
+	for _, u := range ObjectsUsers {
+		if strings.HasPrefix(u.DisplayName, "terraform-") {
+			log.Printf("Destroying ObjectsUser %#v", u.DisplayName)
+
+			if err := client.ObjectsUsers.Delete(context.Background(), u.ID); err != nil {
+				foundError = err
+			}
+		}
+	}
+	return foundError
 }
 
 func TestAccCloudscaleObjectsUser_Minimal(t *testing.T) {

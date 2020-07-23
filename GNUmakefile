@@ -13,6 +13,10 @@ test: fmtcheck
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
+sweep:
+	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
+	TF_ACC=1 go test $(TEST) -v -sweep -timeout 10m
+
 testacc: fmtcheck
 	go clean -testcache  # Force retesting of code
 	TF_ACC=1 go test $(TEST) -v -parallel 5 $(TESTARGS) -timeout 120m
