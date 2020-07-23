@@ -1,4 +1,4 @@
-## 2.2.0 (Unreleased)
+## 2.2.0 (July 23, 2020)
 
 * **New Resource**: `cloudscale_objects_user` is now available (#29)
 * Allow creating unattached Floating IPs (#30)
