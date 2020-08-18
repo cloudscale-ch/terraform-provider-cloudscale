@@ -123,7 +123,9 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 	if floatingIP.Server != nil {
 		d.Set("server", floatingIP.Server.UUID)
 	}
-	d.Set("region_slug", floatingIP.Region.Slug)
+	if floatingIP.Region != nil {
+		d.Set("region_slug", floatingIP.Region.Slug)
+	}
 
 	return nil
 
