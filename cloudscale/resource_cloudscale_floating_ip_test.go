@@ -59,8 +59,36 @@ func TestAccCloudscaleFloatingIP_Detached(t *testing.T) {
 						"cloudscale_floating_ip.detached", "ip_version", "6"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "region_slug", "lpg"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "type", "regional"),
 					resource.TestCheckNoResourceAttr(
 						"cloudscale_floating_ip.detached", "server"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleFloatingIP_GlobalDetached(t *testing.T) {
+	var floatingIP cloudscale.FloatingIP
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudScaleFloatingIPConfig_globalDetached(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.global", &floatingIP),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.global", "ip_version", "6"),
+					resource.TestCheckNoResourceAttr(
+						"cloudscale_floating_ip.global", "region_slug"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.global", "type", "global"),
+					resource.TestCheckNoResourceAttr(
+						"cloudscale_floating_ip.global", "server"),
 				),
 			},
 		},
@@ -220,6 +248,14 @@ func testAccCheckCloudScaleFloatingIPConfig_detached() string {
 resource "cloudscale_floating_ip" "detached" {
   ip_version = 6
   region_slug = "lpg"
+}`)
+}
+
+func testAccCheckCloudScaleFloatingIPConfig_globalDetached() string {
+	return fmt.Sprintf(`
+resource "cloudscale_floating_ip" "global" {
+  ip_version = 6
+  type = "global"
 }`)
 }
 
