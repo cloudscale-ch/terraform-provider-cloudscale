@@ -43,6 +43,7 @@ The following arguments are supported when adding Floating IPs:
 * `server` - (Optional) Assign the Floating IP to this server (UUID).
 * `ip_version` - (Required) `4` or `6`, for an IPv4 or IPv6 address or network respectively.
 * `prefix_length` - (Optional) If you want to assign an entire network instead of a single IP address to your server, you must specify the prefix length. Currently, there is only support for `ip_version=6` and `prefix_length=56`.
+* `type` - (Optional) You can specify the type. Options include `regional` (default) and `global`.
 * `region_slug` - (Optional) You can specify a region slug. Options include `lpg` and `rma`.
 * `reverse_ptr` - (Optional) You can specify the PTR record (reverse DNS pointer) in case of a single Floating IP address.
 
