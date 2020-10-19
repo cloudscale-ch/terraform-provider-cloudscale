@@ -1,4 +1,6 @@
 ## 2.3.0 (Unreleased)
+* Allow creating Global Floating IPs (#34, #36)
+
 ## 2.2.0 (July 23, 2020)
 
 * **New Resource**: `cloudscale_objects_user` is now available (#29)
