@@ -1,4 +1,4 @@
-## 2.3.0 (Unreleased)
+## 2.3.0 (October 19, 2020)
 * Allow creating Global Floating IPs (#34, #36)
 
 ## 2.2.0 (July 23, 2020)
