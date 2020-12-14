@@ -46,14 +46,16 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        # list whatever Terraform versions here you would like to support
-        terraform:
-          - '0.12.29'
-          - '0.13.5'
-          - '0.14.2'
+
+#    Looks like we'll need to update terraform-plugin-sdk before we can use this.
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        # list whatever Terraform versions here you would like to support
+#        terraform:
+#          - '0.12.29'
+#          - '0.13.5'
+#          - '0.14.2'
     steps:
 
     - name: Set up Go
