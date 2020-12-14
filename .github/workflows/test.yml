@@ -45,7 +45,7 @@ jobs:
     name: Matrix Test
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -82,4 +82,4 @@ jobs:
         CLOUDSCALE_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
 
       run: |
-        go test ./... -v
+        go test ./... -v -timeout 120m
