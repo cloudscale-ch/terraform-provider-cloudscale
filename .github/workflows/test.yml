@@ -79,6 +79,7 @@ jobs:
         # optionally use data from your repository secrets using the
         # following syntax:
         # SOME_VAR: ${{ secrets.SOME_VAR }}
+        CLOUDSCALE_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
 
       run: |
         go test ./... -v
