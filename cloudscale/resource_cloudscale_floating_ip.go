@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceCloudScaleFloatingIP() *schema.Resource {
