@@ -71,3 +71,23 @@ In order to upgrade the `cloudscale-go-sdk`.
 go get -u github.com/cloudscale-ch/cloudscale-go-sdk
 go mod vendor
 ```
+
+To test unreleased driver versions locally add the following to your `~..terraformrc`
+
+```
+hcl
+provider_installation {
+  # Use go/bin as an overridden package directory
+  # for the cloudscale-ch/cloudscale provider. This disables the version and checksum
+  # verifications for this provider and forces Terraform to look for the
+  # null provider plugin in the given directory.
+  dev_overrides {
+    "cloudscale-ch/cloudscale" = "/Users/alain/go/bin"
+  }
+
+  # For all other providers, install them directly from their origin provider
+  # registries as normal. If you omit this, Terraform will _only_ use
+  # the dev_overrides block, and so no other providers will be available.
+  direct {}
+}
+```
