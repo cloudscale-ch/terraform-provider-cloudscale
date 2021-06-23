@@ -557,7 +557,6 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error scaling the Volume (%s) status (%s) ", volumeUUID, err)
 		}
-		d.SetPartial("volume_size_gb")
 	}
 
 	if d.HasChange("flavor_slug") {
@@ -597,7 +596,6 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if wantedStatus == "running" {
 			needStart = true
 		}
-		d.SetPartial("flavor_slug")
 	}
 
 	if d.HasChange("status") || needStart {
@@ -622,8 +620,6 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
 		}
-		d.SetPartial("status")
-
 	}
 
 	if d.HasChange("name") {
@@ -632,7 +628,6 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error renaming the Server (%s) status (%s) ", id, err)
 		}
-		d.SetPartial("name")
 	}
 
 	if d.HasChange("interfaces") {
@@ -642,7 +637,6 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error changing the Server (%s) interfaces (%s) ", id, err)
 		}
-		d.SetPartial("interfaces")
 	}
 
 	return resourceServerRead(d, meta)
