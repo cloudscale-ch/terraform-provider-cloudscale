@@ -133,26 +133,26 @@ func TestAccCloudscaleNetwork_Change(t *testing.T) {
 			{
 				Config: networkConfig_baseline(1, rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network),
 					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d-0", rInt)),
+						"cloudscale_network.basic.0", "name", fmt.Sprintf("terraform-%d-0", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "mtu", "1500"),
+						"cloudscale_network.basic.0", "mtu", "1500"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "zone_slug", "rma1"),
+						"cloudscale_network.basic.0", "zone_slug", "rma1"),
 				),
 			},
 			{
-				Config: networkConfig_multiple_changes(rInt),
+				Config: networkConfig_multiple_changes(1, rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d-renamed", rInt)),
+						"cloudscale_network.basic.0", "name", fmt.Sprintf("terraform-%d-0-renamed", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "mtu", "9000"),
+						"cloudscale_network.basic.0", "mtu", "9000"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "zone_slug", "rma1"),
+						"cloudscale_network.basic.0", "zone_slug", "rma1"),
 				),
 			},
 		},
@@ -177,13 +177,13 @@ func TestAccCloudscaleNetwork_Attach(t *testing.T) {
 			{
 				Config: networkConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network),
 				),
 			},
 			{
 				Config: networkConfig + "\n" + serverConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic.0", &network),
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic",
@@ -411,13 +411,14 @@ resource "cloudscale_network" "basic" {
 }`, count, rInt)
 }
 
-func networkConfig_multiple_changes(rInt int) string {
+func networkConfig_multiple_changes(count int, rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "basic" {
-  name         = "terraform-%d-renamed"
+  count        = "%v"
+  name         = "terraform-%d-${count.index}-renamed"
   mtu          = "9000"
   zone_slug    = "rma1"
-}`, rInt)
+}`, count, rInt)
 }
 
 func networkconfigWithZone(rInt int) string {
