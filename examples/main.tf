@@ -1,4 +1,4 @@
-# Set the variable value in a *.tfvars file or use 
+# Set the variable value in a *.tfvars file or use
 # the -var="cloudscale_token=..." CLI option.
 #
 # You can omit both the variable and provider if you
@@ -6,6 +6,15 @@
 # `CLOUDSCALE_TOKEN` instead.
 
 variable "cloudscale_token" {}
+
+terraform {
+  required_providers {
+    cloudscale = {
+      source = "cloudscale-ch/cloudscale"
+      // version = "~> x.y.z"
+    }
+  }
+}
 
 provider "cloudscale" {
   token = "${var.cloudscale_token}"
