@@ -1,5 +1,6 @@
 ## 3.0.0 (unreleased)
 * Upgrade terraform-plugin-sdk to v2
+* Add Support for Custom Images
 
 ## 2.3.0 (October 19, 2020)
 * Allow creating Global Floating IPs (#34, #36)
