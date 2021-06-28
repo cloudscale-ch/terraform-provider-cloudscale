@@ -72,6 +72,8 @@ func TestAccCloudscaleServer_Basic(t *testing.T) {
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "interfaces.0.type", "public"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "ssh_host_keys.#", "4"),
 					testAccCheckServerIp("cloudscale_server.basic"),
 				),
 			},
@@ -102,6 +104,39 @@ func TestAccCloudscaleServer_Basic_stopped(t *testing.T) {
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "stopped"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "ssh_host_keys.#", "4"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleServer_Basic_skip_waiting_for_ssh_host_keys(t *testing.T) {
+	var server cloudscale.Server
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerConfig_skip_waiting_for_ssh_host_keys(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					testAccCheckCloudscaleServerAttributes(&server),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "status", "running"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "ssh_host_keys.#", "0"),
 				),
 			},
 		},
@@ -463,6 +498,18 @@ resource "cloudscale_server" "basic" {
   image_slug     			= "%s"
   volume_size_gb			= 10
   status							= "stopped"
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`, rInt, DefaultImageSlug)
+}
+
+func testAccCheckCloudscaleServerConfig_skip_waiting_for_ssh_host_keys(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "basic" {
+  name      					= "terraform-%d"
+  flavor_slug    			= "flex-2"
+  image_slug     			= "%s"
+  volume_size_gb			= 10
+  skip_waiting_for_ssh_host_keys = true
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
 }

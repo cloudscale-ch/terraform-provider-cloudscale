@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
@@ -19,6 +20,9 @@ func resourceCloudScaleServer() *schema.Resource {
 		Delete: resourceServerDelete,
 
 		Schema: getServerSchema(),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(5 * time.Minute),
+		},
 	}
 }
 
@@ -102,6 +106,12 @@ func getServerSchema() map[string]*schema.Schema {
 		"allow_stopping_for_update": {
 			Type:     schema.TypeBool,
 			Optional: true,
+		},
+		"skip_waiting_for_ssh_host_keys": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
 		},
 		"server_group_ids": {
 			Type:     schema.TypeSet,
@@ -264,6 +274,9 @@ func getServerSchema() map[string]*schema.Schema {
 }
 
 func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
+	timeout := d.Timeout(schema.TimeoutCreate)
+	startTime := time.Now()
+
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ServerRequest{
@@ -344,9 +357,16 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Server ID %s", d.Id())
 
-	_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "running")
+	remainingTime := timeout - time.Since(startTime)
+	_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "running", &remainingTime)
 	if err != nil {
-		return fmt.Errorf("Error waiting for server (%s) to become ready %s", d.Id(), err)
+		return fmt.Errorf("error waiting for server (%s) to become ready: %s", d.Id(), err)
+	}
+
+	remainingTime = timeout - time.Since(startTime)
+	err = waitForSSHHostKeys(d, meta, &remainingTime)
+	if err != nil {
+		return fmt.Errorf("error waiting for SSH host keys (%s) to be available: %s", d.Id(), err)
 	}
 
 	if originalStatus == "stopped" {
@@ -355,12 +375,13 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 		err := client.Servers.Update(context.Background(), server.UUID, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error stopping the server (%s) status (%s) ", server.UUID, err)
+			return fmt.Errorf("error stopping the server (%s) status (%s) ", server.UUID, err)
 		}
 
-		_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
+		remainingTime = timeout - time.Since(startTime)
+		_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", &remainingTime)
 		if err != nil {
-			return fmt.Errorf("Error waiting for server status (%s) (%s) ", server.UUID, err)
+			return fmt.Errorf("error waiting for server status (%s) (%s) ", server.UUID, err)
 		}
 	}
 
@@ -594,7 +615,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Error updating server (%s), %s", server.Status, err)
 			}
 
-			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
+			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", nil)
 			if err != nil {
 				return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
 			}
@@ -606,7 +627,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error scaling the Server (%s) status (%s) ", id, err)
 		}
-		_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "stopped")
+		_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "stopped", nil)
 
 		// Signal that we want to start the server again
 		if wantedStatus == "running" {
@@ -628,9 +649,9 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if wantedStatus == "stopped" {
-			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped")
+			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", nil)
 		} else {
-			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running")
+			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running", nil)
 		}
 
 		if err != nil {
@@ -672,18 +693,24 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []string, attribute, target string) (interface{}, error) {
+func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []string, attribute, target string, timeout *time.Duration) (interface{}, error) {
+	if timeout == nil {
+		defaultTimeout := 5 * time.Minute
+		timeout = &(defaultTimeout)
+	}
+
 	log.Printf(
-		"[INFO] Waiting for server (%s) to have %s of %s",
-		d.Id(), attribute, target)
+		"[INFO] Waiting %s for server (%s) to have %s of %s",
+		timeout, d.Id(), attribute, target)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    newServerRefreshFunc(d, attribute, meta),
-		Timeout:    5 * time.Minute,
+		Timeout:    *timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
+		NotFoundChecks: math.MaxInt64,
 	}
 
 	return stateConf.WaitForState()
@@ -709,14 +736,48 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interfa
 				return nil, "", fmt.Errorf("Server status %s, abort", server.Status)
 			}
 
-			if sshKeys := len(server.SSHHostKeys); sshKeys <= 0 {
-				return nil, "", nil
-			}
-
 			return server, attr.(string), nil
 		}
 		return nil, "", nil
 	}
+}
+
+func waitForSSHHostKeys(d *schema.ResourceData, meta interface{}, timeout *time.Duration) error {
+	if d.Get("skip_waiting_for_ssh_host_keys").(bool) {
+		log.Printf("[INFO] Not waiting for server (%s) to have host keys available", d.Id())
+		return nil
+	}
+	log.Printf("[INFO] Waiting %s for server (%s) to have host keys available", timeout, d.Id())
+
+	err := resource.Retry(*timeout, func() *resource.RetryError {
+		err := resourceServerRead(d, meta)
+		if err != nil {
+			return &resource.RetryError{
+				Err:       err,
+				Retryable: false,
+			}
+		}
+
+		if attr, ok := d.GetOk("ssh_host_keys.#"); ok {
+			count := attr.(int)
+			if count <= 0 {
+				return &resource.RetryError{
+					Err:       fmt.Errorf("ssh_host_keys.# is %d", count),
+					Retryable: true,
+				}
+			}
+			return nil
+		}
+
+		return &resource.RetryError{
+			Err:       fmt.Errorf("getting attribure is not ok"),
+			Retryable: true,
+		}
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func findIPv6AddrByType(s *cloudscale.Server, addrType string) string {
