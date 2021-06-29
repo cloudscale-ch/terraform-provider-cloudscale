@@ -6,7 +6,7 @@ description: |-
   Provides a cloudscale.ch Custom Image resource. This can be used to create, modify, and delete Custom Images.
 ---
 
-# cloudscale\_custom_image
+# cloudscale\_custom\_image
 
 Provides a cloudscale.ch Custom Image resource. This can be used to create, modify, and delete Custom Images.
 
