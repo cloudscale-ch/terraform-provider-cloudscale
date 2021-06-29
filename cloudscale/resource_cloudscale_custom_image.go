@@ -47,7 +47,6 @@ func getCustomImageSchema() map[string]*schema.Schema {
 		},
 		"slug": {
 			Type: schema.TypeString,
-			Required: true,
 		},
 		"user_data_handling": {
 			Type:     schema.TypeString,
