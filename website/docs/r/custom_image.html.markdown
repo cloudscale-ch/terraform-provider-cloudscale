@@ -37,7 +37,7 @@ resource "cloudscale_server" "your_server" {
   ssh_keys       = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
 
   // If your image does not print complete SSH host keys to console during initial boot in the following format
-  // enable the this option.
+  // enable this option.
   //  
   // -----BEGIN SSH HOST KEY KEYS-----
   // ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJIdoMOxHQZwxnthOnUpd0Wl7TPRsJdj5KvW9YdE3Pbk
