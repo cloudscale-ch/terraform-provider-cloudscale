@@ -45,9 +45,6 @@ func getCustomImageSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"slug": {
-			Type: schema.TypeString,
-		},
 		"user_data_handling": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -57,6 +54,12 @@ func getCustomImageSchema() map[string]*schema.Schema {
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Required: true,
 			ForceNew: true,
+		},
+
+		// Optional attributes
+		"slug": {
+			Type: schema.TypeString,
+			Optional: true,
 		},
 
 		// Computed attributes

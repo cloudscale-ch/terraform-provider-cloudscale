@@ -45,7 +45,7 @@ The following arguments are supported when creating/changing Custom Images:
 * `import_url` - (Required) The URL used to download the image.
 * `import_source_format` - (Required) The file format of the image referenced in the url. Options include `raw`.
 * `name` - (Required) The human readable name of the custom image.
-* `slug` - (Required) A string identifying the custom image for use within the API.
+* `slug` - (Optional) A string identifying the custom image for use within the API.
 * `user_data_handling` - (Required) How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.
 * `zone_slugs` - (Required) You can specify zone slugs. Options include `lpg1` and `rma1`.
 * `timeouts` - (Optional) Specify how long certain operations are allowed to take before being considered to have failed. Currently, the `create` timeout can be specified. Takes a string representation of a duration, such as "20m" for 20 minutes (default), "10s" for ten seconds, or "2h" for two hours.
