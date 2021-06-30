@@ -13,35 +13,6 @@ Requirements
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
 -	[Go](https://golang.org/doc/install) 1.11 (to build the provider plugin)
 
-Building The Provider
----------------------
-
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-cloudscale`
-
-```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-cloudscale
-```
-
-Enter the provider directory and build the provider
-
-```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-cloudscale
-$ make build
-```
-
-Using the provider
-----------------------
-1. Download and install [Terraform](https://www.terraform.io/downloads.html)
-2. Move `terraform-provider-cloudscale` executable to the root folder where main.tf is. 
-
-```shell
-  $ mv terraform-provider-cloudscale /path/to/main.tf/folder
-``` 
-
-3. Execute `terraform plan`
-4. `terraform init`
-
 Developing the Provider
 ---------------------------
 
