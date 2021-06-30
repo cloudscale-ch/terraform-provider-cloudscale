@@ -72,7 +72,7 @@ go get -u github.com/cloudscale-ch/cloudscale-go-sdk
 go mod vendor
 ```
 
-To test unreleased driver versions locally add the following to your `~..terraformrc`
+To test unreleased driver versions locally add the following to your `~/.terraformrc`
 
 ```hcl
 provider_installation {
