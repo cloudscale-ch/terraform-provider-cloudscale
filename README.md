@@ -74,8 +74,7 @@ go mod vendor
 
 To test unreleased driver versions locally add the following to your `~..terraformrc`
 
-```
-hcl
+```hcl
 provider_installation {
   # Use go/bin as an overridden package directory
   # for the cloudscale-ch/cloudscale provider. This disables the version and checksum
