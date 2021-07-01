@@ -770,7 +770,7 @@ func waitForSSHHostKeys(d *schema.ResourceData, meta interface{}, timeout *time.
 		}
 
 		return &resource.RetryError{
-			Err:       fmt.Errorf("getting attribure is not ok"),
+			Err:       fmt.Errorf("getting attribute is not ok"),
 			Retryable: true,
 		}
 	})
