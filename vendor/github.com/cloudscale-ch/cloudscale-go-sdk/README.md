@@ -38,3 +38,13 @@ If you want to give params to `go test`, you can use something like this:
 ```
 TESTARGS='-run FloatingIP' make integration
 ```
+
+## Releasing
+
+To create a new release, please do the following:
+ * Merge all feature branches into a release branch
+ * Checkout the release branch
+ * Run `make NEW_VERSION=v1.x.x bump-version`
+ * Commit the changes
+ * Merge the release branch into master
+ * Create a [new release](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new) on GitHub.
