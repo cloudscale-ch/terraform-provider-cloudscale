@@ -35,6 +35,16 @@ resource "cloudscale_server" "your_server" {
   volume_size_gb = 16
   zone_slug      = "rma1"
   ssh_keys       = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
+
+  // If your image does not print complete SSH host keys to console during initial boot in the following format
+  // enable this option.
+  //  
+  // -----BEGIN SSH HOST KEY KEYS-----
+  // ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJIdoMOxHQZwxnthOnUpd0Wl7TPRsJdj5KvW9YdE3Pbk
+  // [... more keys ...] 
+  // -----END SSH HOST KEY KEYS----- 
+  //
+  //skip_waiting_for_ssh_host_keys = true
 }
 ```
 

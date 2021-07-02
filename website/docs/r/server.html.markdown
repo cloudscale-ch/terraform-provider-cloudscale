@@ -20,6 +20,10 @@ resource "cloudscale_server" "web-worker01" {
   image_slug          = "debian-9"
   volume_size_gb      = 10
   ssh_keys            = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
+  
+  timeouts {
+    create = "10m"
+  }
 }
 ```
 
@@ -50,6 +54,8 @@ The following arguments are supported when creating new servers:
 * `user_data` - (Optional) User data (custom cloud-config settings) to use for the new server. Needs to be valid YAML. A default configuration will be used if this parameter is not specified or set to null. Use only if you are an advanced user with knowledge of cloud-config and cloud-init.
 * `status` - (Optional) The desired state of a server. Can be `running` (default) or `stopped`.
 * `allow_stopping_for_update` - (Optional) If true, allows Terraform to stop the instance to update its properties. If you try to update a property that requires stopping the instance without setting this field, the update will fail.
+* `skip_waiting_for_ssh_host_keys` - (Optional) If true, do not wait until SSH host keys are available.
+* `timeouts` - (Optional) Specify how long certain operations are allowed to take before being considered to have failed. Currently the `create` timeout can be specified. Takes a string representation of a duration, such as "5m" for 5 minutes (default), "10s" for ten seconds, or "2h" for two hours.
 
 The following arguments are supported when updating servers:
 
