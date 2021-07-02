@@ -1,6 +1,7 @@
 ## 3.0.0 (unreleased)
-* Upgrade terraform-plugin-sdk to v2
-* Add Support for Custom Images
+* Upgrade terraform-plugin-sdk to v2 (#43)
+* Add Support for Custom Images (#44)
+* Add Options for SSH Host Keys (#45)
 
 ## 2.3.0 (October 19, 2020)
 * Allow creating Global Floating IPs (#34, #36)
