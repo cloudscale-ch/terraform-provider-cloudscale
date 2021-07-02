@@ -20,7 +20,8 @@ terraform {
   required_providers {
     cloudscale = {
       source = "cloudscale-ch/cloudscale"
-      version = "~> 2.3.0"
+      // The version attribute can be used to pin to a specific version
+      //version = "~> 3.0.0"
     }
   }
 }
