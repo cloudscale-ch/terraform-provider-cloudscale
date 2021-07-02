@@ -245,7 +245,7 @@ func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta in
 		Timeout:        timeout,
 		Delay:          10 * time.Second,
 		MinTimeout:     10 * time.Second,
-		NotFoundChecks: math.MaxInt64,
+		NotFoundChecks: math.MaxInt32,
 	}
 
 	return stateConf.WaitForState()

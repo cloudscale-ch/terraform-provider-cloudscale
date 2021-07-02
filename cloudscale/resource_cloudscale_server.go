@@ -710,7 +710,7 @@ func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []str
 		Timeout:    *timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
-		NotFoundChecks: math.MaxInt64,
+		NotFoundChecks: math.MaxInt32,
 	}
 
 	return stateConf.WaitForState()
