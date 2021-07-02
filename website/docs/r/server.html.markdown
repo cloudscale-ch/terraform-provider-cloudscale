@@ -51,6 +51,7 @@ The following arguments are supported when creating new servers:
         * `address` - (Optional) An IP address that has been assigned to this server.
         * `subnet_uuid` - (Optional) The UUID of the subnet this address should be part of. Must be compatible with `network_uuid` if both are specified.
     * `no_address` - (Optional, can be set only for `private` interfaces) You neet to set this to `true` if no address should be configured, e.g. if you want to attach to a network without a subnet. 
+* `server_group_ids` - (Optional) A list of server group UUIDs to which the server should be added. Default to an empty list.
 * `user_data` - (Optional) User data (custom cloud-config settings) to use for the new server. Needs to be valid YAML. A default configuration will be used if this parameter is not specified or set to null. Use only if you are an advanced user with knowledge of cloud-config and cloud-init.
 * `status` - (Optional) The desired state of a server. Can be `running` (default) or `stopped`.
 * `allow_stopping_for_update` - (Optional) If true, allows Terraform to stop the instance to update its properties. If you try to update a property that requires stopping the instance without setting this field, the update will fail.
