@@ -30,7 +30,8 @@ The following arguments are supported when creating new servers:
 * `name` - (Required) Name of the new server. The name has to be a valid host name or a fully qualified domain name (FQDN).
 * `flavor_slug` - (Required) The slug (name) of the flavor to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#flavors).
     **Note:** If you want to update this value after initial creation, you must set [`allow_stopping_for_update`](#allow_stopping_for_update) to `true`.
-* `image_slug` - (Required) The slug (name) of the image to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#images).
+* `image_slug` - (Required, if `image_uuid` not set) The slug (name) of the image to use for the new server. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#images).
+* `image_uuid` - (Required, if `image_slug` not set) The UUID of the custom image to use for the new server.
 * `ssh_keys` - (Optional) A list of SSH public keys. Use the full content of your \*.pub file here.
 * `password` - (Optional) The password of the default user of the new server. When omitted, no password will be set.
 * `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.

@@ -23,6 +23,7 @@ func Provider() *schema.Provider {
 			"cloudscale_subnet":       resourceCloudScaleSubnet(),
 			"cloudscale_floating_ip":  resourceCloudScaleFloatingIP(),
 			"cloudscale_objects_user": resourceCloudScaleObjectsUser(),
+			"cloudscale_custom_image": resourceCloudScaleCustomImage(),
 		},
 		ConfigureFunc: providerConfigureClient,
 	}

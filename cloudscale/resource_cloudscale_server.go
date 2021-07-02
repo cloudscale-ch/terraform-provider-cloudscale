@@ -36,9 +36,17 @@ func getServerSchema() map[string]*schema.Schema {
 			Required: true,
 		},
 		"image_slug": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"image_uuid"},
+			Computed:	   true,
+		},
+		"image_uuid": {
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"image_slug"},
 		},
 		"ssh_keys": {
 			Type:     schema.TypeSet,
@@ -261,7 +269,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	opts := &cloudscale.ServerRequest{
 		Name:   d.Get("name").(string),
 		Flavor: d.Get("flavor_slug").(string),
-		Image:  d.Get("image_slug").(string),
+		Image:  createImageOption(d),
 	}
 
 	sshKeys := d.Get("ssh_keys").(*schema.Set).List()
@@ -357,6 +365,14 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return resourceServerRead(d, meta)
+}
+
+func createImageOption(d *schema.ResourceData) string {
+
+	if imageName := d.Get("image_slug").(string); imageName != "" {
+		return imageName
+	}
+	return d.Get("image_uuid").(string);
 }
 
 func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceRequest {
