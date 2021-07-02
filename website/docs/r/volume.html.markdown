@@ -3,12 +3,12 @@ layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_volume"
 sidebar_current: "docs-cloudscale-resource-volume"
 description: |-
-  Provides a cloudscale.ch Volume (block storage) resource. This can be used to create, modify, and delete Volumes.
+  Provides a cloudscale.ch volume (block storage) resource. This can be used to create, modify, and delete volumes.
 ---
 
 # cloudscale\_volume
 
-Provides a cloudscale.ch Volume (block storage) resource. This can be used to create, modify, and delete Volumes.
+Provides a cloudscale.ch volume (block storage) resource. This can be used to create, modify, and delete volumes.
 
 ## Example Usage
 
@@ -21,7 +21,7 @@ resource "cloudscale_server" "web-worker01" {
   ssh_keys    = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
 }
 
-# Add a Volume to web-worker01
+# Add a volume to web-worker01
 resource "cloudscale_volume" "web-worker01-volume" {
   name         = "web-worker-data"
   size_gb      = 100
@@ -32,11 +32,11 @@ resource "cloudscale_volume" "web-worker01-volume" {
 
 ## Argument Reference
 
-The following arguments are supported when creating/changing Volumes:
+The following arguments are supported when creating/changing volumes:
 
 * `name` - (Required) Name of the new volume.
 * `size_gb` - (Required) The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
-* `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.
+* `zone_slug` - (Optional) The slug of the zone in which the new volume will be created. Options include `lpg1` and `rma1`.
 * `type` - (Optional) For SSD/NVMe volumes specify "ssd" (default) or use "bulk" for our HDD cluster with NVMe caching. This is the only attribute that cannot be altered.
 * `server_uuids` - (Optional) A list of server UUIDs. Default to an empty list. Currently a volume can only be attached to one server UUID.
 

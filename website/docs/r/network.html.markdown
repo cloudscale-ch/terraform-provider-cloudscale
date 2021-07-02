@@ -3,12 +3,12 @@ layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_network"
 sidebar_current: "docs-cloudscale-resource-network"
 description: |-
-  Provides a cloudscale.ch Network resource. This can be used to create, modify, and delete networks.
+  Provides a cloudscale.ch private network resource. This can be used to create, modify, and delete networks.
 ---
 
 # cloudscale\_network
 
-Provides a cloudscale.ch Private Network resource. This can be used to create, modify, and delete networks.
+Provides a cloudscale.ch private network resource. This can be used to create, modify, and delete networks.
 
 ## Example Usage
 
@@ -42,10 +42,10 @@ resource "cloudscale_server" "gw" {
 
 ## Argument Reference
 
-The following arguments are supported when creating/changing Networks:
+The following arguments are supported when creating/changing networks:
 
 * `name` - (Required) Name of the network.
-* `zone_slug` - (Optional) You can specify a zone slug. Options include `lpg1` and `rma1`.
+* `zone_slug` - (Optional) The slug of the zone in which the new network will be created. Options include `lpg1` and `rma1`.
 * `mtu` - (Optional) You can specify the MTU size for the network, defaults to 9000.
 * `auto_create_ipv4_subnet` - (Optional) Automatically create an IPv4 Subnet on the network. Can be `true` (default) or `false`.
 

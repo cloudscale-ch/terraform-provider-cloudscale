@@ -3,12 +3,12 @@ layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_subnet"
 sidebar_current: "docs-cloudscale-resource-subnet"
 description: |-
-  Provides a cloudscale.ch Subnet resource. This can be used to create, modify, and delete subnets.
+  Provides a cloudscale.ch subnet resource. This can be used to create, modify, and delete subnets.
 ---
 
 # cloudscale\_subnet
 
-Provides a cloudscale.ch Subnet resource. This can be used to create, modify, and delete subnets.
+Provides a cloudscale.ch subnet resource. This can be used to create, modify, and delete subnets.
 
 ## Example Usage
 
@@ -52,7 +52,7 @@ resource "cloudscale_server" "fixed" {
 
 ## Argument Reference
 
-The following arguments are supported when creating/changing Subnets:
+The following arguments are supported when creating/changing subnets:
 
 * `cidr` - (Required) The address range in CIDR notation. Must be at least /24.
 * `network_uuid` - (Required) The network of the subnet.
