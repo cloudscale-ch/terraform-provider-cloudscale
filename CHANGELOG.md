@@ -1,3 +1,6 @@
+## 3.1.0
+* Update to go 1.16 (#48) to support Apple silicon.
+
 ## 3.0.0
 * Upgrade terraform-plugin-sdk to v2 (#43)
 * Add Support for Custom Images (#44)
