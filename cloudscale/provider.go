@@ -16,7 +16,8 @@ func Provider() *schema.Provider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"cloudscale_image": dataSourceCloudScaleCustomImage(),
+			"cloudscale_custom_image": dataSourceCloudScaleCustomImage(),
+			"cloudscale_network": dataSourceCloudScaleNetwork(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{

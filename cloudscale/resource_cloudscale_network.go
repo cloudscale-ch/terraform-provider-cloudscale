@@ -114,10 +114,17 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) error {
-	d.Set("href", network.HREF)
-	d.Set("name", network.Name)
-	d.Set("mtu", network.MTU)
-	d.Set("zone_slug", network.Zone.Slug)
+	fillResourceData(d, gatherNetworkResourceData(network))
+	return nil
+}
+
+func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["uuid"] = network.UUID
+	m["href"] = network.HREF
+	m["name"] = network.Name
+	m["mtu"] = network.MTU
+	m["zone_slug"] = network.Zone.Slug
 
 	subnets := make([]map[string]interface{}, 0, len(network.Subnets))
 	for _, subnet := range network.Subnets {
@@ -127,13 +134,8 @@ func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network
 		g["href"] = subnet.HREF
 		subnets = append(subnets, g)
 	}
-	err := d.Set("subnets", subnets)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting subnets attribute: %#v, error: %#v", subnets, err)
-		return fmt.Errorf("Error setting subnets attribute: %#v, error: %#v", subnets, err)
-	}
-
-	return nil
+	m["subnets"] = subnets
+	return m
 }
 
 func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
