@@ -101,9 +101,9 @@ func customImageRead(ctx context.Context, d *schema.ResourceData, meta interface
 		}
 	}
 	if len(foundImages) > 1 {
-		return diag.Errorf("Found %s custom images, expected one", len(foundImages))
+		return diag.Errorf("Found %d cccustom images, expected one", len(foundImages))
 	} else if len(foundImages) == 0 {
-		return diag.Errorf("Found zero custom images")
+		return diag.Errorf("Found zero cccustom images")
 	}
 
 	foundImage := foundImages[0];

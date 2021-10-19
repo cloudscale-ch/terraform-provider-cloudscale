@@ -8,14 +8,10 @@ import (
 )
 
 func dataSourceCloudScaleNetwork() *schema.Resource {
-	recordSchema := customImageSchema()
-
-	for _, f := range recordSchema {
-		f.Computed = true
-	}
+	recordSchema := getNetworkSchema(true)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead(networksRead),
+		ReadContext: dataSourceResourceRead("networks", recordSchema, networksRead),
 		Schema:      recordSchema,
 	}
 }

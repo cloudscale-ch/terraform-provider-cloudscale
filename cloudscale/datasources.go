@@ -2,6 +2,7 @@ package cloudscale
 
 import (
 	"context"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -11,12 +12,15 @@ type ResourceDataRaw = map[string]interface{}
 
 func fillResourceData(d *schema.ResourceData, map_ ResourceDataRaw) {
 	for k, v := range map_ {
-		d.Set(k, v)
+		if k != "id" {
+			d.Set(k, v)
+		}
 	}
-	d.SetId(map_["uuid"].(string))
 }
 
 func dataSourceResourceRead(
+	name string,
+	sourceSchema map[string]*schema.Schema,
 	fetch func(meta interface{}) ([]ResourceDataRaw, error),
 ) schema.ReadContextFunc {
     return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -28,10 +32,13 @@ func dataSourceResourceRead(
 
 		for _, m := range resources {
 			match := true
-			for key := range customImageSchema() {
+			for key := range sourceSchema {
 				if attr, ok := d.GetOk(key); ok {
+					log.Printf("[DEBUG] %s == %s", attr, m[key])
 					if m[key] != attr {
+						log.Printf("[DEBUG] no match %s == %s", attr, m[key])
 						match = false
+						break
 					}
 				}
 			}
@@ -40,12 +47,13 @@ func dataSourceResourceRead(
 			}
 		}
 		if len(foundItems) > 1 {
-			return diag.Errorf("Found %s custom images, expected one", len(foundItems))
+			return diag.Errorf("Found %d %s, expected one", len(foundItems), name)
 		} else if len(foundItems) == 0 {
-			return diag.Errorf("Found zero custom images")
+			return diag.Errorf("Found zero %s", name)
 		}
-
 		item := foundItems[0]
+		d.SetId(item["id"].(string))
+		delete(item, "id")
 		fillResourceData(d, item)
 
 		return nil

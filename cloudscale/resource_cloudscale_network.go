@@ -16,17 +16,19 @@ func resourceCloudScaleNetwork() *schema.Resource {
 		Update: resourceNetworkUpdate,
 		Delete: resourceNetworkDelete,
 
-		Schema: getNetworkSchema(),
+		Schema: getNetworkSchema(false),
 	}
 }
 
-func getNetworkSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		// Required attributes
 
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: !isDataSource,
+			Optional: isDataSource,
+			Computed: isDataSource,
 		},
 
 		// Optional attributes
@@ -41,11 +43,6 @@ func getNetworkSchema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
-		},
-		"auto_create_ipv4_subnet": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
 		},
 		"subnets": {
 			Type: schema.TypeList,
@@ -75,6 +72,14 @@ func getNetworkSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
+	if !isDataSource {
+		m["auto_create_ipv4_subnet"] = &schema.Schema {
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+	}
+	return m
 }
 
 func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
@@ -120,7 +125,7 @@ func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network
 
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 	m := make(map[string]interface{})
-	m["uuid"] = network.UUID
+	m["id"] = network.UUID
 	m["href"] = network.HREF
 	m["name"] = network.Name
 	m["mtu"] = network.MTU
