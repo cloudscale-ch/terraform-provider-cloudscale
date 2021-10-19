@@ -32,8 +32,12 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 						"data.cloudscale_network.foo", "mtu", "1500"),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "zone_slug", "rma1"),
-					//resource.TestCheckResourceAttr(
-					//	"data.cloudscale_network.foo", "subnets.0", "rma1"),
+					resource.TestCheckResourceAttrSet(
+						"data.cloudscale_network.foo", "subnets.0.uuid"),
+					resource.TestCheckResourceAttrSet(
+						"data.cloudscale_network.foo", "subnets.0.cidr"),
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_network.foo", "subnets.#", "1"),
 				),
 			},
 			{
@@ -45,8 +49,12 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 						"data.cloudscale_network.foo", "mtu", "1500"),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "zone_slug", "rma1"),
-					//resource.TestCheckResourceAttr(
-					//	"data.cloudscale_network.foo", "subnets.0", "rma1"),
+					resource.TestCheckResourceAttrSet(
+						"data.cloudscale_network.foo", "subnets.0.cidr"),
+					resource.TestCheckResourceAttrSet(
+						"data.cloudscale_network.foo", "subnets.0.cidr"),
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_network.foo", "subnets.#", "1"),
 				),
 			},
 			{
