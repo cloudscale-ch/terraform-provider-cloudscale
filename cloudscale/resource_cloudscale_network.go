@@ -41,7 +41,7 @@ func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"mtu": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: !isDataSource,
 			Computed: true,
 		},
 		"subnets": {
