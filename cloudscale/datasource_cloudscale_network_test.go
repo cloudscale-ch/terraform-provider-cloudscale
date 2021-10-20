@@ -72,10 +72,10 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleNetworkConfig_name_and_zone(name1, "rma1"),
+				Config: config + testAccCheckCloudScaleNetworkConfig_name_and_zone(name2, "rma1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"data.cloudscale_network.foo", "name", name1),
+						"data.cloudscale_network.foo", "name", name2),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "zone_slug", "rma1"),
 				),

@@ -17,25 +17,23 @@ func resourceCloudScaleSubnet() *schema.Resource {
 		Update: resourceSubnetUpdate,
 		Delete: resourceSubnetDelete,
 
-		Schema: getSubnetSchema(),
+		Schema: getSubnetSchema(false),
 	}
 }
 
-func getSubnetSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		// Required attributes
-
+func getSubnetSchema(isDataSource bool) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"cidr": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: !isDataSource,
+			Optional: isDataSource,
 		},
 		"network_uuid": {
 			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
+			Computed: true,
 		},
-
-		// Optional attributes
 		"gateway_address": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -45,16 +43,14 @@ func getSubnetSchema() map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
-			Optional: true,
-		},
-
-		// Computed attributes
-
-		"href": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Optional: !isDataSource,
 		},
 		"network_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: isDataSource,
+		},
+		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -63,6 +59,13 @@ func getSubnetSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
+	if isDataSource {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	}
+	return m
 }
 
 func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
@@ -104,15 +107,23 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
+
 func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) error {
-	d.Set("href", subnet.HREF)
-	d.Set("cidr", subnet.CIDR)
-	d.Set("network_href", subnet.Network.HREF)
-	d.Set("network_uuid", subnet.Network.UUID)
-	d.Set("network_name", subnet.Network.Name)
-	d.Set("gateway_address", subnet.GatewayAddress)
-	d.Set("dns_servers", subnet.DNSServers)
+	fillResourceData(d, gatherSubnetResourceData(subnet))
 	return nil
+}
+
+func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = subnet.UUID
+	m["href"] = subnet.HREF
+	m["cidr"] = subnet.CIDR
+	m["network_href"] = subnet.Network.HREF
+	m["network_uuid"] = subnet.Network.UUID
+	m["network_name"] = subnet.Network.Name
+	m["gateway_address"] = subnet.GatewayAddress
+	m["dns_servers"] = subnet.DNSServers
+	return m
 }
 
 func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
