@@ -5,11 +5,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
+	var network cloudscale.Network
 	rInt := acctest.RandInt()
 	name1 := fmt.Sprintf("terraform-%d-0", rInt)
 	name2 := fmt.Sprintf("terraform-%d-1", rInt)
@@ -26,6 +28,9 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 			{
 				Config: config + testAccCheckCloudScaleNetworkConfig_name(name1),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("data.cloudscale_network.foo", &network),
+					resource.TestCheckResourceAttrPtr(
+						"data.cloudscale_network.foo", "id", &network.UUID),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "name", name1),
 					resource.TestCheckResourceAttr(

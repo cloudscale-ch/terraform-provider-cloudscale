@@ -2,7 +2,6 @@ package cloudscale
 
 import (
 	"context"
-	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -34,9 +33,7 @@ func dataSourceResourceRead(
 			match := true
 			for key := range sourceSchema {
 				if attr, ok := d.GetOk(key); ok {
-					log.Printf("[DEBUG] %s == %s", attr, m[key])
 					if m[key] != attr {
-						log.Printf("[DEBUG] no match %s == %s", attr, m[key])
 						match = false
 						break
 					}
