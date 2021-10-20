@@ -41,6 +41,8 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 						"data.cloudscale_subnet.foo", "network_name", fmt.Sprintf(`terraform-%d-0`, rInt)),
 					resource.TestCheckResourceAttrSet(
 						"data.cloudscale_subnet.foo", "network_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_subnet.foo", "dns_servers.#", "2"),
 				),
 			},
 			{
@@ -73,7 +75,6 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 				ExpectError: regexp.MustCompile(`.*Found zero subnets.*`),
 			},
 			{
-
 				Config: config + testAccCheckCloudScaleSubnetConfig_id(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
@@ -84,6 +85,20 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 						"cloudscale_subnet.multi-subnet.0", "id", &subnet.UUID),
 					resource.TestCheckResourceAttrPtr(
 						"data.cloudscale_subnet.foo", "id", &subnet.UUID),
+				),
+			},
+			{
+				Config: config + testAccCheckCloudScaleSubnetConfig_network_uuid(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_subnet.foo", "cidr", cidr1),
+				),
+			},
+			{
+				Config: config + testAccCheckCloudScaleSubnetConfig_network_name(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_subnet.foo", "cidr", cidr1),
 				),
 			},
 			{
@@ -127,7 +142,23 @@ data "cloudscale_subnet" "foo" {
 func testAccCheckCloudScaleSubnetConfig_id() string {
 	return fmt.Sprintf(`
 data "cloudscale_subnet" "foo" {
-  id               = "${cloudscale_subnet.multi-subnet.0.id}"
+  id = "${cloudscale_subnet.multi-subnet.0.id}"
 }
 `)
+}
+
+func testAccCheckCloudScaleSubnetConfig_network_uuid() string {
+	return `
+data "cloudscale_subnet" "foo" {
+  network_uuid = "${cloudscale_network.multi-net.0.id}"
+}
+`
+}
+
+func testAccCheckCloudScaleSubnetConfig_network_name() string {
+	return `
+data "cloudscale_subnet" "foo" {
+  network_name = "${cloudscale_network.multi-net.0.name}"
+}
+`
 }
