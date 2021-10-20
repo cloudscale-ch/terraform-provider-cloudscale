@@ -81,7 +81,7 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleNetworkConfig_name_and_zone(name1, "lpg1"),
+				Config:      config + testAccCheckCloudScaleNetworkConfig_name_and_zone(name1, "lpg1"),
 				ExpectError: regexp.MustCompile(`.*Found zero networks.*`),
 			},
 			{
@@ -99,7 +99,7 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + "\n" + `data "cloudscale_network" "foo" {}`,
+				Config:      config + "\n" + `data "cloudscale_network" "foo" {}`,
 				ExpectError: regexp.MustCompile(`Found \d+ networks, expected one`),
 			},
 		},
@@ -108,11 +108,11 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 
 func TestAccCloudScaleNetwork_DS_NotExisting(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudScaleNetworkConfig_name("terraform-unknown-network"),
+				Config:      testAccCheckCloudScaleNetworkConfig_name("terraform-unknown-network"),
 				ExpectError: regexp.MustCompile(`.*Found zero networks.*`),
 			},
 		},

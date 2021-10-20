@@ -1,23 +1,23 @@
 package cloudscale
 
 import (
-       "context"
+	"context"
 
-       "github.com/cloudscale-ch/cloudscale-go-sdk"
-       "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-       "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func customImageSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
-			Type:     schema.TypeString,
+			Type: schema.TypeString,
 		},
 		"name": {
-			Type:     schema.TypeString,
+			Type: schema.TypeString,
 		},
 		"user_data_handling": {
-			Type:     schema.TypeString,
+			Type: schema.TypeString,
 		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
@@ -25,15 +25,15 @@ func customImageSchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"slug": {
-			Type: schema.TypeString,
+			Type:     schema.TypeString,
 			Optional: true,
 		},
 		"href": {
-			Type:     schema.TypeString,
+			Type: schema.TypeString,
 			//Computed: true,
 		},
 		"size_gb": {
-			Type:     schema.TypeInt,
+			Type: schema.TypeInt,
 			//Computed: true,
 		},
 		"checksums": {
@@ -106,7 +106,7 @@ func customImageRead(ctx context.Context, d *schema.ResourceData, meta interface
 		return diag.Errorf("Found zero cccustom images")
 	}
 
-	foundImage := foundImages[0];
+	foundImage := foundImages[0]
 	for k, v := range foundImage {
 		d.Set(k, v)
 	}

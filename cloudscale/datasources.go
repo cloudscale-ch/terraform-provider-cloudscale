@@ -22,7 +22,7 @@ func dataSourceResourceRead(
 	sourceSchema map[string]*schema.Schema,
 	fetch func(meta interface{}) ([]ResourceDataRaw, error),
 ) schema.ReadContextFunc {
-    return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		resources, err := fetch(meta)
 		if err != nil {
 			return diag.Errorf("Issue with fetching resources: %s", err)

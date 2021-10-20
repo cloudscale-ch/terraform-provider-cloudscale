@@ -333,7 +333,7 @@ func TestAccCloudscaleNetwork_IdInput(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkConfigIdInput(),
+				Config:      networkConfigIdInput(),
 				ExpectError: regexp.MustCompile(`Invalid or unknown key`),
 			},
 		},

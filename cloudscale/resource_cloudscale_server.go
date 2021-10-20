@@ -44,7 +44,7 @@ func getServerSchema() map[string]*schema.Schema {
 			Optional:      true,
 			ForceNew:      true,
 			ConflictsWith: []string{"image_uuid"},
-			Computed:	   true,
+			Computed:      true,
 		},
 		"image_uuid": {
 			Type:          schema.TypeString,
@@ -393,7 +393,7 @@ func createImageOption(d *schema.ResourceData) string {
 	if imageName := d.Get("image_slug").(string); imageName != "" {
 		return imageName
 	}
-	return d.Get("image_uuid").(string);
+	return d.Get("image_uuid").(string)
 }
 
 func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceRequest {
@@ -704,12 +704,12 @@ func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []str
 		timeout, d.Id(), attribute, target)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    pending,
-		Target:     []string{target},
-		Refresh:    newServerRefreshFunc(d, attribute, meta),
-		Timeout:    *timeout,
-		Delay:      10 * time.Second,
-		MinTimeout: 3 * time.Second,
+		Pending:        pending,
+		Target:         []string{target},
+		Refresh:        newServerRefreshFunc(d, attribute, meta),
+		Timeout:        *timeout,
+		Delay:          10 * time.Second,
+		MinTimeout:     3 * time.Second,
 		NotFoundChecks: math.MaxInt32,
 	}
 
