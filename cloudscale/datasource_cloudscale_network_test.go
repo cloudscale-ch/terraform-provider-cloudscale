@@ -30,6 +30,8 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("data.cloudscale_network.foo", &network),
 					resource.TestCheckResourceAttrPtr(
+						"cloudscale_network.basic.0", "id", &network.UUID),
+					resource.TestCheckResourceAttrPtr(
 						"data.cloudscale_network.foo", "id", &network.UUID),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "name", name1),
@@ -83,6 +85,20 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				ExpectError: regexp.MustCompile(`.*Found zero networks.*`),
 			},
 			{
+
+				Config: config + testAccCheckCloudScaleNetworkConfig_id(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic.0", "name", name1),
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_network.foo", "name", name1),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_network.basic.0", "id", &network.UUID),
+					resource.TestCheckResourceAttrPtr(
+						"data.cloudscale_network.foo", "id", &network.UUID),
+				),
+			},
+			{
 				Config: config + "\n" + `data "cloudscale_network" "foo" {}`,
 				ExpectError: regexp.MustCompile(`Found \d+ networks, expected one`),
 			},
@@ -118,4 +134,12 @@ data "cloudscale_network" "foo" {
   zone_slug			 = "%s"
 }
 `, name, zone_slug)
+}
+
+func testAccCheckCloudScaleNetworkConfig_id() string {
+	return fmt.Sprintf(`
+data "cloudscale_network" "foo" {
+  id               = "${cloudscale_network.basic.0.id}"
+}
+`)
 }

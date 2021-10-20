@@ -72,7 +72,12 @@ func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if !isDataSource {
+	if isDataSource {
+		m["id"] = &schema.Schema {
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	} else {
 		m["auto_create_ipv4_subnet"] = &schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: true,

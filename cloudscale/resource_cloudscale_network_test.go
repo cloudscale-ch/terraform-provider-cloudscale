@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -325,6 +326,20 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndPrivateWithoutAddress(t *testin
 	})
 }
 
+func TestAccCloudscaleNetwork_IdInput(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkConfigIdInput(),
+				ExpectError: regexp.MustCompile(`Invalid or unknown key`),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleNetworkSubnetCount(n string, network *cloudscale.Network, expectedCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if actualSubnetCount := len(network.Subnets); actualSubnetCount != expectedCount {
@@ -504,4 +519,12 @@ resource "cloudscale_server" "basic" {
   ssh_keys 					= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`
 	return fmt.Sprintf(template, rInt, DefaultImageSlug)
+}
+
+func networkConfigIdInput() string {
+	return fmt.Sprintf(`
+resource "cloudscale_network" "basic" {
+  name = "terraform-0"
+  id   = "1"
+}`)
 }
