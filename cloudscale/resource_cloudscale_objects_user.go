@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleObjectsUser() *schema.Resource {
+func resourceCloudscaleObjectsUser() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceObjectsUserCreate,
 		Read:   resourceObjectsUserRead,

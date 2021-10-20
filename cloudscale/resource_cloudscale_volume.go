@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleVolume() *schema.Resource {
+func resourceCloudscaleVolume() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceVolumeCreate,
 		Read:   resourceVolumeRead,

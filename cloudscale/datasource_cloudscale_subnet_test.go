@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
+func TestAccCloudscaleSubnet_DS_Basic(t *testing.T) {
 	var subnet cloudscale.Subnet
 	rInt := acctest.RandInt()
 	cidr1 := "192.168.0.0/24"
@@ -26,7 +26,7 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 				Config: config,
 			},
 			{
-				Config: config + testAccCheckCloudScaleSubnetConfig_cidr(cidr1),
+				Config: config + testAccCheckCloudscaleSubnetConfig_cidr(cidr1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleSubnetExists("data.cloudscale_subnet.foo", &subnet),
 					resource.TestCheckResourceAttrPtr(
@@ -46,14 +46,14 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleSubnetConfig_cidr_and_gateway(cidr1, ""),
+				Config: config + testAccCheckCloudscaleSubnetConfig_cidr_and_gateway(cidr1, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_subnet.foo", "cidr", cidr1),
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleSubnetConfig_cidr(cidr2),
+				Config: config + testAccCheckCloudscaleSubnetConfig_cidr(cidr2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_subnet.foo", "cidr", cidr2),
@@ -62,7 +62,7 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleSubnetConfig_cidr_and_gateway(cidr1, ""),
+				Config: config + testAccCheckCloudscaleSubnetConfig_cidr_and_gateway(cidr1, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_subnet.foo", "cidr", cidr1),
@@ -71,11 +71,11 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config:      config + testAccCheckCloudScaleSubnetConfig_cidr_and_gateway(cidr1, "1.1.1.1"),
+				Config:      config + testAccCheckCloudscaleSubnetConfig_cidr_and_gateway(cidr1, "1.1.1.1"),
 				ExpectError: regexp.MustCompile(`.*Found zero subnets.*`),
 			},
 			{
-				Config: config + testAccCheckCloudScaleSubnetConfig_id(),
+				Config: config + testAccCheckCloudscaleSubnetConfig_id(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_subnet.multi-subnet.0", "cidr", cidr1),
@@ -88,14 +88,14 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleSubnetConfig_network_uuid(),
+				Config: config + testAccCheckCloudscaleSubnetConfig_network_uuid(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_subnet.foo", "cidr", cidr1),
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleSubnetConfig_network_name(),
+				Config: config + testAccCheckCloudscaleSubnetConfig_network_name(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_subnet.foo", "cidr", cidr1),
@@ -109,20 +109,20 @@ func TestAccCloudScaleSubnet_DS_Basic(t *testing.T) {
 	})
 }
 
-func TestAccCloudScaleSubnet_DS_NotExisting(t *testing.T) {
+func TestAccCloudscaleSubnet_DS_NotExisting(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckCloudScaleSubnetConfig_cidr("terraform-unknown-subnet"),
+				Config:      testAccCheckCloudscaleSubnetConfig_cidr("terraform-unknown-subnet"),
 				ExpectError: regexp.MustCompile(`.*Found zero subnets.*`),
 			},
 		},
 	})
 }
 
-func testAccCheckCloudScaleSubnetConfig_cidr(cidr string) string {
+func testAccCheckCloudscaleSubnetConfig_cidr(cidr string) string {
 	return fmt.Sprintf(`
 data "cloudscale_subnet" "foo" {
   cidr = "%s"
@@ -130,7 +130,7 @@ data "cloudscale_subnet" "foo" {
 `, cidr)
 }
 
-func testAccCheckCloudScaleSubnetConfig_cidr_and_gateway(cidr, gateway string) string {
+func testAccCheckCloudscaleSubnetConfig_cidr_and_gateway(cidr, gateway string) string {
 	return fmt.Sprintf(`
 data "cloudscale_subnet" "foo" {
   cidr            = "%s"
@@ -139,7 +139,7 @@ data "cloudscale_subnet" "foo" {
 `, cidr, gateway)
 }
 
-func testAccCheckCloudScaleSubnetConfig_id() string {
+func testAccCheckCloudscaleSubnetConfig_id() string {
 	return fmt.Sprintf(`
 data "cloudscale_subnet" "foo" {
   id = "${cloudscale_subnet.multi-subnet.0.id}"
@@ -147,7 +147,7 @@ data "cloudscale_subnet" "foo" {
 `)
 }
 
-func testAccCheckCloudScaleSubnetConfig_network_uuid() string {
+func testAccCheckCloudscaleSubnetConfig_network_uuid() string {
 	return `
 data "cloudscale_subnet" "foo" {
   network_uuid = "${cloudscale_network.multi-net.0.id}"
@@ -155,7 +155,7 @@ data "cloudscale_subnet" "foo" {
 `
 }
 
-func testAccCheckCloudScaleSubnetConfig_network_name() string {
+func testAccCheckCloudscaleSubnetConfig_network_name() string {
 	return `
 data "cloudscale_subnet" "foo" {
   network_name = "${cloudscale_network.multi-net.0.name}"

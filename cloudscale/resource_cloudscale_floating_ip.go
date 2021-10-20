@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleFloatingIP() *schema.Resource {
+func resourceCloudscaleFloatingIP() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceFloatingIPCreate,
 		Read:   resourceFloatingIPRead,

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataSourceCloudScaleSubnet() *schema.Resource {
+func dataSourceCloudscaleSubnet() *schema.Resource {
 	recordSchema := getSubnetSchema(true)
 
 	return &schema.Resource{

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleCustomImage() *schema.Resource {
+func resourceCloudscaleCustomImage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCustomImageCreate,
 		Read:   resourceCustomImageRead,

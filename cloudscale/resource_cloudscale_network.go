@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleNetwork() *schema.Resource {
+func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNetworkCreate,
 		Read:   resourceNetworkRead,

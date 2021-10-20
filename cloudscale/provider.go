@@ -16,20 +16,20 @@ func Provider() *schema.Provider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"cloudscale_custom_image": dataSourceCloudScaleCustomImage(),
-			"cloudscale_network":      dataSourceCloudScaleNetwork(),
-			"cloudscale_subnet":       dataSourceCloudScaleSubnet(),
+			"cloudscale_custom_image": dataSourceCloudscaleCustomImage(),
+			"cloudscale_network":      dataSourceCloudscaleNetwork(),
+			"cloudscale_subnet":       dataSourceCloudscaleSubnet(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"cloudscale_server":       resourceCloudScaleServer(),
-			"cloudscale_server_group": resourceCloudScaleServerGroup(),
-			"cloudscale_volume":       resourceCloudScaleVolume(),
-			"cloudscale_network":      resourceCloudScaleNetwork(),
-			"cloudscale_subnet":       resourceCloudScaleSubnet(),
-			"cloudscale_floating_ip":  resourceCloudScaleFloatingIP(),
-			"cloudscale_objects_user": resourceCloudScaleObjectsUser(),
-			"cloudscale_custom_image": resourceCloudScaleCustomImage(),
+			"cloudscale_server":       resourceCloudscaleServer(),
+			"cloudscale_server_group": resourceCloudscaleServerGroup(),
+			"cloudscale_volume":       resourceCloudscaleVolume(),
+			"cloudscale_network":      resourceCloudscaleNetwork(),
+			"cloudscale_subnet":       resourceCloudscaleSubnet(),
+			"cloudscale_floating_ip":  resourceCloudscaleFloatingIP(),
+			"cloudscale_objects_user": resourceCloudscaleObjectsUser(),
+			"cloudscale_custom_image": resourceCloudscaleCustomImage(),
 		},
 		ConfigureFunc: providerConfigureClient,
 	}

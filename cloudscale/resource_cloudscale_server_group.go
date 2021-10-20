@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleServerGroup() *schema.Resource {
+func resourceCloudscaleServerGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceServerGroupCreate,
 		Read:   resourceServerGroupRead,

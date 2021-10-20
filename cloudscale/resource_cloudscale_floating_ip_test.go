@@ -49,12 +49,12 @@ func TestAccCloudscaleFloatingIP_Detached(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudScaleFloatingIPConfig_detached(),
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.detached", &floatingIP),
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "ip_version", "6"),
 					resource.TestCheckResourceAttr(
@@ -75,12 +75,12 @@ func TestAccCloudscaleFloatingIP_GlobalDetached(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudScaleFloatingIPConfig_globalDetached(),
+				Config: testAccCheckCloudscaleFloatingIPConfig_globalDetached(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.global", &floatingIP),
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.global", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.global", "ip_version", "6"),
 					resource.TestCheckNoResourceAttr(
@@ -102,12 +102,12 @@ func TestAccCloudscaleFloatingIP_Server(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudScaleFloatingIPConfig_server(rInt),
+				Config: testAccCheckCloudscaleFloatingIPConfig_server(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &floatingIP),
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.gateway", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
 					resource.TestCheckResourceAttr(
@@ -125,12 +125,12 @@ func TestAccCloudscaleFloatingIP_ServerWithZone(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudScaleFloatingIPConfig_server_with_zone(rInt),
+				Config: testAccCheckCloudscaleFloatingIPConfig_server_with_zone(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.minfloating", &floatingIP),
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.minfloating", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.minfloating", "ip_version", "6"),
 					resource.TestCheckResourceAttr(
@@ -151,20 +151,20 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudScaleFloatingIPDestroy,
+		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudScaleFloatingIPConfig_update_first(rIntA, rIntB),
+				Config: testAccCheckCloudscaleFloatingIPConfig_update_first(rIntA, rIntB),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &beforeUpdate),
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.gateway", &beforeUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
 				),
 			},
 			{
-				Config: testAccCheckCloudScaleFloatingIPConfig_update_second(rIntA, rIntB),
+				Config: testAccCheckCloudscaleFloatingIPConfig_update_second(rIntA, rIntB),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudScaleFloatingIPExists("cloudscale_floating_ip.gateway", &afterUpdate),
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.gateway", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
 					testAccCheckFloaingIPChanged(t, &beforeUpdate, &afterUpdate),
@@ -174,7 +174,7 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 	})
 }
 
-func testAccCheckCloudScaleFloatingIPExists(n string, floatingIP *cloudscale.FloatingIP) resource.TestCheckFunc {
+func testAccCheckCloudscaleFloatingIPExists(n string, floatingIP *cloudscale.FloatingIP) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -206,7 +206,7 @@ func testAccCheckCloudScaleFloatingIPExists(n string, floatingIP *cloudscale.Flo
 	}
 }
 
-func testAccCheckCloudScaleFloatingIPDestroy(s *terraform.State) error {
+func testAccCheckCloudscaleFloatingIPDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
 	for _, rs := range s.RootModule().Resources {
@@ -243,7 +243,7 @@ func testAccCheckFloaingIPChanged(t *testing.T,
 	}
 }
 
-func testAccCheckCloudScaleFloatingIPConfig_detached() string {
+func testAccCheckCloudscaleFloatingIPConfig_detached() string {
 	return fmt.Sprintf(`
 resource "cloudscale_floating_ip" "detached" {
   ip_version = 6
@@ -251,7 +251,7 @@ resource "cloudscale_floating_ip" "detached" {
 }`)
 }
 
-func testAccCheckCloudScaleFloatingIPConfig_globalDetached() string {
+func testAccCheckCloudscaleFloatingIPConfig_globalDetached() string {
 	return fmt.Sprintf(`
 resource "cloudscale_floating_ip" "global" {
   ip_version = 6
@@ -259,7 +259,7 @@ resource "cloudscale_floating_ip" "global" {
 }`)
 }
 
-func testAccCheckCloudScaleFloatingIPConfig_server(rInt int) string {
+func testAccCheckCloudscaleFloatingIPConfig_server(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
@@ -275,7 +275,7 @@ resource "cloudscale_floating_ip" "gateway" {
 }`, rInt, DefaultImageSlug)
 }
 
-func testAccCheckCloudScaleFloatingIPConfig_update_first(rIntA, rIntB int) string {
+func testAccCheckCloudscaleFloatingIPConfig_update_first(rIntA, rIntB int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
@@ -299,7 +299,7 @@ resource "cloudscale_floating_ip" "gateway" {
 }`, rIntA, DefaultImageSlug, rIntB, DefaultImageSlug)
 }
 
-func testAccCheckCloudScaleFloatingIPConfig_update_second(rIntA, rIntB int) string {
+func testAccCheckCloudscaleFloatingIPConfig_update_second(rIntA, rIntB int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
@@ -323,7 +323,7 @@ resource "cloudscale_floating_ip" "gateway" {
 }`, rIntA, DefaultImageSlug, rIntB, DefaultImageSlug)
 }
 
-func testAccCheckCloudScaleFloatingIPConfig_server_with_zone(rInt int) string {
+func testAccCheckCloudscaleFloatingIPConfig_server_with_zone(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "minlpg" {
   name = "terraform-%d"

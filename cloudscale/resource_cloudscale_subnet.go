@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleSubnet() *schema.Resource {
+func resourceCloudscaleSubnet() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSubnetCreate,
 		Read:   resourceSubnetRead,

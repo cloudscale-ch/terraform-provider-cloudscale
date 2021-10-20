@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
+func TestAccCloudscaleNetwork_DS_Basic(t *testing.T) {
 	var network cloudscale.Network
 	rInt := acctest.RandInt()
 	name1 := fmt.Sprintf("terraform-%d-0", rInt)
@@ -26,7 +26,7 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				Config: config,
 			},
 			{
-				Config: config + testAccCheckCloudScaleNetworkConfig_name(name1),
+				Config: config + testAccCheckCloudscaleNetworkConfig_name(name1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("data.cloudscale_network.foo", &network),
 					resource.TestCheckResourceAttrPtr(
@@ -48,14 +48,14 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleNetworkConfig_name_and_zone(name1, "rma1"),
+				Config: config + testAccCheckCloudscaleNetworkConfig_name_and_zone(name1, "rma1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "name", name1),
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleNetworkConfig_name(name2),
+				Config: config + testAccCheckCloudscaleNetworkConfig_name(name2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "name", name2),
@@ -72,7 +72,7 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudScaleNetworkConfig_name_and_zone(name2, "rma1"),
+				Config: config + testAccCheckCloudscaleNetworkConfig_name_and_zone(name2, "rma1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "name", name2),
@@ -81,12 +81,12 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config:      config + testAccCheckCloudScaleNetworkConfig_name_and_zone(name1, "lpg1"),
+				Config:      config + testAccCheckCloudscaleNetworkConfig_name_and_zone(name1, "lpg1"),
 				ExpectError: regexp.MustCompile(`.*Found zero networks.*`),
 			},
 			{
 
-				Config: config + testAccCheckCloudScaleNetworkConfig_id(),
+				Config: config + testAccCheckCloudscaleNetworkConfig_id(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic.0", "name", name1),
@@ -106,20 +106,20 @@ func TestAccCloudScaleNetwork_DS_Basic(t *testing.T) {
 	})
 }
 
-func TestAccCloudScaleNetwork_DS_NotExisting(t *testing.T) {
+func TestAccCloudscaleNetwork_DS_NotExisting(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckCloudScaleNetworkConfig_name("terraform-unknown-network"),
+				Config:      testAccCheckCloudscaleNetworkConfig_name("terraform-unknown-network"),
 				ExpectError: regexp.MustCompile(`.*Found zero networks.*`),
 			},
 		},
 	})
 }
 
-func testAccCheckCloudScaleNetworkConfig_name(name string) string {
+func testAccCheckCloudscaleNetworkConfig_name(name string) string {
 	return fmt.Sprintf(`
 data "cloudscale_network" "foo" {
   name               = "%s"
@@ -127,7 +127,7 @@ data "cloudscale_network" "foo" {
 `, name)
 }
 
-func testAccCheckCloudScaleNetworkConfig_name_and_zone(name, zone_slug string) string {
+func testAccCheckCloudscaleNetworkConfig_name_and_zone(name, zone_slug string) string {
 	return fmt.Sprintf(`
 data "cloudscale_network" "foo" {
   name               = "%s"
@@ -136,7 +136,7 @@ data "cloudscale_network" "foo" {
 `, name, zone_slug)
 }
 
-func testAccCheckCloudScaleNetworkConfig_id() string {
+func testAccCheckCloudscaleNetworkConfig_id() string {
 	return fmt.Sprintf(`
 data "cloudscale_network" "foo" {
   id               = "${cloudscale_network.basic.0.id}"

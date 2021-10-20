@@ -47,7 +47,7 @@ func customImageSchema() map[string]*schema.Schema {
 	}
 }
 
-func dataSourceCloudScaleCustomImage() *schema.Resource {
+func dataSourceCloudscaleCustomImage() *schema.Resource {
 	recordSchema := customImageSchema()
 
 	for _, f := range recordSchema {
