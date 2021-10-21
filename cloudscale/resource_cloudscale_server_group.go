@@ -15,43 +15,42 @@ func resourceCloudscaleServerGroup() *schema.Resource {
 		Read:   resourceServerGroupRead,
 		Delete: resourceServerGroupDelete,
 
-		Schema: getServerGroupSchema(),
+		Schema: getServerGroupSchema(false),
 	}
 }
 
-func getServerGroupSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-
-		// Required attributes
-
+func getServerGroupSchema(isDataSource bool) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: !isDataSource,
+			Optional: isDataSource,
 			ForceNew: true,
 		},
-
 		"type": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: !isDataSource,
+			Computed: isDataSource,
 			ForceNew: true,
 		},
-
-		// Optional attributes
-
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
+	if isDataSource {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	}
+	return m
 }
 
 func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
@@ -85,12 +84,18 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) error {
-	d.Set("href", serverGroup.HREF)
-	d.Set("name", serverGroup.Name)
-	d.Set("type", serverGroup.Type)
-	d.Set("zone_slug", serverGroup.Zone.Slug)
-
+	fillResourceData(d, gatherServerGroupResourceData(serverGroup))
 	return nil
+}
+
+func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = serverGroup.UUID
+	m["href"] = serverGroup.HREF
+	m["name"] = serverGroup.Name
+	m["type"] = serverGroup.Type
+	m["zone_slug"] = serverGroup.Zone.Slug
+	return m
 }
 
 func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
