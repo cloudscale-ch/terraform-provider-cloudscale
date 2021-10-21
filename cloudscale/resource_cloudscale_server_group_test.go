@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -52,7 +54,7 @@ func TestAccCloudscaleServerGroup_Basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckCloudscaleServerGroupConfig(rInt),
@@ -86,7 +88,7 @@ func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt),
@@ -99,6 +101,36 @@ func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccCheckCloudscaleServerGroupDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*cloudscale.Client)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "cloudscale_server_group" {
+			continue
+		}
+
+		id := rs.Primary.ID
+
+		// Try to find the server group
+		s, err := client.ServerGroups.Get(context.Background(), id)
+
+		// Wait
+
+		if err == nil {
+			return fmt.Errorf("The server group %v remained, even though the resource was destoryed", s)
+		} else {
+			errorResponse, ok := err.(*cloudscale.ErrorResponse)
+			if !ok || errorResponse.StatusCode != http.StatusNotFound {
+				return fmt.Errorf(
+					"Error waiting for server group (%s) to be destroyed: %s",
+					rs.Primary.ID, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func testAccCheckCloudscaleServerGroupConfig(rInt int) string {
