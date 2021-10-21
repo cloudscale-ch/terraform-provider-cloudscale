@@ -45,6 +45,8 @@ func TestAccCloudscaleNetwork_DS_Basic(t *testing.T) {
 						"data.cloudscale_network.foo", "subnets.0.cidr"),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_network.foo", "subnets.#", "1"),
+					resource.TestCheckResourceAttrSet(
+						"data.cloudscale_network.foo", "href"),
 				),
 			},
 			{
@@ -82,7 +84,7 @@ func TestAccCloudscaleNetwork_DS_Basic(t *testing.T) {
 			},
 			{
 				Config:      config + testAccCheckCloudscaleNetworkConfig_name_and_zone(name1, "lpg1"),
-				ExpectError: regexp.MustCompile(`.*Found zero networks.*`),
+				ExpectError: regexp.MustCompile(`Found zero networks`),
 			},
 			{
 
@@ -113,7 +115,7 @@ func TestAccCloudscaleNetwork_DS_NotExisting(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckCloudscaleNetworkConfig_name("terraform-unknown-network"),
-				ExpectError: regexp.MustCompile(`.*Found zero networks.*`),
+				ExpectError: regexp.MustCompile(`Found zero networks`),
 			},
 		},
 	})
