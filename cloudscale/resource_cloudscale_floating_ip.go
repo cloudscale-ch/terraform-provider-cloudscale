@@ -115,7 +115,11 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(floatingIP.IP())
 
-	return resourceFloatingIPRead(d, meta)
+	err = fillFloatingIPResourceData(d, floatingIP)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func fillFloatingIPResourceData(d *schema.ResourceData, floatingIP *cloudscale.FloatingIP) error {
