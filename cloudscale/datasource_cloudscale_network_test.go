@@ -114,7 +114,7 @@ func TestAccCloudscaleNetwork_DS_NotExisting(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckCloudscaleNetworkConfig_name("terraform-unknown-network"),
+				Config:      testAccCheckCloudscaleNetworkConfig_name("terraform-unknown"),
 				ExpectError: regexp.MustCompile(`Found zero networks`),
 			},
 		},
@@ -124,7 +124,7 @@ func TestAccCloudscaleNetwork_DS_NotExisting(t *testing.T) {
 func testAccCheckCloudscaleNetworkConfig_name(name string) string {
 	return fmt.Sprintf(`
 data "cloudscale_network" "foo" {
-  name               = "%s"
+  name = "%s"
 }
 `, name)
 }
@@ -132,8 +132,8 @@ data "cloudscale_network" "foo" {
 func testAccCheckCloudscaleNetworkConfig_name_and_zone(name, zone_slug string) string {
 	return fmt.Sprintf(`
 data "cloudscale_network" "foo" {
-  name               = "%s"
-  zone_slug			 = "%s"
+  name      = "%s"
+  zone_slug	= "%s"
 }
 `, name, zone_slug)
 }
@@ -141,7 +141,7 @@ data "cloudscale_network" "foo" {
 func testAccCheckCloudscaleNetworkConfig_id() string {
 	return fmt.Sprintf(`
 data "cloudscale_network" "foo" {
-  id               = "${cloudscale_network.basic.0.id}"
+  id = "${cloudscale_network.basic.0.id}"
 }
 `)
 }

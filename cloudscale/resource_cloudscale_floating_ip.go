@@ -70,12 +70,6 @@ func getFloatingIPSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
-		m["id"] = &schema.Schema{
-			Type:     schema.TypeString,
-			Optional: true,
-		}
-	}
 	return m
 }
 
