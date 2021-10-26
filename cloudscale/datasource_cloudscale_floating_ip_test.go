@@ -89,6 +89,21 @@ func TestAccCloudscaleFloatingIP_DS_Basic(t *testing.T) {
 				),
 			},
 			{
+				Config:      config + testAccCheckCloudscaleFloatingIPConfig_reverse_ptr_type_ip_version(reverse_ptr1, "regional", "4"),
+				ExpectError: regexp.MustCompile(`Found zero Floating IPs`),
+			},
+			{
+				Config:      config + testAccCheckCloudscaleFloatingIPConfig_reverse_ptr_type_ip_version(reverse_ptr1, "global", "6"),
+				ExpectError: regexp.MustCompile(`Found zero Floating IPs`),
+			},
+			{
+				Config: config + testAccCheckCloudscaleFloatingIPConfig_reverse_ptr_type_ip_version(reverse_ptr1, "regional", "6"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_floating_ip.foo", "reverse_ptr", reverse_ptr1),
+				),
+			},
+			{
 				Config:      config + "\n" + `data "cloudscale_floating_ip" "foo" {}`,
 				ExpectError: regexp.MustCompile(`Found \d+ Floating IPs, expected one`),
 			},
@@ -189,4 +204,14 @@ data "cloudscale_floating_ip" "foo" {
   network = "${cloudscale_floating_ip.gateway.network}"
 }
 	`
+}
+
+func testAccCheckCloudscaleFloatingIPConfig_reverse_ptr_type_ip_version(reverse_ptr, type_, ip_version string) string {
+	return fmt.Sprintf(`
+data "cloudscale_floating_ip" "foo" {
+  ip_version = "%s"
+  type = "%s"
+  reverse_ptr = "%s"
+}
+`, ip_version, type_, reverse_ptr)
 }
