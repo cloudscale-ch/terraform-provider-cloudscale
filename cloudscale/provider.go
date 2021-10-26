@@ -21,6 +21,7 @@ func Provider() *schema.Provider {
 			"cloudscale_network":      dataSourceCloudscaleNetwork(),
 			"cloudscale_subnet":       dataSourceCloudscaleSubnet(),
 			"cloudscale_floating_ip":  dataSourceCloudscaleFloatingIP(),
+			"cloudscale_objects_user": dataSourceCloudscaleObjectsUser(),
 			"cloudscale_custom_image": dataSourceCloudscaleCustomImage(),
 		},
 
