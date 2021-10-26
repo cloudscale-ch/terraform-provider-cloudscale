@@ -3,7 +3,7 @@ module github.com/terraform-providers/terraform-provider-cloudscale
 go 1.16
 
 require (
-	github.com/cloudscale-ch/cloudscale-go-sdk v1.7.1
+	github.com/cloudscale-ch/cloudscale-go-sdk v1.7.2-0.20211026131159-62129f0b2777
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.8.0
 	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
