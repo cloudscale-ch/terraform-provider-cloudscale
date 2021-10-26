@@ -59,6 +59,7 @@ func getFloatingIPSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"network": {
 			Type:     schema.TypeString,
+			Optional:   isDataSource,
 			Computed: true,
 		},
 		"next_hop": {
@@ -125,6 +126,8 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	m := make(map[string]interface{})
 	m["id"] = floatingIP.IP()
 	m["href"] = floatingIP.HREF
+	m["ip_version"] = floatingIP.IPVersion
+	m["prefix_length"] = floatingIP.PrefixLength()
 	m["network"] = floatingIP.Network
 	m["next_hop"] = floatingIP.NextHop
 	m["reverse_ptr"] = floatingIP.ReversePointer

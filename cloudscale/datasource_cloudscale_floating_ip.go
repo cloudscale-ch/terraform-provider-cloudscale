@@ -11,7 +11,7 @@ func dataSourceCloudscaleFloatingIP() *schema.Resource {
 	recordSchema := getFloatingIPSchema(true)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("floating_ip", recordSchema, floatingIPsRead),
+		ReadContext: dataSourceResourceRead("Floating IPs", recordSchema, floatingIPsRead),
 		Schema:      recordSchema,
 	}
 }
