@@ -107,7 +107,6 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-
 func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) error {
 	fillResourceData(d, gatherSubnetResourceData(subnet))
 	return nil

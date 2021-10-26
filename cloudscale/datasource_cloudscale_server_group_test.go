@@ -1,15 +1,15 @@
 package cloudscale
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
-	"context"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccCloudscaleServerGroup_DS_Basic(t *testing.T) {
@@ -175,4 +175,3 @@ data "cloudscale_server_group" "foo" {
 }
 `)
 }
-

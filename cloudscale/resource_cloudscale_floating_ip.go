@@ -59,7 +59,7 @@ func getFloatingIPSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"network": {
 			Type:     schema.TypeString,
-			Optional:   isDataSource,
+			Optional: isDataSource,
 			Computed: true,
 		},
 		"next_hop": {

@@ -146,7 +146,6 @@ func TestAccCloudscaleFloatingIP_DS_NotExisting(t *testing.T) {
 	})
 }
 
-
 func testAccCheckCloudscaleFloatingIPConfig_reverse_ptr(reverse_ptr string) string {
 	return fmt.Sprintf(`
 data "cloudscale_floating_ip" "foo" {
