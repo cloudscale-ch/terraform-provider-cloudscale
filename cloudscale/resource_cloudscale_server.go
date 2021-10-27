@@ -390,7 +390,10 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	fillServerResourceData(d, server)
+	err = resourceServerRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the server (%s): %s", d.Id(), err)
+	}
 	return nil
 }
 
