@@ -35,13 +35,14 @@ func getCustomImageSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"user_data_handling": {
 			Type:     schema.TypeString,
-			Required: true,
-			Optional: isDataSource,
+			Required: !isDataSource,
+			Computed: isDataSource,
 		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Required: true,
+			Required: !isDataSource,
+			Computed: isDataSource,
 			ForceNew: true,
 		},
 		"slug": {
