@@ -385,7 +385,8 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceServerRead(d, meta)
+	fillServerResourceData(d, server)
+	return nil
 }
 
 func createImageOption(d *schema.ResourceData) string {
@@ -454,21 +455,33 @@ func createAddressesOptions(addresses []interface{}) []cloudscale.AddressRequest
 	return result
 }
 
-func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*cloudscale.Client)
+func fillServerResourceData(d *schema.ResourceData, server *cloudscale.Server) {
+	fillResourceData(d, gatherServerResourceData(server))
 
-	id := d.Id()
-
-	server, err := client.Servers.Get(context.Background(), id)
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving server")
+	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
+		d.SetConnInfo(map[string]string{
+			"type": "ssh",
+			"host": publicIPV4,
+		})
+	} else {
+		if publicIPV6 := findIPv6AddrByType(server, "private"); publicIPV6 != "" {
+			d.SetConnInfo(map[string]string{
+				"type": "ssh",
+				"host": publicIPV6,
+			})
+		}
 	}
+}
 
-	d.Set("href", server.HREF)
-	d.Set("name", server.Name)
-	d.Set("flavor_slug", server.Flavor.Slug)
-	d.Set("image_slug", server.Image.Slug)
-	d.Set("zone_slug", server.Zone.Slug)
+func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = server.UUID
+	m["href"] = server.HREF
+	m["name"] = server.Name
+	m["flavor_slug"] = server.Flavor.Slug
+	m["image_slug"] = server.Image.Slug
+	m["zone_slug"] = server.Zone.Slug
+	m["status"] = server.Status
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]interface{}, 0, volumes)
@@ -480,12 +493,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			v["uuid"] = volume.UUID
 			volumesMaps = append(volumesMaps, v)
 		}
-		err = d.Set("volumes", volumesMaps)
-		if err != nil {
-			log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
-			return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
-		}
-
+		m["volumes"] = volumesMaps
 	}
 	serverGroupMaps := make([]map[string]interface{}, 0, len(server.ServerGroups))
 	for _, serverGroup := range server.ServerGroups {
@@ -495,16 +503,9 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		g["href"] = serverGroup.HREF
 		serverGroupMaps = append(serverGroupMaps, g)
 	}
-	err = d.Set("server_groups", serverGroupMaps)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
-		return fmt.Errorf("Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
-	}
-
-	d.Set("status", server.Status)
+	m["server_groups"] = serverGroupMaps
 
 	if addrss := len(server.Interfaces); addrss > 0 {
-
 		intsMap := make([]map[string]interface{}, 0, addrss)
 		for _, intr := range server.Interfaces {
 
@@ -535,43 +536,29 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 			intsMap = append(intsMap, intMap)
 		}
-		err = d.Set("interfaces", intsMap)
-		if err != nil {
-			log.Printf("[DEBUG] Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
-			return fmt.Errorf("Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
-		}
+		m["interfaces"] = intsMap
 	}
 
-	err = d.Set("ssh_fingerprints", server.SSHFingerprints)
+	m["ssh_fingerprints"] = server.SSHFingerprints
+
+	m["ssh_host_keys"] = server.SSHHostKeys
+
+	m["public_ipv4_address"] = findIPv4AddrByType(server, "public")
+	m["public_ipv6_address"] = findIPv6AddrByType(server, "public")
+	m["private_ipv4_address"] = findIPv4AddrByType(server, "private")
+	return m
+}
+
+func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*cloudscale.Client)
+
+	id := d.Id()
+
+	server, err := client.Servers.Get(context.Background(), id)
 	if err != nil {
-		log.Printf("[DEBUG] Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
-		return fmt.Errorf("Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
+		return CheckDeleted(d, err, "Error retrieving server")
 	}
-
-	err = d.Set("ssh_host_keys", server.SSHHostKeys)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
-		return fmt.Errorf("Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
-	}
-
-	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
-		d.SetConnInfo(map[string]string{
-			"type": "ssh",
-			"host": publicIPV4,
-		})
-	} else {
-		if publicIPV6 := findIPv6AddrByType(server, "private"); publicIPV6 != "" {
-			d.SetConnInfo(map[string]string{
-				"type": "ssh",
-				"host": publicIPV6,
-			})
-		}
-	}
-
-	d.Set("public_ipv4_address", findIPv4AddrByType(server, "public"))
-	d.Set("public_ipv6_address", findIPv6AddrByType(server, "public"))
-	d.Set("private_ipv4_address", findIPv4AddrByType(server, "private"))
-
+	fillServerResourceData(d, server)
 	return nil
 }
 
