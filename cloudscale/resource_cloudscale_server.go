@@ -27,6 +27,10 @@ func resourceCloudscaleServer() *schema.Resource {
 }
 
 func getServerSchema(isDataSource bool) map[string]*schema.Schema {
+	imageConflictsWith := []string{}
+	if !isDataSource {
+		imageConflictsWith = append(imageConflictsWith, "image_uuid")
+	}
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
@@ -38,6 +42,18 @@ func getServerSchema(isDataSource bool) map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
+		},
+		"flavor_slug": {
+			Type:     schema.TypeString,
+			Required: !isDataSource,
+			Computed: isDataSource,
+		},
+		"image_slug": {
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: imageConflictsWith,
+			Computed:      true,
 		},
 		"href": {
 			Type:     schema.TypeString,
@@ -194,17 +210,6 @@ func getServerSchema(isDataSource bool) map[string]*schema.Schema {
 			Optional: true,
 		}
 	} else {
-		m["flavor_slug"] = &schema.Schema{
-			Type:     schema.TypeString,
-			Required: true,
-		}
-		m["image_slug"] = &schema.Schema{
-			Type:          schema.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"image_uuid"},
-			Computed:      true,
-		}
 		m["image_uuid"] = &schema.Schema{
 			Type:          schema.TypeString,
 			Optional:      true,
