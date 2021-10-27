@@ -19,63 +19,19 @@ func resourceCloudscaleServer() *schema.Resource {
 		Update: resourceServerUpdate,
 		Delete: resourceServerDelete,
 
-		Schema: getServerSchema(),
+		Schema: getServerSchema(false),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
 		},
 	}
 }
 
-func getServerSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-
-		// Required attributes
-
+func getServerSchema(isDataSource bool) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
-		},
-		"flavor_slug": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"image_slug": {
-			Type:          schema.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"image_uuid"},
-			Computed:      true,
-		},
-		"image_uuid": {
-			Type:          schema.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"image_slug"},
-		},
-		"ssh_keys": {
-			Type:     schema.TypeSet,
-			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			ForceNew: true,
-		},
-		"password": {
-			Type:      schema.TypeString,
-			Optional:  true,
-			Elem:      &schema.Schema{Type: schema.TypeString},
-			ForceNew:  true,
-			Sensitive: true,
-		},
-
-		// Optional attributes
-
-		"volume_size_gb": {
-			Type:     schema.TypeInt,
-			Optional: true,
-		},
-		"bulk_volume_size_gb": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			ForceNew: true,
+			Required: !isDataSource,
+			Optional: isDataSource,
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -83,45 +39,6 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 			ForceNew: true,
 		},
-		"user_data": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-		},
-		"use_public_network": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"use_private_network": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"use_ipv6": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"allow_stopping_for_update": {
-			Type:     schema.TypeBool,
-			Optional: true,
-		},
-		"skip_waiting_for_ssh_host_keys": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
-		},
-		"server_group_ids": {
-			Type:     schema.TypeSet,
-			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			ForceNew: true,
-		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -232,8 +149,8 @@ func getServerSchema() map[string]*schema.Schema {
 					},
 				},
 			},
+			Optional: !isDataSource,
 			Computed: true,
-			Optional: true,
 		},
 		"ssh_fingerprints": {
 			Type:     schema.TypeList,
@@ -247,7 +164,7 @@ func getServerSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: !isDataSource,
 			Computed: true,
 		},
 		"server_groups": {
@@ -271,6 +188,89 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
+	if isDataSource {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	} else {
+		m["flavor_slug"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+		}
+		m["image_slug"] = &schema.Schema{
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"image_uuid"},
+			Computed:      true,
+		}
+		m["image_uuid"] = &schema.Schema{
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"image_slug"},
+		}
+		m["ssh_keys"] = &schema.Schema{
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		}
+		m["password"] = &schema.Schema{
+			Type:      schema.TypeString,
+			Optional:  true,
+			Elem:      &schema.Schema{Type: schema.TypeString},
+			ForceNew:  true,
+			Sensitive: true,
+		}
+		m["volume_size_gb"] = &schema.Schema{
+			Type:     schema.TypeInt,
+			Optional: true,
+		}
+		m["bulk_volume_size_gb"] = &schema.Schema{
+			Type:     schema.TypeInt,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["user_data"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["use_public_network"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["use_private_network"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["use_ipv6"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["allow_stopping_for_update"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+		}
+		m["skip_waiting_for_ssh_host_keys"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		}
+		m["server_group_ids"] = &schema.Schema{
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		}
+	}
+	return m
 }
 
 func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {

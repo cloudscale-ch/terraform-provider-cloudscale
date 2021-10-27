@@ -22,17 +22,12 @@ func resourceCloudscaleNetwork() *schema.Resource {
 
 func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
-		// Required attributes
-
 		"name": {
 			Type:     schema.TypeString,
 			Required: !isDataSource,
 			Optional: isDataSource,
 			Computed: isDataSource,
 		},
-
-		// Optional attributes
-
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -64,9 +59,6 @@ func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
