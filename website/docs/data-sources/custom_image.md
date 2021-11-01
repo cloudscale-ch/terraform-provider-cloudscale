@@ -49,5 +49,5 @@ In addition to the arguments listed above, the following computed attributes are
 * `href` - The cloudscale.ch API URL of the current resource.
 * `size_gb` - The size in GB of the custom image.
 * `checksums` - The checksums of the custom image as map.
-* `user_data_handling` - (Required) How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.
-* `zone_slugs` - (Required) Specify the zones in which the custom image will be available. Options include `lpg1` and `rma1`.
+* `user_data_handling` - How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.
+* `zone_slugs` - The zones in which the custom image will be available. Options include `lpg1` and `rma1`.
