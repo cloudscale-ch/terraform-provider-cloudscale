@@ -36,11 +36,11 @@ resource "cloudscale_server" "your_server" {
 
 ## Argument Reference
 
-The following arguments can be used to filter images
+The following arguments can be used to look up a custom image:
 
-* `id` - (Optional) The UUID of an existing custom image.
-* `name` - (Optional) The human readable name of the custom image.
-* `slug` - (Optional) A string identifying the custom image for use within the API.
+* `id` - (Optional) The UUID of a custom image.
+* `name` - (Optional) The human readable name of a custom image.
+* `slug` - (Optional) A string identifying a custom image.
 
 ## Attributes Reference
 
