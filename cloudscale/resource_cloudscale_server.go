@@ -50,7 +50,7 @@ func getServerSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"image_slug": {
 			Type:          schema.TypeString,
-			Optional:      true,
+			Optional:      !isDataSource,
 			ForceNew:      true,
 			ConflictsWith: imageConflictsWith,
 			Computed:      true,
