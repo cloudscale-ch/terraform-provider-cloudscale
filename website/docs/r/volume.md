@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_volume"
-sidebar_current: "docs-cloudscale-resource-volume"
-description: |-
-  Provides a cloudscale.ch volume (block storage) resource. This can be used to create, modify, and delete volumes.
 ---
 
 # cloudscale\_volume

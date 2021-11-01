@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_server_group"
-sidebar_current: "docs-cloudscale-resource-server_group"
-description: |-
-  Provides a cloudscale.ch server group resource. This can be used to create, modify, and delete server groups.
 ---
 
 # cloudscale\_server\_group

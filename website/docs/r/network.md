@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_network"
-sidebar_current: "docs-cloudscale-resource-network"
-description: |-
-  Provides a cloudscale.ch private network resource. This can be used to create, modify, and delete networks.
 ---
 
 # cloudscale\_network

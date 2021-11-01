@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_subnet"
-sidebar_current: "docs-cloudscale-resource-subnet"
-description: |-
-  Provides a cloudscale.ch subnet resource. This can be used to create, modify, and delete subnets.
 ---
 
 # cloudscale\_subnet

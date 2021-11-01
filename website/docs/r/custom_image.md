@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_custom_image"
-sidebar_current: "docs-cloudscale-resource-custom-image"
-description: |-
-  Provides a cloudscale.ch custom image resource. This can be used to create, modify, and delete custom images.
 ---
 
 # cloudscale\_custom\_image

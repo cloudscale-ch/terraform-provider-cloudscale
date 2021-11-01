@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "Provider: cloudscale.ch"
-sidebar_current: "docs-cloudscale-index"
-description: |-
-  The cloudscale.ch provider is used to interact with the resources supported by cloudscale.ch. The provider needs to be configured with the proper credentials before it can be used.
 ---
 
 # cloudscale.ch Provider
