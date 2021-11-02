@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_volume"
 
 # cloudscale\_volume
 
-Provides a cloudscale.ch volume (block storage) resource. This can be used to create, modify, and delete volumes.
+Provides a cloudscale.ch volume (block storage) resource. This can be used to create, modify, import, and delete volumes.
 
 ## Example Usage
 
@@ -41,3 +41,12 @@ The following arguments are supported when creating/changing volumes:
 In addition to the arguments listed above, the following computed attributes are exported:
 
 * `href` - The cloudscale.ch API URL of the current resource.
+
+
+## Import
+
+Volumes can be imported using the volume's UUID:
+
+```
+terraform import cloudscale_volume.volume 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+```
