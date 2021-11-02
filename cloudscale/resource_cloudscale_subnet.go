@@ -18,6 +18,9 @@ func resourceCloudscaleSubnet() *schema.Resource {
 		Delete: resourceSubnetDelete,
 
 		Schema: getSubnetSchema(false),
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 	}
 }
 
