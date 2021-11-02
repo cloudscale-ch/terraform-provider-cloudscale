@@ -12,6 +12,34 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+type SchemaType int
+
+const (
+	RESOURCE SchemaType = iota
+	DATASOURCE
+)
+
+func (t SchemaType) isDatasource() bool {
+	switch t {
+	case RESOURCE:
+		return false
+	case DATASOURCE:
+		return true
+	}
+	panic("unknown SchemaType")
+}
+
+func (t SchemaType) isResource() bool {
+	switch t {
+	case RESOURCE:
+		return true
+	case DATASOURCE:
+		return false
+	}
+	panic("unknown SchemaType")
+}
+
+
 func resourceCloudscaleCustomImage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCustomImageCreate,
@@ -19,30 +47,30 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 		Update: resourceCustomImageUpdate,
 		Delete: resourceCustomImageDelete,
 
-		Schema: getCustomImageSchema(false),
+		Schema: getCustomImageSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }
 
-func getCustomImageSchema(isDataSource bool) map[string]*schema.Schema {
+func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDatasource(),
 		},
 		"user_data_handling": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDatasource(),
 		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDatasource(),
 			ForceNew: true,
 		},
 		"slug": {
@@ -66,7 +94,7 @@ func getCustomImageSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDatasource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
