@@ -39,3 +39,11 @@ In addition to the arguments listed above, the following computed attributes are
   * `access_key` - The S3 access key of the Objects User.
   * `secret_key` - The S3 secret key of the Objects User.
 
+
+## Import
+
+Objects Users can be imported using the Objects User's UUID:
+
+```
+terraform import cloudscale_objects_user.objects_user 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+```
