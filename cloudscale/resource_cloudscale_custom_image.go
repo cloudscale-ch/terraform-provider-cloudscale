@@ -156,6 +156,8 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *cloudscale.CustomImageImport, customImage *cloudscale.CustomImage) error {
 	fillResourceData(d, gatherCustomImageResourceData(customImage))
 
+	// Here we add data for resources, but not for data sources. This means
+	// that data sources will not have access to this content.
 	d.Set("import_href", customImageImport.HREF)
 	d.Set("import_uuid", customImageImport.UUID)
 	d.Set("import_status", customImageImport.Status)
