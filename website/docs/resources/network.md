@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_network"
 
 # cloudscale\_network
 
-Provides a cloudscale.ch private network resource. This can be used to create, modify, and delete networks.
+Provides a cloudscale.ch private network resource. This can be used to create, modify, import, and delete networks.
 
 ## Example Usage
 
@@ -55,3 +55,12 @@ In addition to the arguments listed above, the following computed attributes are
   * `cidr` - The CIDR notation of the subnet.
   * `href` - The cloudscale.ch API URL of this subnet.
   * `uuid` - The UUID of this subnet.
+
+
+## Import
+
+Networks can be imported using the network's UUID:
+
+```
+terraform import cloudscale_network.network 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+```
