@@ -100,16 +100,12 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Subnet ID %s", d.Id())
 
-	err = fillSubnetResourceData(d, subnet)
-	if err != nil {
-		return err
-	}
+	fillSubnetResourceData(d, subnet)
 	return nil
 }
 
-func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) error {
+func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) {
 	fillResourceData(d, gatherSubnetResourceData(subnet))
-	return nil
 }
 
 func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
@@ -133,10 +129,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving subnet")
 	}
 
-	err = fillSubnetResourceData(d, subnet)
-	if err != nil {
-		return err
-	}
+	fillSubnetResourceData(d, subnet)
 	return nil
 }
 

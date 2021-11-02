@@ -108,16 +108,12 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Network ID %s", d.Id())
 
-	err = fillNetworkResourceData(d, network)
-	if err != nil {
-		return err
-	}
+	fillNetworkResourceData(d, network)
 	return nil
 }
 
-func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) error {
+func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) {
 	fillResourceData(d, gatherNetworkResourceData(network))
-	return nil
 }
 
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
@@ -148,10 +144,7 @@ func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving network")
 	}
 
-	err = fillNetworkResourceData(d, network)
-	if err != nil {
-		return err
-	}
+	fillNetworkResourceData(d, network)
 	return nil
 }
 

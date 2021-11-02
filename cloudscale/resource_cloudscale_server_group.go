@@ -76,16 +76,12 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] ServerGroup ID %s", d.Id())
 
-	err = fillServerGroupResourceData(d, serverGroup)
-	if err != nil {
-		return err
-	}
+	fillServerGroupResourceData(d, serverGroup)
 	return nil
 }
 
-func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) error {
+func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) {
 	fillResourceData(d, gatherServerGroupResourceData(serverGroup))
-	return nil
 }
 
 func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) ResourceDataRaw {
@@ -106,10 +102,7 @@ func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving server group")
 	}
 
-	err = fillServerGroupResourceData(d, serverGroup)
-	if err != nil {
-		return err
-	}
+	fillServerGroupResourceData(d, serverGroup)
 	return nil
 }
 

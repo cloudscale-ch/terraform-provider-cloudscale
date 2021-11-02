@@ -146,14 +146,11 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error getting customImage: %z", err)
 	}
 
-	err = fillCustomImageResourceData(d, customImageImport, customImage)
-	if err != nil {
-		return err
-	}
+	fillCustomImageResourceData(d, customImageImport, customImage)
 	return nil
 }
 
-func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *cloudscale.CustomImageImport, customImage *cloudscale.CustomImage) error {
+func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *cloudscale.CustomImageImport, customImage *cloudscale.CustomImage) {
 	fillResourceData(d, gatherCustomImageResourceData(customImage))
 
 	// Here we add data for resources, but not for data sources. This means
@@ -161,8 +158,6 @@ func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *clou
 	d.Set("import_href", customImageImport.HREF)
 	d.Set("import_uuid", customImageImport.UUID)
 	d.Set("import_status", customImageImport.Status)
-
-	return nil
 }
 
 func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) ResourceDataRaw {
@@ -198,10 +193,7 @@ func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	customImageImport, err := client.CustomImageImports.Get(context.Background(), importUUID.(string))
 
-	err = fillCustomImageResourceData(d, customImageImport, customImage)
-	if err != nil {
-		return err
-	}
+	fillCustomImageResourceData(d, customImageImport, customImage)
 	return nil
 }
 

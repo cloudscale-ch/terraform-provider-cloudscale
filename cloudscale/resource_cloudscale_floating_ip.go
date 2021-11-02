@@ -110,16 +110,12 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(floatingIP.IP())
 
-	err = fillFloatingIPResourceData(d, floatingIP)
-	if err != nil {
-		return err
-	}
+	fillFloatingIPResourceData(d, floatingIP)
 	return nil
 }
 
-func fillFloatingIPResourceData(d *schema.ResourceData, floatingIP *cloudscale.FloatingIP) error {
+func fillFloatingIPResourceData(d *schema.ResourceData, floatingIP *cloudscale.FloatingIP) {
 	fillResourceData(d, gatherFloatingIPResourceData(floatingIP))
-	return nil
 }
 
 func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDataRaw {
@@ -152,10 +148,7 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving FloatingIP")
 	}
 
-	err = fillFloatingIPResourceData(d, floatingIP)
-	if err != nil {
-		return err
-	}
+	fillFloatingIPResourceData(d, floatingIP)
 
 	return nil
 
