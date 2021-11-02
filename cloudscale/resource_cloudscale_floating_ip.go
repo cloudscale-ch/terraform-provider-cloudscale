@@ -17,6 +17,9 @@ func resourceCloudscaleFloatingIP() *schema.Resource {
 		Delete: resourceFloatingIPDelete,
 
 		Schema: getFloatingIPSchema(false),
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 	}
 }
 

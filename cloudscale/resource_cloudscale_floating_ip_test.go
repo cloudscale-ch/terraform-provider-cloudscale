@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
@@ -169,6 +170,31 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
 					testAccCheckFloaingIPChanged(t, &beforeUpdate, &afterUpdate),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached(),
+			},
+			{
+				ResourceName:      "cloudscale_floating_ip.detached",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_floating_ip.detached",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
 			},
 		},
 	})
