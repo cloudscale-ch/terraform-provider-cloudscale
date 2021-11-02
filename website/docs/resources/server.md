@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_server"
 
 # cloudscale\_server
 
-Provides a cloudscale.ch server resource. This can be used to create, modify, and delete servers. 
+Provides a cloudscale.ch server resource. This can be used to create, modify, import, and delete servers. 
 
 ## Example Usage
 
@@ -90,3 +90,12 @@ In addition to the arguments listed above, the following computed attributes are
         * `version` - The IP version, either `4` or `6`.
         * `subnet_cidr` - The cidr of the subnet the address is part of.
         * `subnet_href` - The cloudscale.ch API URL of the subnet the address is part of.
+
+
+## Import
+
+Volumes can be imported using the server's UUID:
+
+```
+terraform import cloudscale_volume.server 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+```

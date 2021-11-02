@@ -195,15 +195,13 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 }
 
 func TestAccCloudscaleVolume_import_basic(t *testing.T) {
-	rInt := acctest.RandInt()
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: volumeConfig_detached(rInt),
+				Config: volumeConfig_detached(acctest.RandInt()),
 			},
 			{
 				ResourceName:      "cloudscale_volume.basic",
