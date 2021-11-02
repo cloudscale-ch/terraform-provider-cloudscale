@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_server_group"
 
 # cloudscale\_server\_group
 
-Provides a cloudscale.ch server group resource. This can be used to create, and delete server groups.
+Provides a cloudscale.ch server group resource. This can be used to create, import, and delete server groups.
 
 ## Example Usage
 
@@ -39,3 +39,12 @@ The following arguments are supported when creating server groups:
 In addition to the arguments listed above, the following computed attributes are exported:
 
 * `href` - The cloudscale.ch API URL of the current resource.
+
+
+## Import
+
+Server groups can be imported using the server group's UUID:
+
+```
+terraform import cloudscale_server_group.server 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+```

@@ -94,8 +94,8 @@ In addition to the arguments listed above, the following computed attributes are
 
 ## Import
 
-Volumes can be imported using the server's UUID:
+Servers can be imported using the server's UUID:
 
 ```
-terraform import cloudscale_volume.server 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+terraform import cloudscale_server.server 48151623-42aa-aaaa-bbbb-caffeeeeeeee
 ```
