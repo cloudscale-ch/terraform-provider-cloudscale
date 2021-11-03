@@ -8,7 +8,7 @@ import (
 )
 
 func dataSourceCloudscaleFloatingIP() *schema.Resource {
-	recordSchema := getFloatingIPSchema(true)
+	recordSchema := getFloatingIPSchema(DATA_SOURCE)
 
 	return &schema.Resource{
 		ReadContext: dataSourceResourceRead("Floating IPs", recordSchema, floatingIPsRead),

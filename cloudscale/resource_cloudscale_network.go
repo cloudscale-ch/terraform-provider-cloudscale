@@ -16,17 +16,17 @@ func resourceCloudscaleNetwork() *schema.Resource {
 		Update: resourceNetworkUpdate,
 		Delete: resourceNetworkDelete,
 
-		Schema: getNetworkSchema(false),
+		Schema: getNetworkSchema(RESOURCE),
 	}
 }
 
-func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
+func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
+			Computed: t.isDataSource(),
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -36,7 +36,7 @@ func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"mtu": {
 			Type:     schema.TypeInt,
-			Optional: !isDataSource,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"subnets": {
@@ -64,7 +64,7 @@ func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

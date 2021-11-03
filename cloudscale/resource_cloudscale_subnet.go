@@ -17,16 +17,16 @@ func resourceCloudscaleSubnet() *schema.Resource {
 		Update: resourceSubnetUpdate,
 		Delete: resourceSubnetDelete,
 
-		Schema: getSubnetSchema(false),
+		Schema: getSubnetSchema(RESOURCE),
 	}
 }
 
-func getSubnetSchema(isDataSource bool) map[string]*schema.Schema {
+func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"cidr": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"network_uuid": {
 			Type:     schema.TypeString,
@@ -43,12 +43,12 @@ func getSubnetSchema(isDataSource bool) map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
-			Optional: !isDataSource,
+			Optional: t.isResource(),
 		},
 		"network_name": {
 			Type:     schema.TypeString,
 			Computed: true,
-			Optional: isDataSource,
+			Optional: t.isDataSource(),
 		},
 		"href": {
 			Type:     schema.TypeString,
@@ -59,7 +59,7 @@ func getSubnetSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

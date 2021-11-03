@@ -15,22 +15,22 @@ func resourceCloudscaleServerGroup() *schema.Resource {
 		Read:   resourceServerGroupRead,
 		Delete: resourceServerGroupDelete,
 
-		Schema: getServerGroupSchema(false),
+		Schema: getServerGroupSchema(RESOURCE),
 	}
 }
 
-func getServerGroupSchema(isDataSource bool) map[string]*schema.Schema {
+func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 			ForceNew: true,
 		},
 		"type": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
 		"zone_slug": {
@@ -44,7 +44,7 @@ func getServerGroupSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
