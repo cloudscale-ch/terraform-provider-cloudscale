@@ -8,6 +8,7 @@
   - `cloudscale_floating_ip`
   - `cloudscale_custom_image`
   - `cloudscale_objects_user`
+* Add terraform import for all resources
 
 ## 3.1.0
 * Update to go 1.16 (#48) to support Apple silicon.
