@@ -23,6 +23,9 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceCloudscaleCustomImageImport,
+		},
 	}
 }
 
@@ -268,4 +271,9 @@ func newCustomImageImportRefreshFunc(uuid string, d *schema.ResourceData, attrib
 
 		return customImageImport, customImageImport.Status, nil
 	}
+}
+
+func resourceCloudscaleCustomImageImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	d.Set("import_uuid", d.Id())
+	return schema.ImportStatePassthroughContext(ctx, d, meta)
 }

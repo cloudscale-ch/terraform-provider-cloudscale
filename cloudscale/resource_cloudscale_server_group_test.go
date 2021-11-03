@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"regexp"
 	"testing"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
@@ -98,6 +99,31 @@ func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server_group.servergroup", "zone_slug", "lpg1"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleServerGroup_import_basic(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(acctest.RandInt()),
+			},
+			{
+				ResourceName:      "cloudscale_server_group.servergroup",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_server_group.servergroup",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
 			},
 		},
 	})

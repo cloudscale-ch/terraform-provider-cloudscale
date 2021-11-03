@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_custom_image"
 
 # cloudscale\_custom\_image
 
-Provides a cloudscale.ch custom image resource. This can be used to create, modify, and delete custom images.
+Provides a cloudscale.ch custom image resource. This can be used to create, modify, import, and delete custom images.
 
 ## Example Usage
 
@@ -66,3 +66,12 @@ In addition to the arguments listed above, the following computed attributes are
 * `import_href` - The cloudscale.ch API URL of the custom image import.
 * `import_uuid` - The UUID of the custom image import.
 * `import_status` - The status of the custom image import. Options include `started`, `in_progress`, `failed`, `success`.
+
+
+## Import
+
+Custom images can be imported using the custom image's UUID:
+
+```
+terraform import cloudscale_custom_image.custom_image 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+```

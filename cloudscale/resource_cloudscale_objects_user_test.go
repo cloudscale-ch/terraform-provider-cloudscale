@@ -3,11 +3,13 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -107,6 +109,31 @@ func TestAccCloudscaleObjectsUser_Rename(t *testing.T) {
 					resource.TestCheckResourceAttrSet("cloudscale_objects_user.basic", "keys.0.access_key"),
 					resource.TestCheckResourceAttrSet("cloudscale_objects_user.basic", "keys.0.secret_key"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleObjectsUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: objectsUserConfigMinimal(acctest.RandInt()),
+			},
+			{
+				ResourceName:      "cloudscale_objects_user.basic",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_objects_user.basic",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
 			},
 		},
 	})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -188,6 +189,31 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
 					assertVolumeAttached(&server2, &volume),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleVolume_import_basic(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: volumeConfig_detached(acctest.RandInt()),
+			},
+			{
+				ResourceName:      "cloudscale_volume.basic",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_volume.basic",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
 			},
 		},
 	})

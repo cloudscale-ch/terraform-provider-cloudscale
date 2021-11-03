@@ -54,3 +54,12 @@ In addition to the arguments listed above, the following computed attributes are
 * `href` - The cloudscale.ch API URL of the current resource.
 * `network` - The CIDR notation of the Floating IP address or network, e.g. `192.0.2.123/32`.
 * `next_hop` - The IP address of the server that your Floating IP is currently assigned to.
+
+
+## Import
+
+Floating IPs can be imported using the Floating IP's network IP:
+
+```
+terraform import cloudscale_floating_ip.floating_ip 192.0.2.24
+```

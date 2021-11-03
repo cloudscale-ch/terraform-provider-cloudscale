@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_subnet"
 
 # cloudscale\_subnet
 
-Provides a cloudscale.ch subnet resource. This can be used to create, modify, and delete subnets.
+Provides a cloudscale.ch subnet resource. This can be used to create, modify, import, and delete subnets.
 
 ## Example Usage
 
@@ -63,3 +63,12 @@ In addition to the arguments listed above, the following computed attributes are
 * `href` - The cloudscale.ch API URL of the current subnet.
 * `network_name` - The network name of the subnet.
 * `network_href` - The cloudscale.ch API URL of the subnet's network.
+
+
+## Import
+
+Subnets can be imported using the subnet's UUID:
+
+```
+terraform import cloudscale_subnet.subnet 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+```

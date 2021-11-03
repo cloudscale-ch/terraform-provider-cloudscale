@@ -340,6 +340,31 @@ func TestAccCloudscaleNetwork_IdInput(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkconfigWithZone(acctest.RandInt()),
+			},
+			{
+				ResourceName:      "cloudscale_network.basic",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_network.basic",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleNetworkSubnetCount(n string, network *cloudscale.Network, expectedCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if actualSubnetCount := len(network.Subnets); actualSubnetCount != expectedCount {

@@ -15,6 +15,9 @@ func resourceCloudscaleServerGroup() *schema.Resource {
 		Read:   resourceServerGroupRead,
 		Delete: resourceServerGroupDelete,
 
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: getServerGroupSchema(RESOURCE),
 	}
 }

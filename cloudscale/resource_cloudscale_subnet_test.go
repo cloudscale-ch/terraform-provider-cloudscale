@@ -3,9 +3,11 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"net/http"
+	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -28,7 +30,7 @@ func TestAccCloudscaleSubnet_Minimal(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigMinimal(rInt, false) + "\n" + subnetconfigMinimal(),
+				Config: subnetconfigMinimal(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
@@ -90,7 +92,7 @@ func TestAccCloudscaleSubnet_Update(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigMinimal(rInt, false) + "\n" + subnetconfigMinimal(),
+				Config: subnetconfigMinimal(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
@@ -140,7 +142,7 @@ func TestAccCloudscaleSubnet_ServerWithPublicAndPrivate(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigMinimal(rInt1, false) + "\n" + subnetconfigMinimal() + "\n" + serverConfigWithPublicAndLayerThree(rInt2, ""),
+				Config: subnetconfigMinimal(rInt1) + "\n" + serverConfigWithPublicAndLayerThree(rInt2, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
@@ -157,7 +159,7 @@ func TestAccCloudscaleSubnet_ServerWithPublicAndPrivate(t *testing.T) {
 				),
 			},
 			{
-				Config: networkconfigMinimal(rInt1, false) + "\n" + subnetconfigMinimal() + "\n" + serverConfigWithPublicAndLayerThree(rInt2, "10.11.12.13"),
+				Config: subnetconfigMinimal(rInt1) + "\n" + serverConfigWithPublicAndLayerThree(rInt2, "10.11.12.13"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
@@ -296,6 +298,31 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:	subnetconfigMinimal(acctest.RandInt()),
+			},
+			{
+				ResourceName:      "cloudscale_subnet.basic",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_subnet.basic",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleSubnetOnNetwork(subnet *cloudscale.Subnet, network *cloudscale.Network) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -377,8 +404,8 @@ func testAccCheckCloudscaleSubnetDestroy(s *terraform.State) error {
 	return nil
 }
 
-func subnetconfigMinimal() string {
-	return fmt.Sprintf(`
+func subnetconfigMinimal(rInt int) string {
+	return networkconfigMinimal(rInt, false) + fmt.Sprintf(`
 resource "cloudscale_subnet" "basic" {
   cidr            = "10.11.12.0/24"
   network_uuid    = cloudscale_network.basic.id
@@ -439,7 +466,7 @@ resource "cloudscale_server" "basic" {
 func subnetConfig_baseline(count int, rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "multi-net" {
-  count = 2
+  count = %d
   name = "terraform-%d-${count.index}"
   auto_create_ipv4_subnet = false
 }
@@ -448,7 +475,7 @@ resource "cloudscale_subnet" "multi-subnet" {
   count = 2
   cidr = "192.168.${count.index}.0/24"
   network_uuid = cloudscale_network.multi-net[count.index].id
-}`, rInt)
+}`, count, rInt)
 }
 
 func multipleSubnetConfig(rInt1 int, rInt2 int, networkIndex int, subnetIndex int) string {

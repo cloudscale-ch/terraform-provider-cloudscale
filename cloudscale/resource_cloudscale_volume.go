@@ -16,6 +16,9 @@ func resourceCloudscaleVolume() *schema.Resource {
 		Update: resourceVolumeUpdate,
 		Delete: resourceVolumeDelete,
 
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: getVolumeSchema(RESOURCE),
 	}
 }

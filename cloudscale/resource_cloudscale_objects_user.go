@@ -17,6 +17,9 @@ func resourceCloudscaleObjectsUser() *schema.Resource {
 		Update: resourceObjectsUserUpdate,
 		Delete: resourceObjectsUserDelete,
 
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: getObjectsUserSchema(RESOURCE),
 	}
 }

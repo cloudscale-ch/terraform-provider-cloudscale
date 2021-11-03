@@ -3,15 +3,17 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"regexp"
+	"strings"
+	"testing"
+
 	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"io"
-	"log"
-	"net/http"
-	"strings"
-	"testing"
 )
 
 var smallImageDownloadURL string = "https://at-images.objects.lpg.cloudscale.ch/alpine"
@@ -202,6 +204,32 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.debian-server", "ssh_fingerprints.#", "6"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleCustomImage_import_basic(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: customImageConfig_config("basic", smallImageDownloadURL, acctest.RandInt()),
+			},
+			{
+				ResourceName:      "cloudscale_custom_image.basic",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{"import_source_format", "import_url"},
+			},
+			{
+				ResourceName:      "cloudscale_custom_image.basic",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
 			},
 		},
 	})

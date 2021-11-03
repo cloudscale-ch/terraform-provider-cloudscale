@@ -16,6 +16,9 @@ func resourceCloudscaleNetwork() *schema.Resource {
 		Update: resourceNetworkUpdate,
 		Delete: resourceNetworkDelete,
 
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: getNetworkSchema(RESOURCE),
 	}
 }
