@@ -107,7 +107,7 @@ func TestAccCloudscaleCustomImage_DS_NotExisting(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckCloudscaleCustomImageConfig_name("terraform-unknown"),
-				ExpectError: regexp.MustCompile(`Found zero Custom Images`),
+				ExpectError: regexp.MustCompile(`Found zero custom images`),
 			},
 		},
 	})
