@@ -70,7 +70,7 @@ In addition to the arguments listed above, the following computed attributes are
 
 ## Import
 
-Custom Images can be imported using the Custom Image's UUID:
+Custom images can be imported using the custom image's UUID:
 
 ```
 terraform import cloudscale_custom_image.custom_image 48151623-42aa-aaaa-bbbb-caffeeeeeeee

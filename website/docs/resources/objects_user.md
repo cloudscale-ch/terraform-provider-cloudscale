@@ -42,8 +42,8 @@ In addition to the arguments listed above, the following computed attributes are
 
 ## Import
 
-Objects Users can be imported using the Objects User's UUID:
+Objects Users can be imported using the Objects User's ID:
 
 ```
-terraform import cloudscale_objects_user.objects_user 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+terraform import cloudscale_objects_user.objects_user 192f95401a23ef307d42e4ba0fdc475e9630db45132a5b499d1dd2425c28a0ca
 ```

@@ -58,8 +58,8 @@ In addition to the arguments listed above, the following computed attributes are
 
 ## Import
 
-Floating IPs can be imported using the Floating IP's UUID:
+Floating IPs can be imported using the Floating IP's network IP:
 
 ```
-terraform import cloudscale_floating_ip.floating_ip 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+terraform import cloudscale_floating_ip.floating_ip 192.0.2.24
 ```
