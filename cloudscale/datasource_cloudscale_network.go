@@ -8,7 +8,7 @@ import (
 )
 
 func dataSourceCloudscaleNetwork() *schema.Resource {
-	recordSchema := getNetworkSchema(true)
+	recordSchema := getNetworkSchema(DATASOURCE)
 
 	return &schema.Resource{
 		ReadContext: dataSourceResourceRead("networks", recordSchema, networksRead),

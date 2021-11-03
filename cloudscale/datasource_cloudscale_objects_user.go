@@ -8,7 +8,7 @@ import (
 )
 
 func dataSourceCloudscaleObjectsUser() *schema.Resource {
-	recordSchema := getObjectsUserSchema(true)
+	recordSchema := getObjectsUserSchema(DATASOURCE)
 
 	return &schema.Resource{
 		ReadContext: dataSourceResourceRead("Objects Users", recordSchema, objectsUsersRead),

@@ -8,7 +8,7 @@ import (
 )
 
 func dataSourceCloudscaleVolume() *schema.Resource {
-	recordSchema := getVolumeSchema(true)
+	recordSchema := getVolumeSchema(DATASOURCE)
 
 	return &schema.Resource{
 		ReadContext: dataSourceResourceRead("volumes", recordSchema, volumesRead),

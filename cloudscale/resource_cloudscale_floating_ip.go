@@ -16,22 +16,22 @@ func resourceCloudscaleFloatingIP() *schema.Resource {
 		Update: resourceFloatingIPUpdate,
 		Delete: resourceFloatingIPDelete,
 
-		Schema: getFloatingIPSchema(false),
+		Schema: getFloatingIPSchema(RESOURCE),
 	}
 }
 
-func getFloatingIPSchema(isDataSource bool) map[string]*schema.Schema {
+func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"ip_version": {
 			Type:     schema.TypeInt,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDatasource(),
 			ForceNew: true,
 		},
 		"server": {
 			Type:     schema.TypeString,
-			Optional: !isDataSource,
-			Computed: isDataSource,
+			Optional: t.isResource(),
+			Computed: t.isDatasource(),
 		},
 		"region_slug": {
 			Type:     schema.TypeString,
@@ -54,12 +54,12 @@ func getFloatingIPSchema(isDataSource bool) map[string]*schema.Schema {
 		"prefix_length": {
 			Type:     schema.TypeInt,
 			ForceNew: true,
-			Optional: !isDataSource,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"network": {
 			Type:     schema.TypeString,
-			Optional: isDataSource,
+			Optional: t.isDatasource(),
 			Computed: true,
 		},
 		"next_hop": {
