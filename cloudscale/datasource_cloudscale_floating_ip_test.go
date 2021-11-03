@@ -108,7 +108,7 @@ func TestAccCloudscaleFloatingIP_DS_Basic(t *testing.T) {
 				Config: config + testAccCheckCloudscaleFloatingIPConfig_id(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.floating_ip.foo", "reverse_ptr", reverse_ptr1),
+						"data.cloudscale_floating_ip.foo", "reverse_ptr", reverse_ptr1),
 				),
 			},
 			{
