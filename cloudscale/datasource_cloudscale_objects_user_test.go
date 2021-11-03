@@ -53,6 +53,21 @@ func TestAccCloudscaleObjectsUser_DS_Basic(t *testing.T) {
 				),
 			},
 			{
+
+				Config: config + testAccCheckCloudscaleObjectsUserConfig_id(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic.0", "display_name", name1),
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_objects_user.foo", "display_name", name1),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_objects_user.basic.0", "id", &objectsUser.ID),
+					resource.TestCheckResourceAttrPtr(
+						"data.cloudscale_objects_user.foo", "id", &objectsUser.ID),
+				),
+			},
+			{
+
 				Config: config + testAccCheckCloudscaleObjectsUserConfig_user_id(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
@@ -92,6 +107,14 @@ data "cloudscale_objects_user" "foo" {
   display_name = "%s"
 }
 `, display_name)
+}
+
+func testAccCheckCloudscaleObjectsUserConfig_id() string {
+	return fmt.Sprintf(`
+data "cloudscale_objects_user" "foo" {
+  id = "${cloudscale_objects_user.basic.0.id}"
+}
+`)
 }
 
 func testAccCheckCloudscaleObjectsUserConfig_user_id() string {
