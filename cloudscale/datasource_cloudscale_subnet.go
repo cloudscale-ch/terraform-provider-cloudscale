@@ -8,7 +8,7 @@ import (
 )
 
 func dataSourceCloudscaleSubnet() *schema.Resource {
-	recordSchema := getSubnetSchema(DATASOURCE)
+	recordSchema := getSubnetSchema(DATA_SOURCE)
 
 	return &schema.Resource{
 		ReadContext: dataSourceResourceRead("subnets", recordSchema, subnetsRead),

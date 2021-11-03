@@ -25,12 +25,12 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 		"name": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 		},
 		"size_gb": {
 			Type:     schema.TypeInt,
 			Required: t.isResource(),
-			Computed: t.isDatasource(),
+			Computed: t.isDataSource(),
 		},
 		"type": {
 			Type:     schema.TypeString,
@@ -47,14 +47,14 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Optional: t.isResource(),
-			Computed: t.isDatasource(),
+			Computed: t.isDataSource(),
 		},
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
-	if t.isDatasource() {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

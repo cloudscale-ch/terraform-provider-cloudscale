@@ -26,7 +26,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 		"cidr": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 		},
 		"network_uuid": {
 			Type:     schema.TypeString,
@@ -48,7 +48,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 		"network_name": {
 			Type:     schema.TypeString,
 			Computed: true,
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 		},
 		"href": {
 			Type:     schema.TypeString,
@@ -59,7 +59,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if t.isDatasource() {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

@@ -24,13 +24,13 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 		"name": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 			ForceNew: true,
 		},
 		"type": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Computed: t.isDatasource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
 		"zone_slug": {
@@ -44,7 +44,7 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if t.isDatasource() {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

@@ -35,7 +35,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 		"name": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -46,7 +46,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 		"flavor_slug": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Computed: t.isDatasource(),
+			Computed: t.isDataSource(),
 		},
 		"image_slug": {
 			Type:          schema.TypeString,
@@ -204,7 +204,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if t.isDatasource() {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

@@ -8,7 +8,7 @@ import (
 )
 
 func dataSourceCloudscaleCustomImage() *schema.Resource {
-	recordSchema := getCustomImageSchema(DATASOURCE)
+	recordSchema := getCustomImageSchema(DATA_SOURCE)
 
 	return &schema.Resource{
 		ReadContext: dataSourceResourceRead("Custom Images", recordSchema, customImagesRead),

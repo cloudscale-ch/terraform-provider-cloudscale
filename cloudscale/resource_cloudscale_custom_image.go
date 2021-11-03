@@ -31,18 +31,18 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 		"name": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 		},
 		"user_data_handling": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Computed: t.isDatasource(),
+			Computed: t.isDataSource(),
 		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Required: t.isResource(),
-			Computed: t.isDatasource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
 		"slug": {
@@ -66,7 +66,7 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if t.isDatasource() {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

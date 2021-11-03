@@ -25,8 +25,8 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 		"name": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
-			Computed: t.isDatasource(),
+			Optional: t.isDataSource(),
+			Computed: t.isDataSource(),
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -64,7 +64,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if t.isDatasource() {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

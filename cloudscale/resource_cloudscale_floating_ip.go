@@ -25,13 +25,13 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 		"ip_version": {
 			Type:     schema.TypeInt,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 			ForceNew: true,
 		},
 		"server": {
 			Type:     schema.TypeString,
 			Optional: t.isResource(),
-			Computed: t.isDatasource(),
+			Computed: t.isDataSource(),
 		},
 		"region_slug": {
 			Type:     schema.TypeString,
@@ -59,7 +59,7 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"network": {
 			Type:     schema.TypeString,
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 			Computed: true,
 		},
 		"next_hop": {

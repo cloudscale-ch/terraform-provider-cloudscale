@@ -26,7 +26,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 		"display_name": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 		},
 		"href": {
 			Type:     schema.TypeString,
@@ -34,7 +34,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"user_id": {
 			Type:     schema.TypeString,
-			Optional: t.isDatasource(),
+			Optional: t.isDataSource(),
 			Computed: true,
 		},
 		"keys": {

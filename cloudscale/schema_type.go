@@ -4,14 +4,14 @@ type SchemaType int
 
 const (
 	RESOURCE SchemaType = iota
-	DATASOURCE
+	DATA_SOURCE
 )
 
-func (t SchemaType) isDatasource() bool {
+func (t SchemaType) isDataSource() bool {
 	switch t {
 	case RESOURCE:
 		return false
-	case DATASOURCE:
+	case DATA_SOURCE:
 		return true
 	}
 	panic("unknown SchemaType")
@@ -21,7 +21,7 @@ func (t SchemaType) isResource() bool {
 	switch t {
 	case RESOURCE:
 		return true
-	case DATASOURCE:
+	case DATA_SOURCE:
 		return false
 	}
 	panic("unknown SchemaType")
