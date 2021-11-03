@@ -19,7 +19,7 @@ func resourceCloudscaleServer() *schema.Resource {
 		Update: resourceServerUpdate,
 		Delete: resourceServerDelete,
 
-		Schema: getServerSchema(false),
+		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -29,16 +29,16 @@ func resourceCloudscaleServer() *schema.Resource {
 	}
 }
 
-func getServerSchema(isDataSource bool) map[string]*schema.Schema {
+func getServerSchema(t SchemaType) map[string]*schema.Schema {
 	imageConflictsWith := []string{}
-	if !isDataSource {
+	if t.isResource() {
 		imageConflictsWith = append(imageConflictsWith, "image_uuid")
 	}
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -48,12 +48,12 @@ func getServerSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"flavor_slug": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 		},
 		"image_slug": {
 			Type:          schema.TypeString,
-			Optional:      !isDataSource,
+			Optional:      t.isResource(),
 			ForceNew:      true,
 			ConflictsWith: imageConflictsWith,
 			Computed:      true,
@@ -168,7 +168,7 @@ func getServerSchema(isDataSource bool) map[string]*schema.Schema {
 					},
 				},
 			},
-			Optional: !isDataSource,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"ssh_fingerprints": {
@@ -183,7 +183,7 @@ func getServerSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: !isDataSource,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"server_groups": {
@@ -207,7 +207,7 @@ func getServerSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

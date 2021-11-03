@@ -8,7 +8,7 @@ import (
 )
 
 func dataSourceCloudscaleServer() *schema.Resource {
-	recordSchema := getServerSchema(true)
+	recordSchema := getServerSchema(DATA_SOURCE)
 
 	return &schema.Resource{
 		ReadContext: dataSourceResourceRead("servers", recordSchema, serversRead),

@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_custom_image"
 
 # cloudscale\_custom\_image
 
-Ger information on a cloudscale.ch custom image.
+Get information on a cloudscale.ch custom image.
 
 ## Example Usage
 

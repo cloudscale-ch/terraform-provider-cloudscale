@@ -76,7 +76,7 @@ func TestAccCloudscaleCustomImage_DS_Basic(t *testing.T) {
 			},
 			{
 				Config:      config + testAccCheckCloudscaleCustomImageConfig_name_and_slug(name1, "terra-1"),
-				ExpectError: regexp.MustCompile(`Found zero Custom Images`),
+				ExpectError: regexp.MustCompile(`Found zero custom images`),
 			},
 			{
 
@@ -94,7 +94,7 @@ func TestAccCloudscaleCustomImage_DS_Basic(t *testing.T) {
 			},
 			{
 				Config:      config + "\n" + `data "cloudscale_custom_image" "foo" {}`,
-				ExpectError: regexp.MustCompile(`Found \d+ Custom Images, expected one`),
+				ExpectError: regexp.MustCompile(`Found \d+ custom images, expected one`),
 			},
 		},
 	})
@@ -107,7 +107,7 @@ func TestAccCloudscaleCustomImage_DS_NotExisting(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckCloudscaleCustomImageConfig_name("terraform-unknown"),
-				ExpectError: regexp.MustCompile(`Found zero Custom Images`),
+				ExpectError: regexp.MustCompile(`Found zero custom images`),
 			},
 		},
 	})

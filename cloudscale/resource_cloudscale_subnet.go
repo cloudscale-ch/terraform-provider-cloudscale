@@ -17,19 +17,19 @@ func resourceCloudscaleSubnet() *schema.Resource {
 		Update: resourceSubnetUpdate,
 		Delete: resourceSubnetDelete,
 
-		Schema: getSubnetSchema(false),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Schema: getSubnetSchema(RESOURCE),
 	}
 }
 
-func getSubnetSchema(isDataSource bool) map[string]*schema.Schema {
+func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"cidr": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"network_uuid": {
 			Type:     schema.TypeString,
@@ -46,12 +46,12 @@ func getSubnetSchema(isDataSource bool) map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 			Computed: true,
-			Optional: !isDataSource,
+			Optional: t.isResource(),
 		},
 		"network_name": {
 			Type:     schema.TypeString,
 			Computed: true,
-			Optional: isDataSource,
+			Optional: t.isDataSource(),
 		},
 		"href": {
 			Type:     schema.TypeString,
@@ -62,7 +62,7 @@ func getSubnetSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
@@ -103,16 +103,12 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Subnet ID %s", d.Id())
 
-	err = fillSubnetResourceData(d, subnet)
-	if err != nil {
-		return err
-	}
+	fillSubnetResourceData(d, subnet)
 	return nil
 }
 
-func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) error {
+func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) {
 	fillResourceData(d, gatherSubnetResourceData(subnet))
-	return nil
 }
 
 func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
@@ -136,10 +132,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving subnet")
 	}
 
-	err = fillSubnetResourceData(d, subnet)
-	if err != nil {
-		return err
-	}
+	fillSubnetResourceData(d, subnet)
 	return nil
 }
 

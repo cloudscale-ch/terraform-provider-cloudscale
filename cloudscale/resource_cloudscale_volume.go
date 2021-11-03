@@ -16,24 +16,24 @@ func resourceCloudscaleVolume() *schema.Resource {
 		Update: resourceVolumeUpdate,
 		Delete: resourceVolumeDelete,
 
-		Schema: getVolumeSchema(false),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Schema: getVolumeSchema(RESOURCE),
 	}
 }
 
-func getVolumeSchema(isDataSource bool) map[string]*schema.Schema {
+func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"size_gb": {
 			Type:     schema.TypeInt,
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 		},
 		"type": {
 			Type:     schema.TypeString,
@@ -49,15 +49,15 @@ func getVolumeSchema(isDataSource bool) map[string]*schema.Schema {
 		"server_uuids": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: !isDataSource,
-			Computed: isDataSource,
+			Optional: t.isResource(),
+			Computed: t.isDataSource(),
 		},
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

@@ -16,20 +16,20 @@ func resourceCloudscaleNetwork() *schema.Resource {
 		Update: resourceNetworkUpdate,
 		Delete: resourceNetworkDelete,
 
-		Schema: getNetworkSchema(false),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Schema: getNetworkSchema(RESOURCE),
 	}
 }
 
-func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
+func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
+			Computed: t.isDataSource(),
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -39,7 +39,7 @@ func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"mtu": {
 			Type:     schema.TypeInt,
-			Optional: !isDataSource,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"subnets": {
@@ -67,7 +67,7 @@ func getNetworkSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
@@ -111,16 +111,12 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Network ID %s", d.Id())
 
-	err = fillNetworkResourceData(d, network)
-	if err != nil {
-		return err
-	}
+	fillNetworkResourceData(d, network)
 	return nil
 }
 
-func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) error {
+func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) {
 	fillResourceData(d, gatherNetworkResourceData(network))
-	return nil
 }
 
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
@@ -151,10 +147,7 @@ func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving network")
 	}
 
-	err = fillNetworkResourceData(d, network)
-	if err != nil {
-		return err
-	}
+	fillNetworkResourceData(d, network)
 	return nil
 }
 

@@ -15,25 +15,25 @@ func resourceCloudscaleServerGroup() *schema.Resource {
 		Read:   resourceServerGroupRead,
 		Delete: resourceServerGroupDelete,
 
-		Schema: getServerGroupSchema(false),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Schema: getServerGroupSchema(RESOURCE),
 	}
 }
 
-func getServerGroupSchema(isDataSource bool) map[string]*schema.Schema {
+func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 			ForceNew: true,
 		},
 		"type": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
 		"zone_slug": {
@@ -47,7 +47,7 @@ func getServerGroupSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
@@ -79,16 +79,12 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] ServerGroup ID %s", d.Id())
 
-	err = fillServerGroupResourceData(d, serverGroup)
-	if err != nil {
-		return err
-	}
+	fillServerGroupResourceData(d, serverGroup)
 	return nil
 }
 
-func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) error {
+func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) {
 	fillResourceData(d, gatherServerGroupResourceData(serverGroup))
-	return nil
 }
 
 func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) ResourceDataRaw {
@@ -109,10 +105,7 @@ func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving server group")
 	}
 
-	err = fillServerGroupResourceData(d, serverGroup)
-	if err != nil {
-		return err
-	}
+	fillServerGroupResourceData(d, serverGroup)
 	return nil
 }
 

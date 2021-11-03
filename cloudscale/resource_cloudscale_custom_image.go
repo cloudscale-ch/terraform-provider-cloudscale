@@ -19,7 +19,7 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 		Update: resourceCustomImageUpdate,
 		Delete: resourceCustomImageDelete,
 
-		Schema: getCustomImageSchema(false),
+		Schema: getCustomImageSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
@@ -29,23 +29,23 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 	}
 }
 
-func getCustomImageSchema(isDataSource bool) map[string]*schema.Schema {
+func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"user_data_handling": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Required: !isDataSource,
-			Computed: isDataSource,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
 		"slug": {
@@ -69,7 +69,7 @@ func getCustomImageSchema(isDataSource bool) map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-	if isDataSource {
+	if t.isDataSource() {
 		m["id"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
@@ -149,21 +149,18 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error getting customImage: %z", err)
 	}
 
-	err = fillCustomImageResourceData(d, customImageImport, customImage)
-	if err != nil {
-		return err
-	}
+	fillCustomImageResourceData(d, customImageImport, customImage)
 	return nil
 }
 
-func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *cloudscale.CustomImageImport, customImage *cloudscale.CustomImage) error {
+func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *cloudscale.CustomImageImport, customImage *cloudscale.CustomImage) {
 	fillResourceData(d, gatherCustomImageResourceData(customImage))
 
+	// Here we add data for resources, but not for data sources. This means
+	// that data sources will not have access to this content.
 	d.Set("import_href", customImageImport.HREF)
 	d.Set("import_uuid", customImageImport.UUID)
 	d.Set("import_status", customImageImport.Status)
-
-	return nil
 }
 
 func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) ResourceDataRaw {
@@ -199,10 +196,7 @@ func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	customImageImport, err := client.CustomImageImports.Get(context.Background(), importUUID.(string))
 
-	err = fillCustomImageResourceData(d, customImageImport, customImage)
-	if err != nil {
-		return err
-	}
+	fillCustomImageResourceData(d, customImageImport, customImage)
 	return nil
 }
 

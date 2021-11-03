@@ -18,7 +18,8 @@ data "cloudscale_server" "web-worker01" {
 
 The following arguments can be used to look up a server:
 
-* `name` - (Optional) Name of the server
+* `id` - (Optional) The UUID of a server.
+* `name` - (Optional) Name of the server.
 * `zone_slug` - (Optional) The slug of the zone in which the server exists. Options include `lpg1` and `rma1`.
 
 ## Attributes Reference

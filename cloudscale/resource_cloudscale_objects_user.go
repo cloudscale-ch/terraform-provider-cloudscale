@@ -17,19 +17,19 @@ func resourceCloudscaleObjectsUser() *schema.Resource {
 		Update: resourceObjectsUserUpdate,
 		Delete: resourceObjectsUserDelete,
 
-		Schema: getObjectsUserSchema(false),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Schema: getObjectsUserSchema(RESOURCE),
 	}
 }
 
-func getObjectsUserSchema(isDataSource bool) map[string]*schema.Schema {
+func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"display_name": {
 			Type:     schema.TypeString,
-			Required: !isDataSource,
-			Optional: isDataSource,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"href": {
 			Type:     schema.TypeString,
@@ -37,7 +37,7 @@ func getObjectsUserSchema(isDataSource bool) map[string]*schema.Schema {
 		},
 		"user_id": {
 			Type:     schema.TypeString,
-			Optional: isDataSource,
+			Optional: t.isDataSource(),
 			Computed: true,
 		},
 		"keys": {
@@ -56,6 +56,12 @@ func getObjectsUserSchema(isDataSource bool) map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
+	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
 	}
 	return m
 }
