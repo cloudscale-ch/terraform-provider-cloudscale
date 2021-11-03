@@ -23,8 +23,9 @@ data "cloudscale_objects_user" "basic" {
 
 The following arguments can be used to look up an Objects User:
 
+* `id` - (Optional) The unique identifier of the Objects User.
 * `display_name` - (Optional) The display name of the Objects User.
-* `user_id` - (Optional) The unique identifier of the Objects User.
+* `user_id` - (Optional) The unique identifier of the Objects User. (Exactly the same as `id`)
 
 ## Attributes Reference
 
