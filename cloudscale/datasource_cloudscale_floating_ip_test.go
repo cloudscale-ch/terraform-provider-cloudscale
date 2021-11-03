@@ -104,6 +104,14 @@ func TestAccCloudscaleFloatingIP_DS_Basic(t *testing.T) {
 				),
 			},
 			{
+
+				Config: config + testAccCheckCloudscaleFloatingIPConfig_id(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.floating_ip.foo", "reverse_ptr", reverse_ptr1),
+				),
+			},
+			{
 				Config:      config + "\n" + `data "cloudscale_floating_ip" "foo" {}`,
 				ExpectError: regexp.MustCompile(`Found \d+ Floating IPs, expected one`),
 			},
@@ -214,4 +222,12 @@ data "cloudscale_floating_ip" "foo" {
   reverse_ptr = "%s"
 }
 `, ip_version, type_, reverse_ptr)
+}
+
+func testAccCheckCloudscaleFloatingIPConfig_id() string {
+	return fmt.Sprintf(`
+data "cloudscale_floating_ip" "foo" {
+  id = "${cloudscale_floating_ip.basic.0.id}"
+}
+`)
 }
