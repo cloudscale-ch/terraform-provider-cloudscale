@@ -9,49 +9,48 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleServerGroup() *schema.Resource {
+func resourceCloudscaleServerGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceServerGroupCreate,
 		Read:   resourceServerGroupRead,
 		Delete: resourceServerGroupDelete,
 
-		Schema: getServerGroupSchema(),
+		Schema: getServerGroupSchema(RESOURCE),
 	}
 }
 
-func getServerGroupSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-
-		// Required attributes
-
+func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 			ForceNew: true,
 		},
-
 		"type": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
-
-		// Optional attributes
-
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	}
+	return m
 }
 
 func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
@@ -77,20 +76,22 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] ServerGroup ID %s", d.Id())
 
-	err = fillServerGroupResourceData(d, serverGroup)
-	if err != nil {
-		return err
-	}
+	fillServerGroupResourceData(d, serverGroup)
 	return nil
 }
 
-func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) error {
-	d.Set("href", serverGroup.HREF)
-	d.Set("name", serverGroup.Name)
-	d.Set("type", serverGroup.Type)
-	d.Set("zone_slug", serverGroup.Zone.Slug)
+func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) {
+	fillResourceData(d, gatherServerGroupResourceData(serverGroup))
+}
 
-	return nil
+func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = serverGroup.UUID
+	m["href"] = serverGroup.HREF
+	m["name"] = serverGroup.Name
+	m["type"] = serverGroup.Type
+	m["zone_slug"] = serverGroup.Zone.Slug
+	return m
 }
 
 func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
@@ -101,10 +102,7 @@ func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving server group")
 	}
 
-	err = fillServerGroupResourceData(d, serverGroup)
-	if err != nil {
-		return err
-	}
+	fillServerGroupResourceData(d, serverGroup)
 	return nil
 }
 

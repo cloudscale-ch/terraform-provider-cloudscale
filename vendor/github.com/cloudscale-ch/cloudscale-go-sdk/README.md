@@ -1,5 +1,6 @@
 # cloudscale.ch Go API SDK
-[![Build Status](https://travis-ci.org/cloudscale-ch/cloudscale-go-sdk.svg?branch=master)](https://travis-ci.org/cloudscale-ch/cloudscale-go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/cloudscale-ch/cloudscale-go-sdk.svg)](https://pkg.go.dev/github.com/cloudscale-ch/cloudscale-go-sdk)
+[![Tests](https://github.com/cloudscale-ch/cloudscale-go-sdk/actions/workflows/test.yaml/badge.svg)](https://github.com/cloudscale-ch/cloudscale-go-sdk/actions/workflows/test.yaml)
 
 If you want to manage your cloudscale.ch server resources with Go, you are at
 the right place.

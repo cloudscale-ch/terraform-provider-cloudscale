@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_server"
-sidebar_current: "docs-cloudscale-resource-server"
-description: |-
-  Provides a cloudscale.ch server resource. This can be used to create, modify, and delete servers.
 ---
 
 # cloudscale\_server

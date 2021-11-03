@@ -9,34 +9,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleFloatingIP() *schema.Resource {
+func resourceCloudscaleFloatingIP() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceFloatingIPCreate,
 		Read:   resourceFloatingIPRead,
 		Update: resourceFloatingIPUpdate,
 		Delete: resourceFloatingIPDelete,
 
-		Schema: getFloatingIPSchema(),
+		Schema: getFloatingIPSchema(RESOURCE),
 	}
 }
 
-func getFloatingIPSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-
-		// Required attributes
-
+func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"ip_version": {
 			Type:     schema.TypeInt,
-			Required: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 			ForceNew: true,
 		},
 		"server": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
+			Computed: t.isDataSource(),
 		},
-
-		// Optional attributes
-
 		"region_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -58,13 +54,12 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 		"prefix_length": {
 			Type:     schema.TypeInt,
 			ForceNew: true,
-			Optional: true,
+			Optional: t.isResource(),
+			Computed: true,
 		},
-
-		// Computed attributes
-
 		"network": {
 			Type:     schema.TypeString,
+			Optional: t.isDataSource(),
 			Computed: true,
 		},
 		"next_hop": {
@@ -76,6 +71,13 @@ func getFloatingIPSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	}
+	return m
 }
 
 func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
@@ -114,8 +116,34 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(floatingIP.IP())
 
-	return resourceFloatingIPRead(d, meta)
+	fillFloatingIPResourceData(d, floatingIP)
+	return nil
 }
+
+func fillFloatingIPResourceData(d *schema.ResourceData, floatingIP *cloudscale.FloatingIP) {
+	fillResourceData(d, gatherFloatingIPResourceData(floatingIP))
+}
+
+func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = floatingIP.IP()
+	m["href"] = floatingIP.HREF
+	m["ip_version"] = floatingIP.IPVersion
+	m["prefix_length"] = floatingIP.PrefixLength()
+	m["network"] = floatingIP.Network
+	m["next_hop"] = floatingIP.NextHop
+	m["reverse_ptr"] = floatingIP.ReversePointer
+	m["type"] = floatingIP.Type
+	if floatingIP.Server != nil {
+		m["server"] = floatingIP.Server.UUID
+	}
+	if floatingIP.Region != nil {
+		m["region_slug"] = floatingIP.Region.Slug
+	}
+
+	return m
+}
+
 func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
@@ -126,17 +154,7 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving FloatingIP")
 	}
 
-	d.Set("href", floatingIP.HREF)
-	d.Set("network", floatingIP.Network)
-	d.Set("next_hop", floatingIP.NextHop)
-	d.Set("reverse_ptr", floatingIP.ReversePointer)
-	d.Set("type", floatingIP.Type)
-	if floatingIP.Server != nil {
-		d.Set("server", floatingIP.Server.UUID)
-	}
-	if floatingIP.Region != nil {
-		d.Set("region_slug", floatingIP.Region.Slug)
-	}
+	fillFloatingIPResourceData(d, floatingIP)
 
 	return nil
 

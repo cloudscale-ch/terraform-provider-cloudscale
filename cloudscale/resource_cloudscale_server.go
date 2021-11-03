@@ -12,70 +12,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleServer() *schema.Resource {
+func resourceCloudscaleServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceServerCreate,
 		Read:   resourceServerRead,
 		Update: resourceServerUpdate,
 		Delete: resourceServerDelete,
 
-		Schema: getServerSchema(),
+		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
 		},
 	}
 }
 
-func getServerSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-
-		// Required attributes
-
+func getServerSchema(t SchemaType) map[string]*schema.Schema {
+	imageConflictsWith := []string{}
+	if t.isResource() {
+		imageConflictsWith = append(imageConflictsWith, "image_uuid")
+	}
+	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
-		},
-		"flavor_slug": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"image_slug": {
-			Type:          schema.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"image_uuid"},
-			Computed:	   true,
-		},
-		"image_uuid": {
-			Type:          schema.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"image_slug"},
-		},
-		"ssh_keys": {
-			Type:     schema.TypeSet,
-			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			ForceNew: true,
-		},
-		"password": {
-			Type:      schema.TypeString,
-			Optional:  true,
-			Elem:      &schema.Schema{Type: schema.TypeString},
-			ForceNew:  true,
-			Sensitive: true,
-		},
-
-		// Optional attributes
-
-		"volume_size_gb": {
-			Type:     schema.TypeInt,
-			Optional: true,
-		},
-		"bulk_volume_size_gb": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			ForceNew: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -83,45 +43,18 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 			ForceNew: true,
 		},
-		"user_data": {
+		"flavor_slug": {
 			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 		},
-		"use_public_network": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
+		"image_slug": {
+			Type:          schema.TypeString,
+			Optional:      t.isResource(),
+			ForceNew:      true,
+			ConflictsWith: imageConflictsWith,
+			Computed:      true,
 		},
-		"use_private_network": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"use_ipv6": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"allow_stopping_for_update": {
-			Type:     schema.TypeBool,
-			Optional: true,
-		},
-		"skip_waiting_for_ssh_host_keys": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
-		},
-		"server_group_ids": {
-			Type:     schema.TypeSet,
-			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			ForceNew: true,
-		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -232,8 +165,8 @@ func getServerSchema() map[string]*schema.Schema {
 					},
 				},
 			},
+			Optional: t.isResource(),
 			Computed: true,
-			Optional: true,
 		},
 		"ssh_fingerprints": {
 			Type:     schema.TypeList,
@@ -247,7 +180,7 @@ func getServerSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"server_groups": {
@@ -271,6 +204,78 @@ func getServerSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	} else {
+		m["image_uuid"] = &schema.Schema{
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"image_slug"},
+		}
+		m["ssh_keys"] = &schema.Schema{
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		}
+		m["password"] = &schema.Schema{
+			Type:      schema.TypeString,
+			Optional:  true,
+			Elem:      &schema.Schema{Type: schema.TypeString},
+			ForceNew:  true,
+			Sensitive: true,
+		}
+		m["volume_size_gb"] = &schema.Schema{
+			Type:     schema.TypeInt,
+			Optional: true,
+		}
+		m["bulk_volume_size_gb"] = &schema.Schema{
+			Type:     schema.TypeInt,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["user_data"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["use_public_network"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["use_private_network"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["use_ipv6"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+		m["allow_stopping_for_update"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+		}
+		m["skip_waiting_for_ssh_host_keys"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		}
+		m["server_group_ids"] = &schema.Schema{
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			ForceNew: true,
+		}
+	}
+	return m
 }
 
 func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
@@ -385,7 +390,11 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceServerRead(d, meta)
+	err = resourceServerRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the server (%s): %s", d.Id(), err)
+	}
+	return nil
 }
 
 func createImageOption(d *schema.ResourceData) string {
@@ -393,7 +402,7 @@ func createImageOption(d *schema.ResourceData) string {
 	if imageName := d.Get("image_slug").(string); imageName != "" {
 		return imageName
 	}
-	return d.Get("image_uuid").(string);
+	return d.Get("image_uuid").(string)
 }
 
 func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceRequest {
@@ -454,21 +463,33 @@ func createAddressesOptions(addresses []interface{}) []cloudscale.AddressRequest
 	return result
 }
 
-func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*cloudscale.Client)
+func fillServerResourceData(d *schema.ResourceData, server *cloudscale.Server) {
+	fillResourceData(d, gatherServerResourceData(server))
 
-	id := d.Id()
-
-	server, err := client.Servers.Get(context.Background(), id)
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving server")
+	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
+		d.SetConnInfo(map[string]string{
+			"type": "ssh",
+			"host": publicIPV4,
+		})
+	} else {
+		if publicIPV6 := findIPv6AddrByType(server, "private"); publicIPV6 != "" {
+			d.SetConnInfo(map[string]string{
+				"type": "ssh",
+				"host": publicIPV6,
+			})
+		}
 	}
+}
 
-	d.Set("href", server.HREF)
-	d.Set("name", server.Name)
-	d.Set("flavor_slug", server.Flavor.Slug)
-	d.Set("image_slug", server.Image.Slug)
-	d.Set("zone_slug", server.Zone.Slug)
+func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = server.UUID
+	m["href"] = server.HREF
+	m["name"] = server.Name
+	m["flavor_slug"] = server.Flavor.Slug
+	m["image_slug"] = server.Image.Slug
+	m["zone_slug"] = server.Zone.Slug
+	m["status"] = server.Status
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]interface{}, 0, volumes)
@@ -480,12 +501,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			v["uuid"] = volume.UUID
 			volumesMaps = append(volumesMaps, v)
 		}
-		err = d.Set("volumes", volumesMaps)
-		if err != nil {
-			log.Printf("[DEBUG] Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
-			return fmt.Errorf("Error setting volumes attribute: %#v, error: %#v", volumesMaps, err)
-		}
-
+		m["volumes"] = volumesMaps
 	}
 	serverGroupMaps := make([]map[string]interface{}, 0, len(server.ServerGroups))
 	for _, serverGroup := range server.ServerGroups {
@@ -495,16 +511,9 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		g["href"] = serverGroup.HREF
 		serverGroupMaps = append(serverGroupMaps, g)
 	}
-	err = d.Set("server_groups", serverGroupMaps)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
-		return fmt.Errorf("Error setting server_groups attribute: %#v, error: %#v", serverGroupMaps, err)
-	}
-
-	d.Set("status", server.Status)
+	m["server_groups"] = serverGroupMaps
 
 	if addrss := len(server.Interfaces); addrss > 0 {
-
 		intsMap := make([]map[string]interface{}, 0, addrss)
 		for _, intr := range server.Interfaces {
 
@@ -535,43 +544,29 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 
 			intsMap = append(intsMap, intMap)
 		}
-		err = d.Set("interfaces", intsMap)
-		if err != nil {
-			log.Printf("[DEBUG] Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
-			return fmt.Errorf("Error setting interfaces attribute: %#v, error: %#v", intsMap, err)
-		}
+		m["interfaces"] = intsMap
 	}
 
-	err = d.Set("ssh_fingerprints", server.SSHFingerprints)
+	m["ssh_fingerprints"] = server.SSHFingerprints
+
+	m["ssh_host_keys"] = server.SSHHostKeys
+
+	m["public_ipv4_address"] = findIPv4AddrByType(server, "public")
+	m["public_ipv6_address"] = findIPv6AddrByType(server, "public")
+	m["private_ipv4_address"] = findIPv4AddrByType(server, "private")
+	return m
+}
+
+func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*cloudscale.Client)
+
+	id := d.Id()
+
+	server, err := client.Servers.Get(context.Background(), id)
 	if err != nil {
-		log.Printf("[DEBUG] Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
-		return fmt.Errorf("Error setting ssh_fingerprins attribute: %#v, error: %#v", server.SSHFingerprints, err)
+		return CheckDeleted(d, err, "Error retrieving server")
 	}
-
-	err = d.Set("ssh_host_keys", server.SSHHostKeys)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
-		return fmt.Errorf("Error setting ssh_host_keys attribute: %#v, error: %#v", server.SSHHostKeys, err)
-	}
-
-	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
-		d.SetConnInfo(map[string]string{
-			"type": "ssh",
-			"host": publicIPV4,
-		})
-	} else {
-		if publicIPV6 := findIPv6AddrByType(server, "private"); publicIPV6 != "" {
-			d.SetConnInfo(map[string]string{
-				"type": "ssh",
-				"host": publicIPV6,
-			})
-		}
-	}
-
-	d.Set("public_ipv4_address", findIPv4AddrByType(server, "public"))
-	d.Set("public_ipv6_address", findIPv6AddrByType(server, "public"))
-	d.Set("private_ipv4_address", findIPv4AddrByType(server, "private"))
-
+	fillServerResourceData(d, server)
 	return nil
 }
 
@@ -704,12 +699,12 @@ func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []str
 		timeout, d.Id(), attribute, target)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    pending,
-		Target:     []string{target},
-		Refresh:    newServerRefreshFunc(d, attribute, meta),
-		Timeout:    *timeout,
-		Delay:      10 * time.Second,
-		MinTimeout: 3 * time.Second,
+		Pending:        pending,
+		Target:         []string{target},
+		Refresh:        newServerRefreshFunc(d, attribute, meta),
+		Timeout:        *timeout,
+		Delay:          10 * time.Second,
+		MinTimeout:     3 * time.Second,
 		NotFoundChecks: math.MaxInt32,
 	}
 

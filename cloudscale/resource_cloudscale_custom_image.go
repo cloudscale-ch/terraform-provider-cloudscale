@@ -12,58 +12,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleCustomImage() *schema.Resource {
+func resourceCloudscaleCustomImage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCustomImageCreate,
 		Read:   resourceCustomImageRead,
 		Update: resourceCustomImageUpdate,
 		Delete: resourceCustomImageDelete,
 
-		Schema: getCustomImageSchema(),
+		Schema: getCustomImageSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }
 
-func getCustomImageSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-
-		// Required attributes
-
-		"import_url": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"import_source_format": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
+func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"user_data_handling": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Required: true,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
-
-		// Optional attributes
 		"slug": {
-			Type: schema.TypeString,
+			Type:     schema.TypeString,
 			Optional: true,
 		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -75,24 +60,42 @@ func getCustomImageSchema() map[string]*schema.Schema {
 		"checksums": {
 			Type: schema.TypeMap,
 			Elem: &schema.Schema{
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			Computed: true,
 		},
-		"import_href": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"import_uuid": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"import_status": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	} else {
+		m["import_url"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		}
+		m["import_source_format"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		}
+		m["import_uuid"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		}
+		m["import_status"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		}
+		m["import_href"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		}
+	}
+	return m
 }
 
 func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
@@ -143,37 +146,38 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error getting customImage: %z", err)
 	}
 
-	err = fillCustomImageResourceData(d, customImageImport, customImage)
-	if err != nil {
-		return err
-	}
+	fillCustomImageResourceData(d, customImageImport, customImage)
 	return nil
 }
 
-func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *cloudscale.CustomImageImport, customImage *cloudscale.CustomImage) error {
-	d.Set("href", customImage.HREF)
-	d.Set("name", customImage.Name)
-	d.Set("slug", customImage.Slug)
-	d.Set("size_gb", customImage.SizeGB)
-	d.Set("user_data_handling", customImage.UserDataHandling)
-	d.Set("checksums", customImage.Checksums)
+func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *cloudscale.CustomImageImport, customImage *cloudscale.CustomImage) {
+	fillResourceData(d, gatherCustomImageResourceData(customImage))
+
+	// Here we add data for resources, but not for data sources. This means
+	// that data sources will not have access to this content.
+	d.Set("import_href", customImageImport.HREF)
+	d.Set("import_uuid", customImageImport.UUID)
+	d.Set("import_status", customImageImport.Status)
+}
+
+func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = customImage.UUID
+	m["href"] = customImage.HREF
+	m["name"] = customImage.Name
+	m["slug"] = customImage.Slug
+	m["size_gb"] = customImage.SizeGB
+	m["user_data_handling"] = customImage.UserDataHandling
+	m["checksums"] = customImage.Checksums
 
 	zoneSlugs := make([]string, 0, len(customImage.Zones))
 	for _, zone := range customImage.Zones {
 		zoneSlugs = append(zoneSlugs, zone.Slug)
 	}
-	err := d.Set("zone_slugs", zoneSlugs)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting zone_slugs attribute: %#v, error: %#v", customImage.Zones, err)
-		return fmt.Errorf("Error setting zone_slugs attribute: %#v, error: %#v", customImage.Zones, err)
-	}
-
-	d.Set("import_href", customImageImport.HREF)
-	d.Set("import_uuid", customImageImport.UUID)
-	d.Set("import_status", customImageImport.Status)
-
-	return nil
+	m["zone_slugs"] = zoneSlugs
+	return m
 }
+
 
 func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
@@ -189,10 +193,7 @@ func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	customImageImport, err := client.CustomImageImports.Get(context.Background(), importUUID.(string))
 
-	err = fillCustomImageResourceData(d, customImageImport, customImage)
-	if err != nil {
-		return err
-	}
+	fillCustomImageResourceData(d, customImageImport, customImage)
 	return nil
 }
 

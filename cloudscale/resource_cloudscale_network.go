@@ -9,28 +9,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleNetwork() *schema.Resource {
+func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceNetworkCreate,
 		Read:   resourceNetworkRead,
 		Update: resourceNetworkUpdate,
 		Delete: resourceNetworkDelete,
 
-		Schema: getNetworkSchema(),
+		Schema: getNetworkSchema(RESOURCE),
 	}
 }
 
-func getNetworkSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		// Required attributes
-
+func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
+			Computed: t.isDataSource(),
 		},
-
-		// Optional attributes
-
 		"zone_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -39,13 +36,8 @@ func getNetworkSchema() map[string]*schema.Schema {
 		},
 		"mtu": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
-		},
-		"auto_create_ipv4_subnet": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			ForceNew: true,
 		},
 		"subnets": {
 			Type: schema.TypeList,
@@ -67,14 +59,24 @@ func getNetworkSchema() map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	} else {
+		m["auto_create_ipv4_subnet"] = &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		}
+	}
+	return m
 }
 
 func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
@@ -106,18 +108,21 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Network ID %s", d.Id())
 
-	err = fillNetworkResourceData(d, network)
-	if err != nil {
-		return err
-	}
+	fillNetworkResourceData(d, network)
 	return nil
 }
 
-func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) error {
-	d.Set("href", network.HREF)
-	d.Set("name", network.Name)
-	d.Set("mtu", network.MTU)
-	d.Set("zone_slug", network.Zone.Slug)
+func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) {
+	fillResourceData(d, gatherNetworkResourceData(network))
+}
+
+func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = network.UUID
+	m["href"] = network.HREF
+	m["name"] = network.Name
+	m["mtu"] = network.MTU
+	m["zone_slug"] = network.Zone.Slug
 
 	subnets := make([]map[string]interface{}, 0, len(network.Subnets))
 	for _, subnet := range network.Subnets {
@@ -127,13 +132,8 @@ func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network
 		g["href"] = subnet.HREF
 		subnets = append(subnets, g)
 	}
-	err := d.Set("subnets", subnets)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting subnets attribute: %#v, error: %#v", subnets, err)
-		return fmt.Errorf("Error setting subnets attribute: %#v, error: %#v", subnets, err)
-	}
-
-	return nil
+	m["subnets"] = subnets
+	return m
 }
 
 func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
@@ -144,10 +144,7 @@ func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving network")
 	}
 
-	err = fillNetworkResourceData(d, network)
-	if err != nil {
-		return err
-	}
+	fillNetworkResourceData(d, network)
 	return nil
 }
 

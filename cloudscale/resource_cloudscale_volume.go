@@ -9,33 +9,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleVolume() *schema.Resource {
+func resourceCloudscaleVolume() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceVolumeCreate,
 		Read:   resourceVolumeRead,
 		Update: resourceVolumeUpdate,
 		Delete: resourceVolumeDelete,
 
-		Schema: getVolumeSchema(),
+		Schema: getVolumeSchema(RESOURCE),
 	}
 }
 
-func getVolumeSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-
-		// Required attributes
-
+func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
 		"size_gb": {
 			Type:     schema.TypeInt,
-			Required: true,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 		},
-
-		// Optional attributes
-
 		"type": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -50,16 +46,21 @@ func getVolumeSchema() map[string]*schema.Schema {
 		"server_uuids": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
+			Optional: t.isResource(),
+			Computed: t.isDataSource(),
 		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	}
+	return m
 }
 
 func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
@@ -95,26 +96,24 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Volume ID %s", d.Id())
 
-	err = fillVolumeResourceData(d, volume)
-	if err != nil {
-		return err
-	}
+	fillVolumeResourceData(d, volume)
 	return nil
 }
 
-func fillVolumeResourceData(d *schema.ResourceData, volume *cloudscale.Volume) error {
-	d.Set("href", volume.HREF)
-	d.Set("name", volume.Name)
-	d.Set("size_gb", volume.SizeGB)
-	d.Set("type", volume.Type)
-	d.Set("zone_slug", volume.Zone.Slug)
+func fillVolumeResourceData(d *schema.ResourceData, volume *cloudscale.Volume) {
+	fillResourceData(d, gatherVolumeResourceData(volume))
+}
 
-	err := d.Set("server_uuids", volume.ServerUUIDs)
-	if err != nil {
-		log.Printf("[DEBUG] Error setting server_uuids attribute: %#v, error: %#v", volume.ServerUUIDs, err)
-		return fmt.Errorf("Error setting server_uuids attribute: %#v, error: %#v", volume.ServerUUIDs, err)
-	}
-	return nil
+func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = volume.UUID
+	m["href"] = volume.HREF
+	m["name"] = volume.Name
+	m["size_gb"] = volume.SizeGB
+	m["type"] = volume.Type
+	m["zone_slug"] = volume.Zone.Slug
+	m["server_uuids"] = volume.ServerUUIDs
+	return m
 }
 
 func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
@@ -125,10 +124,7 @@ func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving volume")
 	}
 
-	err = fillVolumeResourceData(d, volume)
-	if err != nil {
-		return err
-	}
+	fillVolumeResourceData(d, volume)
 	return nil
 }
 

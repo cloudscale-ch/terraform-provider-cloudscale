@@ -1,3 +1,14 @@
+## 3.2.0
+* Add data sources:
+  - `cloudscale_server`
+  - `cloudscale_server_group`
+  - `cloudscale_volume`
+  - `cloudscale_network`
+  - `cloudscale_subnet`
+  - `cloudscale_floating_ip`
+  - `cloudscale_custom_image`
+  - `cloudscale_objects_user`
+
 ## 3.1.0
 * Update to go 1.16 (#48) to support Apple silicon.
 
@@ -70,4 +81,4 @@ IMPROVEMENTS:
 
 ## 1.0.0 (November 01, 2017)
 
-* Initial release of the CloudScale.ch provider
+* Initial release of the cloudscale.ch provider

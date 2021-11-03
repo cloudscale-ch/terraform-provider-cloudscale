@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_floating_ip"
-sidebar_current: "docs-cloudscale-resource-floating-ip"
-description: |-
-  Provides a cloudscale.ch Floating IP resource. This can be used to create, modify, and delete Floating IPs.
 ---
 
 # cloudscale\_floating\_ip

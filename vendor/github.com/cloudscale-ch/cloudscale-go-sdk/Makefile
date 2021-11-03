@@ -1,3 +1,4 @@
+TEST?=$$(go list ./... |grep -v 'vendor')
 VERSION ?= $(shell cat VERSION)
 
 test:

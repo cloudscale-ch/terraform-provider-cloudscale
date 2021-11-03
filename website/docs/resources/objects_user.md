@@ -1,9 +1,5 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_objects_user"
-sidebar_current: "docs-cloudscale-resource-objects-user"
-description: |-
-  Provides a cloudscale.ch Objects User resource. This can be used to create, modify, and delete Objects Users.
 ---
 
 # cloudscale\_objects\_user

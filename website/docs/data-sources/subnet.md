@@ -1,32 +1,16 @@
 ---
-layout: "cloudscale"
 page_title: "cloudscale.ch: cloudscale_subnet"
-sidebar_current: "docs-cloudscale-resource-subnet"
-description: |-
-  Provides a cloudscale.ch subnet resource. This can be used to create, modify, and delete subnets.
 ---
 
 # cloudscale\_subnet
 
-Provides a cloudscale.ch subnet resource. This can be used to create, modify, and delete subnets.
+Provides access to cloudscale.ch subnets that are not managed by terraform.
 
 ## Example Usage
 
 ```hcl
-# Create a new private network
-resource "cloudscale_network" "privnet" {
-  name                    = "privnet"
-  zone_slug               = "lpg1"
-  mtu                     = "9000"
-  auto_create_ipv4_subnet = "false"
-}
-
-# Create a new subnet
-resource "cloudscale_subnet" "privnet-subnet" {
+data "cloudscale_subnet" "privnet-subnet" {
   cidr         	  = "10.11.12.0/24"
-  network_uuid 	  = cloudscale_network.privnet.id
-  gateway_address = "10.11.12.10"
-  dns_servers     = ["1.2.3.4", "5.6.7.8", "9.10.11.12"]
 }
 
 # Create a server with fixed IP address
@@ -41,7 +25,7 @@ resource "cloudscale_server" "fixed" {
   interfaces      {
     type          = "private"
     addresses {
-      subnet_uuid = "cloudscale_subnet.privnet-subnet.id"     
+      subnet_uuid = "data.cloudscale_subnet.privnet-subnet.id"     
       address     = "10.11.12.13"
     }
   }
@@ -52,12 +36,13 @@ resource "cloudscale_server" "fixed" {
 
 ## Argument Reference
 
-The following arguments are supported when creating/changing subnets:
+The following arguments can be used to look up a subnet:
 
-* `cidr` - (Required) The address range in CIDR notation. Must be at least /24.
-* `network_uuid` - (Required) The network of the subnet.
+* `id` - (Optional) The UUID of the subnet.
+* `cidr` - (Optional) The address range in CIDR notation.
+* `network_uuid` - (Optional) The network UUID of the subnet.
+* `network_name` - (Optional) The network name of the subnet.
 * `gateway_address` - (Optional) The gateway address of the subnet.
-* `dns_servers` - (Optional) A list of DNS resolver IP addresses, that act as DNS servers.
 
 
 ## Attributes Reference
@@ -65,3 +50,5 @@ The following arguments are supported when creating/changing subnets:
 In addition to the arguments listed above, the following computed attributes are exported:
 
 * `href` - The cloudscale.ch API URL of the current subnet.
+* `dns_servers` - A list of DNS resolver IP addresses, that act as DNS servers.
+* `network_href` - The cloudscale.ch API URL of the subnet's network.

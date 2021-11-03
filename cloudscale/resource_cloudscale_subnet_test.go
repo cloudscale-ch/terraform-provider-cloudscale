@@ -436,8 +436,8 @@ resource "cloudscale_server" "basic" {
 	return fmt.Sprintf(template, rInt, DefaultImageSlug, fixedAddressLine)
 }
 
-func multipleSubnetConfig(rInt1 int, rInt2 int, networkIndex int, subnetIndex int) string {
-	template := `
+func subnetConfig_baseline(count int, rInt int) string {
+	return fmt.Sprintf(`
 resource "cloudscale_network" "multi-net" {
   count = 2
   name = "terraform-%d-${count.index}"
@@ -448,8 +448,11 @@ resource "cloudscale_subnet" "multi-subnet" {
   count = 2
   cidr = "192.168.${count.index}.0/24"
   network_uuid = cloudscale_network.multi-net[count.index].id
+}`, rInt)
 }
 
+func multipleSubnetConfig(rInt1 int, rInt2 int, networkIndex int, subnetIndex int) string {
+	template := `
 resource "cloudscale_server" "web-worker01" {
  name = "terraform-%d"
  flavor_slug = "flex-4"
@@ -481,5 +484,5 @@ resource "cloudscale_server" "web-worker01" {
    }`, subnetIndex, subnetIndex)
 	}
 
-	return fmt.Sprintf(template, rInt1, rInt2, networkTemplate, addressTemplate)
+	return subnetConfig_baseline(2, rInt1) + fmt.Sprintf(template, rInt2, networkTemplate, addressTemplate)
 }

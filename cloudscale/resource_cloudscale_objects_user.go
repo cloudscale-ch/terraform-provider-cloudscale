@@ -10,34 +10,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCloudScaleObjectsUser() *schema.Resource {
+func resourceCloudscaleObjectsUser() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceObjectsUserCreate,
 		Read:   resourceObjectsUserRead,
 		Update: resourceObjectsUserUpdate,
 		Delete: resourceObjectsUserDelete,
 
-		Schema: getObjectsUserSchema(),
+		Schema: getObjectsUserSchema(RESOURCE),
 	}
 }
 
-func getObjectsUserSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		// Required attributes
-
+func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
+	m := map[string]*schema.Schema{
 		"display_name": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 		},
-
-		// Computed attributes
-
 		"href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 		"user_id": {
 			Type:     schema.TypeString,
+			Optional: t.isDataSource(),
 			Computed: true,
 		},
 		"keys": {
@@ -57,6 +54,13 @@ func getObjectsUserSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	}
+	return m
 }
 
 func resourceObjectsUserCreate(d *schema.ResourceData, meta interface{}) error {
@@ -75,17 +79,21 @@ func resourceObjectsUserCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Objects user ID %s", d.Id())
 
-	err = fillObjectsUserResourceData(d, objectsUser)
-	if err != nil {
-		return err
-	}
+	fillObjectsUserResourceData(d, objectsUser)
 	return nil
 }
 
-func fillObjectsUserResourceData(d *schema.ResourceData, objectsUser *cloudscale.ObjectsUser) error {
-	d.Set("href", objectsUser.HREF)
-	d.Set("user_id", objectsUser.ID)
-	d.Set("display_name", objectsUser.DisplayName)
+func fillObjectsUserResourceData(d *schema.ResourceData, objectsUser *cloudscale.ObjectsUser) {
+	fillResourceData(d, gatherObjectsUserResourceData(objectsUser))
+}
+
+func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) ResourceDataRaw {
+	m := make(map[string]interface{})
+	m["id"] = objectsUser.ID
+	m["href"] = objectsUser.HREF
+	m["user_id"] = objectsUser.ID
+	m["display_name"] = objectsUser.DisplayName
+
 
 	keys := make([]map[string]string, 0, len(objectsUser.Keys))
 	for _, keyEntry := range objectsUser.Keys {
@@ -94,9 +102,9 @@ func fillObjectsUserResourceData(d *schema.ResourceData, objectsUser *cloudscale
 		g["access_key"] = keyEntry["access_key"]
 		keys = append(keys, g)
 	}
-	err := d.Set("keys", keys)
+	m["keys"] = keys
 
-	return err
+	return m
 }
 
 func resourceObjectsUserRead(d *schema.ResourceData, meta interface{}) error {
@@ -107,10 +115,7 @@ func resourceObjectsUserRead(d *schema.ResourceData, meta interface{}) error {
 		return CheckDeleted(d, err, "Error retrieving objects user")
 	}
 
-	err = fillObjectsUserResourceData(d, objectsUser)
-	if err != nil {
-		return err
-	}
+	fillObjectsUserResourceData(d, objectsUser)
 	return nil
 }
 
