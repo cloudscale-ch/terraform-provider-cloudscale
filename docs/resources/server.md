@@ -46,7 +46,7 @@ The following arguments are supported when creating new servers:
     * `addresses` - (Optional, can be set only for `private` interfaces) A list of address objects:
         * `address` - (Optional) An IP address that has been assigned to this server.
         * `subnet_uuid` - (Optional) The UUID of the subnet this address should be part of. Must be compatible with `network_uuid` if both are specified.
-    * `no_address` - (Optional, can be set only for `private` interfaces) You neet to set this to `true` if no address should be configured, e.g. if you want to attach to a network without a subnet. 
+    * `no_address` - (Optional, can be set only for `private` interfaces) You need to set this to `true` if no address should be configured, e.g. if you want to attach to a network without a subnet. 
 * `server_group_ids` - (Optional) A list of server group UUIDs to which the server should be added. Default to an empty list.
 * `user_data` - (Optional) User data (custom cloud-config settings) to use for the new server. Needs to be valid YAML. A default configuration will be used if this parameter is not specified or set to null. Use only if you are an advanced user with knowledge of cloud-config and cloud-init.
 * `status` - (Optional) The desired state of a server. Can be `running` (default) or `stopped`.
@@ -59,7 +59,7 @@ The following arguments are supported when updating servers:
 * `name` - Name of the new server. The name has to be a valid host name or a fully qualified domain name (FQDN).
 * `volume_size_gb` - The size in GB of the SSD root volume of the new server.
 * `interfaces` - A list of interface configuration objects. Each interface object has the following attributes:
-    * `type` - (Required) The type of the iinterface. Can be `public` or `private`.
+    * `type` - (Required) The type of the interface. Can be `public` or `private`.
     * `network_uuid` (Required for `private` interfaces) The UUID of the private network this interface should be attached to.
 * `status` - The desired state of a server. Can be `running` (default) or `stopped`.
 
@@ -80,7 +80,7 @@ In addition to the arguments listed above, the following computed attributes are
 * `private_ipv4_address` - The first `private` IPv4 address of this server. The returned IP address may be `""` if the server does not have private networking enabled.
 * `public_ipv6_address` - The first `public` IPv6 address of this server. The returned IP address may be `""` if the server does not have a public IPv6.
 * `interfaces` - A list of interface objects attached to this server. Each interface object has the following attributes:
-    * `network_name` - The name of the network the interface is attatched to.
+    * `network_name` - The name of the network the interface is attached to.
     * `network_href` - The cloudscale.ch API URL of the network the interface is attached to.
     * `type` - Either `public` or `private`. Public interfaces are connected to the Internet, while private interfaces are not.
     * `addresses` - A list of address objects:

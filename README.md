@@ -30,7 +30,7 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 $ make testacc
 ```
 
-In order to run run a subset of the tests:
+In order to run a subset of the tests:
 
 ``` sh
 $ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
@@ -65,15 +65,15 @@ provider_installation {
 Releasing the Provider
 ---------------------------
 
- 1. Ensure the `CHANGELOG.md` is up to date.
+ 1. Ensure the `CHANGELOG.md` is up-to-date.
  2.  Create a new release [on GitHub](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new).
     Both the tag and release title must follow this pattern: `v<<SEMVER>>`.
     Examples: `v42.43.44` or `v1.33.7-rc.1`.
- 3. It might take moment until the release appears in the [Terraform registry](https://registry.terraform.io/providers/cloudscale-ch/cloudscale/latest).
+ 3. It might take a moment until the release appears in the [Terraform registry](https://registry.terraform.io/providers/cloudscale-ch/cloudscale/latest).
     You can manually resync the provider when you are logged in to the registry. 
 
 
 Developing the Documentation Website
 ------------------------------------
 
-Use the terraform [doc preview tool](https://registry.terraform.io/tools/doc-preview) to test markdown rendering.
+Use the Terraform [doc preview tool](https://registry.terraform.io/tools/doc-preview) to test markdown rendering.

@@ -39,7 +39,7 @@ resource "cloudscale_server" "your_server" {
 The following arguments can be used to look up a custom image:
 
 * `id` - (Optional) The UUID of a custom image.
-* `name` - (Optional) The human readable name of a custom image.
+* `name` - (Optional) The human-readable name of a custom image.
 * `slug` - (Optional) A string identifying a custom image.
 
 ## Attributes Reference
