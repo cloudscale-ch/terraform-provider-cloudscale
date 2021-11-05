@@ -328,19 +328,40 @@ func TestAccCloudscaleServer_UpdateNameAndFlavorAndVolumeSize(t *testing.T) {
 }
 
 func TestAccCloudscaleServer_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.Server
+
+	rInt := acctest.RandInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudscaleServerConfig_basic(acctest.RandInt()),
+				Config: testAccCheckCloudscaleServerConfig_basic(rInt),
 			},
 			{
-				ResourceName:      "cloudscale_server.basic",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{"ssh_keys", "allow_stopping_for_update", "skip_waiting_for_ssh_host_keys", "volume_size_gb"},
+				ResourceName:            "cloudscale_server.basic",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"ssh_keys", "allow_stopping_for_update", "volume_size_gb"},
+			},
+			{
+				Config: testAccCheckCloudscaleServerConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterImport),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerConfig_scaled_and_renamed(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d-foobar", rInt)),
+					testAccCheckServerChanged(t, &afterImport, &afterUpdate),
+				),
 			},
 			{
 				ResourceName:      "cloudscale_server.basic",
