@@ -25,7 +25,7 @@ resource "cloudscale_server" "fixed" {
   interfaces      {
     type          = "private"
     addresses {
-      subnet_uuid = "data.cloudscale_subnet.privnet-subnet.id"     
+      subnet_uuid = "${data.cloudscale_subnet.privnet-subnet.id}"     
       address     = "10.11.12.13"
     }
   }

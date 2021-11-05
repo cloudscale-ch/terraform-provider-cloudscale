@@ -28,6 +28,7 @@ resource "cloudscale_server" "web-worker01" {
 
 The following arguments can be used to look up a server group:
 
+* `id` - (Optional) The UUID of a server group.
 * `name` - (Optional) Name of the server group.
 * `zone_slug` - (Optional) The slug of the zone in which the server group exists. Options include `lpg1` and `rma1`.
 
