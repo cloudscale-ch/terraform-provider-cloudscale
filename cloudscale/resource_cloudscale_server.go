@@ -24,7 +24,7 @@ func resourceCloudscaleServer() *schema.Resource {
 			Create: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceCloudscaleServerImport,
 		},
 	}
 }
@@ -802,4 +802,10 @@ func findIPv4AddrByType(s *cloudscale.Server, addrType string) string {
 		}
 	}
 	return ""
+}
+
+func resourceCloudscaleServerImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	// this attribute is irrelevant for existing servers
+	d.Set("skip_waiting_for_ssh_host_keys", false)
+	return schema.ImportStatePassthroughContext(ctx, d, meta)
 }
