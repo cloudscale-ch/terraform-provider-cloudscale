@@ -17,8 +17,8 @@ resource "cloudscale_network" "privnet" {
 }
 
 # Add a server with two interfaces:
-#  - one attatched to the public network
-#  - one attatched to the private network "privnet"
+#  - one attached to the public network
+#  - one attached to the private network "privnet"
 resource "cloudscale_server" "gw" {
   name                = "gateway"
   zone_slug           = "lpg1"

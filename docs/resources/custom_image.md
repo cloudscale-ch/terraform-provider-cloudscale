@@ -50,7 +50,7 @@ The following arguments are supported when creating/changing custom images:
 
 * `import_url` - (Required) The URL used to download the image.
 * `import_source_format` - (Required) The file format of the image referenced in the `import_url`. Options include `raw`.
-* `name` - (Required) The human readable name of the custom image.
+* `name` - (Required) The human-readable name of the custom image.
 * `slug` - (Optional) A string identifying the custom image for use within the API.
 * `user_data_handling` - (Required) How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.
 * `zone_slugs` - (Required) Specify the zones in which the custom image will be available. Options include `lpg1` and `rma1`.
