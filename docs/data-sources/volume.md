@@ -16,7 +16,7 @@ data "cloudscale_volume" "web-worker01-volume" {
 
 ## Argument Reference
 
-The following arguments can be used to look up a network:
+The following arguments can be used to look up a volume:
 
 * `id` - (Optional) The UUID of a volume.
 * `name` - (Optional) The Name of the volume.
