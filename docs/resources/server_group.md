@@ -46,5 +46,5 @@ In addition to the arguments listed above, the following computed attributes are
 Server groups can be imported using the server group's UUID:
 
 ```
-terraform import cloudscale_server_group.server 48151623-42aa-aaaa-bbbb-caffeeeeeeee
+terraform import cloudscale_server_group.server_group 48151623-42aa-aaaa-bbbb-caffeeeeeeee
 ```
