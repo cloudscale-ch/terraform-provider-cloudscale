@@ -299,7 +299,10 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 }
 
 func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.Subnet
+
 	rInt := acctest.RandInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -308,6 +311,7 @@ func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
 			{
 				Config: subnetconfigMinimal(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &afterImport),
 					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "gateway_address", ""),
 				),
 			},
@@ -326,11 +330,24 @@ func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
 			{
 				Config: subnetconfigUpdated(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &afterUpdate),
 					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "gateway_address", "10.11.12.10"),
+					testAccSubnetIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
 	})
+}
+
+func testAccSubnetIsSame(t *testing.T,
+	before, after *cloudscale.Subnet) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if before.UUID != after.UUID {
+			t.Fatalf("Not expected a change of Subnet IDs got=%s, expected=%s",
+				after.UUID, before.UUID)
+		}
+		return nil
+	}
 }
 
 func testAccCheckCloudscaleSubnetOnNetwork(subnet *cloudscale.Subnet, network *cloudscale.Network) resource.TestCheckFunc {
