@@ -115,13 +115,18 @@ func TestAccCloudscaleObjectsUser_Rename(t *testing.T) {
 }
 
 func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
+	rInt := acctest.RandInt();
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleObjectsUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: objectsUserConfigMinimal(acctest.RandInt()),
+				Config: objectsUserConfigMinimal(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "display_name", fmt.Sprintf("terraform-%d", rInt)),
+				),
 			},
 			{
 				ResourceName:      "cloudscale_objects_user.basic",
@@ -134,6 +139,13 @@ func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
 				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: objectsUserConfigMinimal(42),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "display_name", "terraform-42"),
+				),
 			},
 		},
 	})
