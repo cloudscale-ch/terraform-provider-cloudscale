@@ -23,9 +23,9 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
-		Importer: &schema.ResourceImporter{
+		/*Importer: &schema.ResourceImporter{
 			StateContext: resourceCloudscaleCustomImageImport,
-		},
+		},*/
 	}
 }
 

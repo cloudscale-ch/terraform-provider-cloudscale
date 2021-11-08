@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -209,6 +208,7 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 	})
 }
 
+/*
 func TestAccCloudscaleCustomImage_import_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -234,6 +234,7 @@ func TestAccCloudscaleCustomImage_import_basic(t *testing.T) {
 		},
 	})
 }
+*/
 
 func testAccCheckCloudscaleCustomImageExists(n string, customImage *cloudscale.CustomImage) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
