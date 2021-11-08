@@ -195,7 +195,10 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 }
 
 func TestAccCloudscaleVolume_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.Volume
+
 	rInt := acctest.RandInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -204,6 +207,7 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 			{
 				Config: volumeConfig_detached(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &afterImport),
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 				),
@@ -223,12 +227,29 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 			{
 				Config: volumeConfig_detached(42),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume.basic", "name", "terraform-42"),
+					testAccCheckCloudscaleVolumeIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
 	})
+}
+
+func testAccCheckCloudscaleVolumeIsSame(t *testing.T,
+	before, after *cloudscale.Volume) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
+		if before.UUID != after.UUID {
+			t.Fatalf("Not expected a change of Volume IDs got=%s, expected=%s",
+				after.UUID, before.UUID)
+		}
+		return nil
+	}
 }
 
 func testAccCheckCloudscaleVolumeDestroy(s *terraform.State) error {
