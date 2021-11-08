@@ -168,7 +168,7 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.gateway", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
-					testAccCheckFloaingIPChanged(t, &beforeUpdate, &afterUpdate),
+					testAccCheckFloatingIPIsSame(t, &beforeUpdate, &afterUpdate),
 				),
 			},
 		},
@@ -176,6 +176,8 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 }
 
 func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.FloatingIP
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -184,6 +186,7 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleFloatingIPConfig_detached("cartman.ptr"),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &afterImport),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "reverse_ptr", "cartman.ptr"),
 				),
@@ -203,8 +206,10 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleFloatingIPConfig_detached("respect.my.authoritaaa"),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "reverse_ptr", "respect.my.authoritaaa"),
+					testAccCheckFloatingIPIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
@@ -269,11 +274,11 @@ func testAccCheckCloudscaleFloatingIPDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckFloaingIPChanged(t *testing.T,
+func testAccCheckFloatingIPIsSame(t *testing.T,
 	before, after *cloudscale.FloatingIP) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if before.Server.UUID == after.Server.UUID {
-			t.Fatalf("Expected a change of Server IDs got=%s",
+			t.Fatalf("Expected a change of Floating IP IDs got=%s",
 				after.Server.UUID)
 		}
 		return nil
