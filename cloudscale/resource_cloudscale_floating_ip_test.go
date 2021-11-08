@@ -209,7 +209,7 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "reverse_ptr", "respect.my.authoritaaa"),
-					testAccCheckFloatingIPIsSame(t, &afterImport, &afterUpdate),
+					testAccCheckFloatingIPIsSame(t, &afterImport, &afterImport),
 				),
 			},
 		},
@@ -277,6 +277,10 @@ func testAccCheckCloudscaleFloatingIPDestroy(s *terraform.State) error {
 func testAccCheckFloatingIPIsSame(t *testing.T,
 	before, after *cloudscale.FloatingIP) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
 		if before.Server.UUID == after.Server.UUID {
 			t.Fatalf("Expected a change of Floating IP IDs got=%s",
 				after.Server.UUID)

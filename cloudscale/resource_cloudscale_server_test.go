@@ -508,6 +508,10 @@ func testAccCheckServerIp(n string) resource.TestCheckFunc {
 func testAccCheckServerIsSame(t *testing.T,
 	before, after *cloudscale.Server) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
 		if before.UUID != after.UUID {
 			t.Fatalf("Not expected a change of Server IDs got=%s, expected=%s",
 				after.UUID, before.UUID)

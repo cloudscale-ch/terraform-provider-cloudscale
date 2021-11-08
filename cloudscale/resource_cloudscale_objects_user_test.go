@@ -192,6 +192,10 @@ func testAccCheckCloudscaleObjectsUserExists(n string, objectsUser *cloudscale.O
 func testAccCheckObjectsUserIsSame(t *testing.T,
 	before, after *cloudscale.ObjectsUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
 		if before.ID != after.ID {
 			t.Fatalf("Not expected a change of Objects User IDs got=%s, expected=%s",
 				after.ID, before.ID)
