@@ -46,6 +46,7 @@ The following arguments are supported when adding Floating IPs:
 The following arguments are supported when updating Floating IPs:
 
 * `server` - (Required) (Re-)Assign the Floating IP to this server (UUID).
+* `reverse_ptr` - (Optional) You can specify the new PTR record (reverse DNS pointer) in case of a single Floating IP address.
 
 ## Attributes Reference
 

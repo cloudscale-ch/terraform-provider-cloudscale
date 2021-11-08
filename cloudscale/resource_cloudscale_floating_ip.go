@@ -52,7 +52,6 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
-			ForceNew: true,
 		},
 		"prefix_length": {
 			Type:     schema.TypeInt,
@@ -164,21 +163,23 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 }
 func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
+	id := d.Id()
 
-	if d.HasChange("server") {
-		serverUUID := d.Get("server").(string)
-
-		id := d.Id()
-
-		log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
-
-		opts := &cloudscale.FloatingIPUpdateRequest{
-			Server: serverUUID,
-		}
-
-		err := client.FloatingIPs.Update(context.Background(), id, opts)
-		if err != nil {
-			return fmt.Errorf("Error assigning FloatingIP (%s) to Server: %s", id, err)
+	for _, attribute := range []string{"server", "reverse_ptr"} {
+		// cloudscale.ch Floating UP attributes can only be changed one at a time.
+		if d.HasChange(attribute) {
+			opts := &cloudscale.FloatingIPUpdateRequest{}
+			if attribute == "reverse_ptr" {
+				opts.ReversePointer = d.Get(attribute).(string)
+			} else if attribute == "server" {
+				serverUUID := d.Get("server").(string)
+				log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
+				opts.Server = serverUUID
+			}
+			err := client.FloatingIPs.Update(context.Background(), id, opts)
+			if err != nil {
+				return fmt.Errorf("Error updating the FloatingIPs (%s) status (%s) ", id, err)
+			}
 		}
 	}
 	return resourceFloatingIPRead(d, meta)
