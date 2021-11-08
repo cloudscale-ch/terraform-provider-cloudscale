@@ -56,7 +56,7 @@ The following arguments are supported when creating new servers:
 
 The following arguments are supported when updating servers:
 
-* `name` - Name of the new server. The name has to be a valid host name or a fully qualified domain name (FQDN).
+* `name` - New name of the server. The name has to be a valid host name or a fully qualified domain name (FQDN).
 * `volume_size_gb` - The size in GB of the SSD root volume of the new server.
 * `interfaces` - A list of interface configuration objects. Each interface object has the following attributes:
     * `type` - (Required) The type of the interface. Can be `public` or `private`.
