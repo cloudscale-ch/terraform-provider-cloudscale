@@ -115,7 +115,10 @@ func TestAccCloudscaleObjectsUser_Rename(t *testing.T) {
 }
 
 func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.ObjectsUser
+
 	rInt := acctest.RandInt();
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -124,6 +127,7 @@ func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
 			{
 				Config: objectsUserConfigMinimal(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleObjectsUserExists("cloudscale_objects_user.basic", &afterImport),
 					resource.TestCheckResourceAttr(
 						"cloudscale_objects_user.basic", "display_name", fmt.Sprintf("terraform-%d", rInt)),
 				),
@@ -143,8 +147,10 @@ func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
 			{
 				Config: objectsUserConfigMinimal(42),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleObjectsUserExists("cloudscale_objects_user.basic", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_objects_user.basic", "display_name", "terraform-42"),
+					testAccCheckObjectsUserIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
@@ -179,6 +185,17 @@ func testAccCheckCloudscaleObjectsUserExists(n string, objectsUser *cloudscale.O
 
 		*objectsUser = *retrieveObjectsUser
 
+		return nil
+	}
+}
+
+func testAccCheckObjectsUserIsSame(t *testing.T,
+	before, after *cloudscale.ObjectsUser) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if before.ID != after.ID {
+			t.Fatalf("Not expected a change of Objects User IDs got=%s, expected=%s",
+				after.ID, before.ID)
+		}
 		return nil
 	}
 }
