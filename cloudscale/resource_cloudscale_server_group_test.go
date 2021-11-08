@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk"

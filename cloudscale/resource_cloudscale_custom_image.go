@@ -181,7 +181,6 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	return m
 }
 
-
 func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 

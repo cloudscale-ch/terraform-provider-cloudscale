@@ -305,7 +305,7 @@ func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:	subnetconfigMinimal(acctest.RandInt()),
+				Config: subnetconfigMinimal(acctest.RandInt()),
 			},
 			{
 				ResourceName:      "cloudscale_subnet.basic",
