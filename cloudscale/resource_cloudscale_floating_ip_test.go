@@ -300,13 +300,13 @@ func testAccCheckFloaingIPChanged(t *testing.T,
 	}
 }
 
-func testAccCheckCloudscaleFloatingIPConfig_detached(reverse_ptr string) string {
+func testAccCheckCloudscaleFloatingIPConfig_detached(reversePtr string) string {
 	return fmt.Sprintf(`
 resource "cloudscale_floating_ip" "detached" {
   ip_version = 6
   region_slug = "lpg"
   reverse_ptr = "%s"
-}`, reverse_ptr)
+}`, reversePtr)
 }
 
 func testAccCheckCloudscaleFloatingIPConfig_globalDetached() string {
