@@ -4,7 +4,7 @@ page_title: "cloudscale.ch: cloudscale_server_group"
 
 # cloudscale\_server\_group
 
-Provides a cloudscale.ch server group resource. This can be used to create, import, and delete server groups.
+Provides a cloudscale.ch server group resource. This can be used to create, modify, import, and delete server groups.
 
 ## Example Usage
 
@@ -33,6 +33,10 @@ The following arguments are supported when creating server groups:
 * `name` - (Required) Name of the new server group.
 * `type` - (Required) The type of the server group can currently only be `"anti-affinity"`.
 * `zone_slug` - (Optional) The slug of the zone in which the new server group will be created. Options include `lpg1` and `rma1`.
+
+The following arguments are supported when updating server groups:
+
+* `name` -  The new name of the server group.
 
 ## Attributes Reference
 

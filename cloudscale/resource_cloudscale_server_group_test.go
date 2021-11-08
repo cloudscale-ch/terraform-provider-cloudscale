@@ -104,6 +104,42 @@ func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleServerGroup_Update(t *testing.T) {
+	var beforeUpdate, afterUpdate cloudscale.ServerGroup
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &beforeUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "type", "anti-affinity"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "zone_slug", "lpg1"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "type", "anti-affinity"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "zone_slug", "lpg1"),
+					testAccCheckServerGroupIsSame(t, &beforeUpdate, &afterUpdate),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleServerGroup_import_basic(t *testing.T) {
 	var afterImport, afterUpdate cloudscale.ServerGroup
 

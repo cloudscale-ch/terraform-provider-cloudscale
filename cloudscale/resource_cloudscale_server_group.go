@@ -13,6 +13,7 @@ func resourceCloudscaleServerGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceServerGroupCreate,
 		Read:   resourceServerGroupRead,
+		Update: resourceServerGroupUpdate,
 		Delete: resourceServerGroupDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -28,7 +29,6 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
 			Optional: t.isDataSource(),
-			ForceNew: true,
 		},
 		"type": {
 			Type:     schema.TypeString,
@@ -107,6 +107,26 @@ func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
 
 	fillServerGroupResourceData(d, serverGroup)
 	return nil
+}
+
+func resourceServerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*cloudscale.Client)
+	id := d.Id()
+
+	for _, attribute := range []string{"name"} {
+		// cloudscale.ch ServerGroup attributes can only be changed one at a time.
+		if d.HasChange(attribute) {
+			opts := &cloudscale.ServerGroupRequest{}
+			if attribute == "name" {
+				opts.Name = d.Get(attribute).(string)
+			}
+			err := client.ServerGroups.Update(context.Background(), id, opts)
+			if err != nil {
+				return fmt.Errorf("Error updating the Server Group (%s) status (%s) ", id, err)
+			}
+		}
+	}
+	return resourceServerGroupRead(d, meta)
 }
 
 func resourceServerGroupDelete(d *schema.ResourceData, meta interface{}) error {
