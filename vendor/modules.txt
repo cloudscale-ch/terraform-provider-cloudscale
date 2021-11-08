@@ -56,7 +56,7 @@ github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 github.com/bgentry/go-netrc/netrc
-# github.com/cloudscale-ch/cloudscale-go-sdk v1.7.2-0.20211026131159-62129f0b2777
+# github.com/cloudscale-ch/cloudscale-go-sdk v1.7.2-0.20211108173129-a90de04faa72
 ## explicit
 github.com/cloudscale-ch/cloudscale-go-sdk
 # github.com/davecgh/go-spew v1.1.1
@@ -75,8 +75,6 @@ github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/golang/snappy v0.0.1
-## explicit
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.0.0
@@ -182,8 +180,6 @@ github.com/mitchellh/mapstructure
 github.com/mitchellh/reflectwalk
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
-# github.com/pierrec/lz4 v2.0.5+incompatible
-## explicit
 # github.com/ulikunitz/xz v0.5.8
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/hash

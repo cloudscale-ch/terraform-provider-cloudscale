@@ -43,7 +43,8 @@ func (f FloatingIP) PrefixLength() int {
 
 type FloatingIPUpdateRequest struct {
 	TaggedResourceRequest
-	Server string `json:"server,omitempty"`
+	Server         string `json:"server,omitempty"`
+	ReversePointer string `json:"reverse_ptr,omitempty"`
 }
 
 type FloatingIPsService interface {
