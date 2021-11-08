@@ -168,7 +168,7 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.gateway", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
-					testAccCheckFloatingIPIsSame(t, &beforeUpdate, &afterUpdate),
+					testAccCheckFloaingIPChanged(t, &beforeUpdate, &afterUpdate),
 				),
 			},
 		},
@@ -209,7 +209,7 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "reverse_ptr", "respect.my.authoritaaa"),
-					testAccCheckFloatingIPIsSame(t, &afterImport, &afterImport),
+					testAccCheckFloatingIPIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
@@ -281,8 +281,19 @@ func testAccCheckFloatingIPIsSame(t *testing.T,
 			t.Fatalf("Passed the same instance twice, address is equal=%v",
 				adr)
 		}
+		if before.Network != after.Network {
+			t.Fatalf("Not expected a change of Network got=%s, expected=%s",
+				after.Network, before.Network)
+		}
+		return nil
+	}
+}
+
+func testAccCheckFloaingIPChanged(t *testing.T,
+	before, after *cloudscale.FloatingIP) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
 		if before.Server.UUID == after.Server.UUID {
-			t.Fatalf("Expected a change of Floating IP IDs got=%s",
+			t.Fatalf("Expected a change of Server IDs got=%s",
 				after.Server.UUID)
 		}
 		return nil
