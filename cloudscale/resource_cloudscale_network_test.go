@@ -95,22 +95,20 @@ func TestAccCloudscaleNetwork_DetachedNoSubnet(t *testing.T) {
 func TestAccCloudscaleNetwork_DetachedWithZone(t *testing.T) {
 	var network cloudscale.Network
 
-	rInt := acctest.RandInt()
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigWithZone(rInt),
+				Config: networkconfigWithZone("netx"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleNetworkSubnetCount("cloudscale_network.basic", &network, 1),
 					resource.TestCheckResourceAttrSet(
 						"cloudscale_network.basic", "href"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+						"cloudscale_network.basic", "name", "terraform-netx"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic", "mtu", "3421"),
 					resource.TestCheckResourceAttr(
@@ -266,10 +264,7 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndPrivate(t *testing.T) {
 	var network cloudscale.Network
 	var server cloudscale.Server
 
-	rInt1 := acctest.RandInt()
-	rInt2 := acctest.RandInt()
-
-	networkConfig := networkconfigWithZone(rInt1)
+	networkConfig := networkconfigWithZone("myfoo")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -277,7 +272,7 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndPrivate(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkConfig + "\n" + serverConfigWithPublicAndPrivate(rInt2),
+				Config: networkConfig + "\n" + serverConfigWithPublicAndPrivate(acctest.RandInt()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
@@ -285,7 +280,7 @@ func TestAccCloudscaleNetwork_ServerWithPublicAndPrivate(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.type", "public"),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.0.addresses.#", "2"),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.type", "private"),
-					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.network_name", fmt.Sprintf("terraform-%d", rInt1)),
+					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.network_name", "terraform-myfoo"),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.addresses.#", "1"),
 					resource.TestCheckResourceAttr("cloudscale_server.basic", "interfaces.1.no_address", "false"),
 				),
@@ -347,7 +342,11 @@ func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigWithZone(acctest.RandInt()),
+				Config: networkconfigWithZone("randy"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "name", "terraform-randy"),
+				),
 			},
 			{
 				ResourceName:      "cloudscale_network.basic",
@@ -360,6 +359,13 @@ func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
 				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: networkconfigWithZone("kyle-marsh"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "name", "terraform-kyle-marsh"),
+				),
 			},
 		},
 	})
@@ -461,13 +467,13 @@ resource "cloudscale_network" "basic" {
 }`, count, rInt)
 }
 
-func networkconfigWithZone(rInt int) string {
+func networkconfigWithZone(name string) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "basic" {
-  name                    = "terraform-%d"
+  name                    = "terraform-%s"
   mtu                     = "3421"
   zone_slug               = "lpg1"
-}`, rInt)
+}`, name)
 }
 
 func networkconfigNoSubnet(rInt int) string {
