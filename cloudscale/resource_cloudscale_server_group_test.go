@@ -104,8 +104,47 @@ func TestAccCloudscaleServerGroup_WithZone(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleServerGroup_Update(t *testing.T) {
+	var beforeUpdate, afterUpdate cloudscale.ServerGroup
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &beforeUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "type", "anti-affinity"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "zone_slug", "lpg1"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "type", "anti-affinity"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "zone_slug", "lpg1"),
+					testAccCheckServerGroupIsSame(t, &beforeUpdate, &afterUpdate),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleServerGroup_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.ServerGroup
+
 	rInt := acctest.RandInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -114,6 +153,7 @@ func TestAccCloudscaleServerGroup_import_basic(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterImport),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server_group.servergroup", "name", fmt.Sprintf("terraform-%d-group", rInt)),
 				),
@@ -133,12 +173,28 @@ func TestAccCloudscaleServerGroup_import_basic(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleServerGroupConfigWithZone(42),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server_group.servergroup", "name", "terraform-42-group"),
+					testAccCheckServerGroupIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
 	})
+}
+
+func testAccCheckServerGroupIsSame(t *testing.T, before, after *cloudscale.ServerGroup) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
+		if before.UUID != after.UUID {
+			t.Fatalf("Not expected a change of Server Group IDs got=%s, expected=%s",
+				after.UUID, before.UUID)
+		}
+		return nil
+	}
 }
 
 func testAccCheckCloudscaleServerGroupDestroy(s *terraform.State) error {

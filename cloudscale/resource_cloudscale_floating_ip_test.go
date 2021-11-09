@@ -176,6 +176,8 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 }
 
 func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.FloatingIP
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -184,6 +186,7 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleFloatingIPConfig_detached("cartman.ptr"),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &afterImport),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "reverse_ptr", "cartman.ptr"),
 				),
@@ -203,8 +206,10 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleFloatingIPConfig_detached("respect.my.authoritaaa"),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "reverse_ptr", "respect.my.authoritaaa"),
+					testAccCheckFloatingIPIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
@@ -269,6 +274,21 @@ func testAccCheckCloudscaleFloatingIPDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccCheckFloatingIPIsSame(t *testing.T,
+	before, after *cloudscale.FloatingIP) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
+		if before.Network != after.Network {
+			t.Fatalf("Not expected a change of Network got=%s, expected=%s",
+				after.Network, before.Network)
+		}
+		return nil
+	}
+}
+
 func testAccCheckFloaingIPChanged(t *testing.T,
 	before, after *cloudscale.FloatingIP) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -280,13 +300,13 @@ func testAccCheckFloaingIPChanged(t *testing.T,
 	}
 }
 
-func testAccCheckCloudscaleFloatingIPConfig_detached(reverse_ptr string) string {
+func testAccCheckCloudscaleFloatingIPConfig_detached(reversePtr string) string {
 	return fmt.Sprintf(`
 resource "cloudscale_floating_ip" "detached" {
   ip_version = 6
   region_slug = "lpg"
   reverse_ptr = "%s"
-}`, reverse_ptr)
+}`, reversePtr)
 }
 
 func testAccCheckCloudscaleFloatingIPConfig_globalDetached() string {

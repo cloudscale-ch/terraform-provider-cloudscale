@@ -8,7 +8,9 @@
   - `cloudscale_floating_ip`
   - `cloudscale_custom_image`
   - `cloudscale_objects_user`
-* Add terraform import for all resources
+* Add terraform import for all resources (except Custom Images)
+* Allow updating the name of server groups.
+* Allow updating the PTR record (reverse DNS pointer) of Floating IPs.
 
 ## 3.1.0
 * Update to go 1.16 (#48) to support Apple silicon.

@@ -176,7 +176,7 @@ func TestAccCloudscaleServer_UpdateStatus(t *testing.T) {
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "stopped"),
-					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
+					testAccCheckServerIsSame(t, &afterCreate, &afterUpdate),
 				),
 			},
 			{
@@ -188,7 +188,7 @@ func TestAccCloudscaleServer_UpdateStatus(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "running"),
 					testAccCheckServerIp("cloudscale_server.basic"),
-					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
+					testAccCheckServerIsSame(t, &afterCreate, &afterUpdate),
 				),
 			},
 		},
@@ -320,7 +320,7 @@ func TestAccCloudscaleServer_UpdateNameAndFlavorAndVolumeSize(t *testing.T) {
 						"cloudscale_server.basic", "status", "running"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "volume_size_gb", "11"),
-					testAccCheckServerChanged(t, &afterCreate, &afterUpdate),
+					testAccCheckServerIsSame(t, &afterCreate, &afterUpdate),
 				),
 			},
 		},
@@ -360,7 +360,7 @@ func TestAccCloudscaleServer_import_basic(t *testing.T) {
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d-foobar", rInt)),
-					testAccCheckServerChanged(t, &afterImport, &afterUpdate),
+					testAccCheckServerIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 			{
@@ -505,9 +505,13 @@ func testAccCheckServerIp(n string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckServerChanged(t *testing.T,
+func testAccCheckServerIsSame(t *testing.T,
 	before, after *cloudscale.Server) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
 		if before.UUID != after.UUID {
 			t.Fatalf("Not expected a change of Server IDs got=%s, expected=%s",
 				after.UUID, before.UUID)

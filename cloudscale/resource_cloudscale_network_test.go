@@ -341,7 +341,10 @@ func TestAccCloudscaleNetwork_IdInput(t *testing.T) {
 }
 
 func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.Network
+
 	rInt := acctest.RandInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -350,6 +353,7 @@ func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
 			{
 				Config: networkconfigWithZone(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &afterImport),
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 				),
@@ -369,12 +373,26 @@ func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
 			{
 				Config: networkconfigWithZone(42),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_network.basic", "name", "terraform-42"),
+					testAccNetworkIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 		},
 	})
+}
+
+func testAccNetworkIsSame(
+	t *testing.T,
+	before, after *cloudscale.Network) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if before.UUID != after.UUID {
+			t.Fatalf("Not expected a change of Network IDs got=%s, expected=%s",
+				after.UUID, before.UUID)
+		}
+		return nil
+	}
 }
 
 func testAccCheckCloudscaleNetworkSubnetCount(n string, network *cloudscale.Network, expectedCount int) resource.TestCheckFunc {
