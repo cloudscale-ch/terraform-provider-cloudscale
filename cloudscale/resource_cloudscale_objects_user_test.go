@@ -117,7 +117,7 @@ func TestAccCloudscaleObjectsUser_Rename(t *testing.T) {
 func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
 	var afterImport, afterUpdate cloudscale.ObjectsUser
 
-	rInt := acctest.RandInt();
+	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
