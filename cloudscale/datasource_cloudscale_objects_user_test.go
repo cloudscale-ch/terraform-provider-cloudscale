@@ -132,4 +132,3 @@ resource "cloudscale_objects_user" "basic" {
   display_name = "terraform-%d-${count.index}"
 }`, count, rInt)
 }
-

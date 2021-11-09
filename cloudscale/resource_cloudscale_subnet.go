@@ -30,6 +30,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
 			Optional: t.isDataSource(),
+			ForceNew: true,
 		},
 		"network_uuid": {
 			Type:     schema.TypeString,

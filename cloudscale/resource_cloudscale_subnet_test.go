@@ -108,7 +108,7 @@ func TestAccCloudscaleSubnet_Update(t *testing.T) {
 				),
 			},
 			{
-				Config: networkconfigMinimal(rInt, false) + "\n" + subnetconfigUpdated(),
+				Config: subnetconfigUpdated(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
 					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
@@ -299,13 +299,17 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 }
 
 func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
+	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:	subnetconfigMinimal(acctest.RandInt()),
+				Config: subnetconfigMinimal(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "gateway_address", ""),
+				),
 			},
 			{
 				ResourceName:      "cloudscale_subnet.basic",
@@ -318,6 +322,12 @@ func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
 				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: subnetconfigUpdated(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "gateway_address", "10.11.12.10"),
+				),
 			},
 		},
 	})
@@ -424,8 +434,8 @@ resource "cloudscale_subnet" "basic" {
 `)
 }
 
-func subnetconfigUpdated() string {
-	return fmt.Sprintf(`
+func subnetconfigUpdated(rInt int) string {
+	return networkconfigMinimal(rInt, false) + "\n" + fmt.Sprintf(`
 resource "cloudscale_subnet" "basic" {
   cidr         	  = "10.11.12.0/24"
   network_uuid 	  = cloudscale_network.basic.id

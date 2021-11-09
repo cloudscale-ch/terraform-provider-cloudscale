@@ -97,7 +97,6 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	m["user_id"] = objectsUser.ID
 	m["display_name"] = objectsUser.DisplayName
 
-
 	keys := make([]map[string]string, 0, len(objectsUser.Keys))
 	for _, keyEntry := range objectsUser.Keys {
 		g := map[string]string{}

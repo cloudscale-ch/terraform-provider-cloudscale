@@ -53,7 +53,7 @@ func TestAccCloudscaleFloatingIP_Detached(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudscaleFloatingIPConfig_detached(),
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached("reverse.ptr"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.detached", &floatingIP),
 					resource.TestCheckResourceAttr(
@@ -182,7 +182,11 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudscaleFloatingIPConfig_detached(),
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached("cartman.ptr"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "reverse_ptr", "cartman.ptr"),
+				),
 			},
 			{
 				ResourceName:      "cloudscale_floating_ip.detached",
@@ -195,6 +199,13 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
 				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached("respect.my.authoritaaa"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "reverse_ptr", "respect.my.authoritaaa"),
+				),
 			},
 		},
 	})
@@ -269,12 +280,13 @@ func testAccCheckFloaingIPChanged(t *testing.T,
 	}
 }
 
-func testAccCheckCloudscaleFloatingIPConfig_detached() string {
+func testAccCheckCloudscaleFloatingIPConfig_detached(reverse_ptr string) string {
 	return fmt.Sprintf(`
 resource "cloudscale_floating_ip" "detached" {
   ip_version = 6
   region_slug = "lpg"
-}`)
+  reverse_ptr = "%s"
+}`, reverse_ptr)
 }
 
 func testAccCheckCloudscaleFloatingIPConfig_globalDetached() string {

@@ -341,13 +341,18 @@ func TestAccCloudscaleNetwork_IdInput(t *testing.T) {
 }
 
 func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
+	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: networkconfigWithZone(acctest.RandInt()),
+				Config: networkconfigWithZone(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+				),
 			},
 			{
 				ResourceName:      "cloudscale_network.basic",
@@ -360,6 +365,13 @@ func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
 				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: networkconfigWithZone(42),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "name", "terraform-42"),
+				),
 			},
 		},
 	})

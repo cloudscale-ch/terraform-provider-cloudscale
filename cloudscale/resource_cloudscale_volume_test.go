@@ -195,13 +195,18 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 }
 
 func TestAccCloudscaleVolume_import_basic(t *testing.T) {
+	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: volumeConfig_detached(acctest.RandInt()),
+				Config: volumeConfig_detached(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+				),
 			},
 			{
 				ResourceName:      "cloudscale_volume.basic",
@@ -214,6 +219,13 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
 				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: volumeConfig_detached(42),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "name", "terraform-42"),
+				),
 			},
 		},
 	})

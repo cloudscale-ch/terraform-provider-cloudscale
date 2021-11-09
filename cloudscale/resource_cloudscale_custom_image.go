@@ -23,9 +23,9 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
-		Importer: &schema.ResourceImporter{
+		/*Importer: &schema.ResourceImporter{
 			StateContext: resourceCloudscaleCustomImageImport,
-		},
+		},*/
 	}
 }
 
@@ -180,7 +180,6 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	m["zone_slugs"] = zoneSlugs
 	return m
 }
-
 
 func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
