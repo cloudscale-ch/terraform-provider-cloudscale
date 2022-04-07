@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 const customImagesBasePath = "v1/custom-images"
@@ -24,6 +25,7 @@ type CustomImage struct {
 	Checksums        map[string]string `json:"checksums,omitempty"`
 	UserDataHandling string            `json:"user_data_handling,omitempty"`
 	Zones            []Zone            `json:"zones"`
+	CreatedAt        time.Time         `json:"created_at"`
 }
 
 type CustomImageRequest struct {
