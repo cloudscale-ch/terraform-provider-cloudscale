@@ -13,12 +13,12 @@ func TestMain(m *testing.M) {
 }
 
 func sharedConfigForRegion(region string) (interface{}, error) {
-	if os.Getenv("CLOUDSCALE_TOKEN") == "" {
-		return nil, fmt.Errorf("empty CLOUDSCALE_TOKEN")
+	if os.Getenv("CLOUDSCALE_API_TOKEN") == "" {
+		return nil, fmt.Errorf("empty CLOUDSCALE_API_TOKEN")
 	}
 
 	config := Config{
-		Token: os.Getenv("CLOUDSCALE_TOKEN"),
+		Token: os.Getenv("CLOUDSCALE_API_TOKEN"),
 	}
 
 	// configures a default client for the region, using the above env vars

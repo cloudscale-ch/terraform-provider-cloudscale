@@ -74,8 +74,8 @@ jobs:
         # optionally use data from your repository secrets using the
         # following syntax:
         # SOME_VAR: ${{ secrets.SOME_VAR }}
-        CLOUDSCALE_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
-      if: env.CLOUDSCALE_TOKEN != null
+        CLOUDSCALE_API_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
+      if: env.CLOUDSCALE_API_TOKEN != null
 
       run: |
         go test -mod=vendor ./... -v -timeout 120m
