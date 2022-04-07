@@ -1,5 +1,5 @@
 # Set the variable value in a *.tfvars file or use
-# the -var="cloudscale_token=..." CLI option.
+# the -var="cloudscale_api_token=..." CLI option.
 #
 # You can omit both the variable and provider if you
 # choose to set a shell environment variable called
