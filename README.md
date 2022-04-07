@@ -24,7 +24,10 @@ To generate or update documentation, run `go generate`.
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
 
-*Note:* Acceptance tests create real resources, and often cost money to run.
+*Notes:* 
+ * Acceptance tests create real resources, and often cost money to run.
+ * [See here](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)
+   to understand which version of Terraform is used in your tests.
 
 ```sh
 $ make testacc
