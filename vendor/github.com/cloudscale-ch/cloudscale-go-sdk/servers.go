@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"time"
 )
 
 const serverBasePath = "v1/servers"
@@ -28,6 +29,7 @@ type Server struct {
 	SSHHostKeys     []string          `json:"ssh_host_keys"`
 	AntiAfinityWith []ServerStub      `json:"anti_affinity_with"`
 	ServerGroups    []ServerGroupStub `json:"server_groups"`
+	CreatedAt       time.Time         `json:"created_at"`
 }
 
 type ServerStub struct {

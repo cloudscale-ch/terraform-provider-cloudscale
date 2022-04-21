@@ -1,3 +1,12 @@
+## Unreleased
+ * Use consistent naming and usage of variables across all cloudscale.ch tools (#58)
+ * Update to latest terraform-plugin-sdk to ensure compatibility with Terraform v1.1.x (#58)
+ * Update to latest cloudscale-go-sdk (#58)
+ * :warning: **Breaking Change**: To be consistent with cloudscale.ch's other tools, the 
+    environment variable `CLOUDSCALE_TOKEN` has been renamed to `CLOUDSCALE_API_TOKEN`.
+    Please adapt your environment accordingly. If you are configuring the token through
+    some other means than an environment variable, you are not affected by this change.
+
 ## 3.2.0
 * Add data sources:
   - `cloudscale_server`

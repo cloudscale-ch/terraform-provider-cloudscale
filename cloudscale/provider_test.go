@@ -28,7 +28,7 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("CLOUDSCALE_TOKEN"); v == "" {
-		t.Fatal("CLOUDSCALE_TOKEN must be set for acceptance tests")
+	if v := os.Getenv("CLOUDSCALE_API_TOKEN"); v == "" {
+		t.Fatal("CLOUDSCALE_API_TOKEN must be set for acceptance tests")
 	}
 }

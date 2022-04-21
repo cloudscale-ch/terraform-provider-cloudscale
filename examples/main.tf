@@ -1,11 +1,11 @@
 # Set the variable value in a *.tfvars file or use
-# the -var="cloudscale_token=..." CLI option.
+# the -var="cloudscale_api_token=..." CLI option.
 #
 # You can omit both the variable and provider if you
 # choose to set a shell environment variable called
-# `CLOUDSCALE_TOKEN` instead.
+# `CLOUDSCALE_API_TOKEN` instead.
 
-variable "cloudscale_token" {}
+variable "cloudscale_api_token" {}
 
 terraform {
   required_providers {
@@ -17,7 +17,7 @@ terraform {
 }
 
 provider "cloudscale" {
-  token = "${var.cloudscale_token}"
+  token = "${var.cloudscale_api_token}"
 }
 
 # Create a new Server

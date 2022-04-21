@@ -10,7 +10,7 @@ func Provider() *schema.Provider {
 			"token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("CLOUDSCALE_TOKEN", nil),
+				DefaultFunc: schema.EnvDefaultFunc("CLOUDSCALE_API_TOKEN", nil),
 				Description: "The token for API operations.",
 			},
 		},

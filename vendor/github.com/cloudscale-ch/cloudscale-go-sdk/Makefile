@@ -17,6 +17,6 @@ bump-version:
 	@(echo ${NEW_VERSION} | grep -E "^v") || ( echo "NEW_VERSION must be a semver ('v' prefix is required)"; exit 1 )
 	@echo "Bumping VERSION from $(VERSION) to $(NEW_VERSION)"
 	@echo $(NEW_VERSION) > VERSION
-	@sed -i'' -e 's/${VERSION}/${NEW_VERSION}/g' cloudscale.go
+	@sed -i '' -e 's/${VERSION}/${NEW_VERSION}/g' cloudscale.go
 
 .PHONY: test integration

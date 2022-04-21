@@ -5,8 +5,9 @@
 If you want to manage your cloudscale.ch server resources with Go, you are at
 the right place.
 
-There's a possibility to specify the `CLOUDSCALE_URL` environment variable to
-change the default url of https://api.cloudscale.ch.
+There's a possibility to specify the `CLOUDSCALE_API_URL` environment variable to
+change the default url of https://api.cloudscale.ch, but you can almost certainly
+use the default.
 
 ## Download from Github
 
@@ -31,7 +32,7 @@ positives and test failures due to network issues, data changes, etc.
 Run the tests using:
 
 ````
-CLOUDSCALE_TOKEN="HELPIMTRAPPEDINATOKENGENERATOR" make integration
+CLOUDSCALE_API_TOKEN="HELPIMTRAPPEDINATOKENGENERATOR" make integration
 
 ````
 
@@ -48,4 +49,4 @@ To create a new release, please do the following:
  * Run `make NEW_VERSION=v1.x.x bump-version`
  * Commit the changes
  * Merge the release branch into master
- * Create a [new release](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new) on GitHub.
+ * Create a [new release](https://github.com/cloudscale-ch/cloudscale-go-sdk/releases/new) on GitHub.

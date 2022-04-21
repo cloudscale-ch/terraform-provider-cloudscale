@@ -42,12 +42,16 @@ jobs:
     timeout-minutes: 120
 
     strategy:
-      fail-fast: false
+      fail-fast: true
+      max-parallel: 1
       matrix:
         # list whatever Terraform versions here you would like to support
         terraform:
-          #- '0.15.5'
           - '1.0.0'
+          - '1.1.0'
+          # test with the latest version, see:
+          # https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors
+          - ''
 
     steps:
 
@@ -70,8 +74,8 @@ jobs:
         # optionally use data from your repository secrets using the
         # following syntax:
         # SOME_VAR: ${{ secrets.SOME_VAR }}
-        CLOUDSCALE_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
-      if: env.CLOUDSCALE_TOKEN != null
+        CLOUDSCALE_API_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
+      if: env.CLOUDSCALE_API_TOKEN != null
 
       run: |
         go test -mod=vendor ./... -v -timeout 120m

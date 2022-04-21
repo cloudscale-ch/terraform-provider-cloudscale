@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"strconv"
+	"time"
 )
 
 const floatingIPsBasePath = "v1/floating-ips"
@@ -20,6 +21,7 @@ type FloatingIP struct {
 	Server         *ServerStub `json:"server"`
 	Type           string      `json:"type"`
 	ReversePointer string      `json:"reverse_ptr,omitempty"`
+	CreatedAt      time.Time   `json:"created_at"`
 }
 
 type FloatingIPCreateRequest struct {

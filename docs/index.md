@@ -48,7 +48,7 @@ pass the token to the provider using one of the following methods:
 
 ### Environment variable (recommended)
 
-Set a shell environment variable called `CLOUDSCALE_TOKEN`.
+Set a shell environment variable called `CLOUDSCALE_API_TOKEN`.
 
 ### Static credentials
 
@@ -56,10 +56,10 @@ Add the following configuration:
 
 ```hcl
 # Set the variable value in a *.tfvars file or use 
-# the -var="cloudscale_token=..." CLI option.
-variable "cloudscale_token" {}
+# the -var="cloudscale_api_token=..." CLI option.
+variable "cloudscale_api_token" {}
 
 provider "cloudscale" {
-  token = var.cloudscale_token
+  token = var.cloudscale_api_token
 }
 ```
