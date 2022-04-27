@@ -547,6 +547,7 @@ func TestAccCloudscaleServer_tags(t *testing.T) {
 						"cloudscale_server.basic", "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_server.basic"),
 				),
 			},
 			{
@@ -554,6 +555,7 @@ func TestAccCloudscaleServer_tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "tags.%", "0"),
+					testTagsMatch("cloudscale_server.basic"),
 				),
 			},
 			{
@@ -565,6 +567,7 @@ func TestAccCloudscaleServer_tags(t *testing.T) {
 						"cloudscale_server.basic", "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_server.basic"),
 				),
 			},
 		},
