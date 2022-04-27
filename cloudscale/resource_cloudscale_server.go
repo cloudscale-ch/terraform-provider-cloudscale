@@ -186,6 +186,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 			Optional: t.isResource(),
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 		"server_groups": {
 			Type: schema.TypeList,
 			Elem: &schema.Resource{
@@ -392,6 +393,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("error waiting for server status (%s) (%s) ", server.UUID, err)
 		}
 	}
+	opts.Tags = CopyTags(d)
 
 	err = resourceServerRead(d, meta)
 	if err != nil {
@@ -671,6 +673,15 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		err := client.Servers.Update(context.Background(), id, updateRequest)
 		if err != nil {
 			return fmt.Errorf("Error changing the Server (%s) interfaces (%s) ", id, err)
+		}
+	}
+
+	if d.HasChange("tags") {
+		updateRequest := &cloudscale.ServerUpdateRequest{}
+		updateRequest.Tags = CopyTags(d)
+		err := client.Servers.Update(context.Background(), id, updateRequest)
+		if err != nil {
+			return fmt.Errorf("Error tagging the Server (%s) status (%s) ", id, err)
 		}
 	}
 

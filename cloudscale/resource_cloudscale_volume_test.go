@@ -377,8 +377,8 @@ resource "cloudscale_volume" "basic" {
   size_gb      = 50
   type         = "ssd"
   tags = {
-	  my-foo = "foo"
-	  my-bar = "bar"
+    my-foo = "foo"
+    my-bar = "bar"
   }
 }`, rInt)
 }
