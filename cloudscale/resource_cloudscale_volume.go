@@ -56,6 +56,7 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -87,6 +88,7 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	opts.ServerUUIDs = &s
+	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] Volume create configuration: %#v", opts)
 
@@ -116,6 +118,7 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	m["type"] = volume.Type
 	m["zone_slug"] = volume.Zone.Slug
 	m["server_uuids"] = volume.ServerUUIDs
+	m["tags"] = volume.Tags
 	return m
 }
 
@@ -135,11 +138,12 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"name", "size_gb", "server_uuids"} {
+	for _, attribute := range []string{"name", "size_gb", "server_uuids", "tags"} {
 		// cloudscale.ch volume attributes can only be changed one at a time.
 		// This means that it's not possible to scale in the same call as
 		// attaching the volume to a different server.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.VolumeRequest{}
 			if attribute == "server_uuids" {
 				serverUUIDs := d.Get("server_uuids").([]interface{})
@@ -153,6 +157,8 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "size_gb" {
 				opts.SizeGB = d.Get(attribute).(int)
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
 			}
 			err := client.Volumes.Update(context.Background(), id, opts)
 			if err != nil {

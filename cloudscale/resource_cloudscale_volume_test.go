@@ -237,6 +237,47 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleVolume_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: volumeConfig_detached_withTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "tags.my-bar", "bar"),
+				),
+			},
+			{
+				Config: volumeConfig_detached(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "tags.%", "0"),
+				),
+			},
+			{
+				Config: volumeConfig_detached_withTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume.basic", "tags.my-bar", "bar"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleVolumeIsSame(t *testing.T,
 	before, after *cloudscale.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -326,6 +367,19 @@ resource "cloudscale_volume" "basic" {
   name         = "terraform-%d"
   size_gb      = 50
   type         = "ssd"
+}`, rInt)
+}
+
+func volumeConfig_detached_withTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_volume" "basic" {
+  name         = "terraform-%d"
+  size_gb      = 50
+  type         = "ssd"
+  tags = {
+	  my-foo = "foo"
+	  my-bar = "bar"
+  }
 }`, rInt)
 }
 
