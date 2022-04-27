@@ -1,10 +1,17 @@
 package cloudscale
 
 import (
+	"fmt"
+	"net/http"
 	"os"
 	"testing"
+	"context"
+	"strconv"
 
+	"github.com/cloudscale-ch/cloudscale-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var testAccProviders map[string]*schema.Provider
@@ -30,5 +37,40 @@ func TestProvider_impl(t *testing.T) {
 func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("CLOUDSCALE_API_TOKEN"); v == "" {
 		t.Fatal("CLOUDSCALE_API_TOKEN must be set for acceptance tests")
+	}
+}
+
+func testTagsMatch(resource string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resource]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resource)
+		}
+
+		attributes := rs.Primary.Attributes
+		href, found := attributes["href"]
+		if !found {
+			return fmt.Errorf("No HREF found")
+		}
+
+		client := testAccProvider.Meta().(*cloudscale.Client)
+		ctx := context.Background()
+		req, err := client.NewRequest(ctx, http.MethodGet, href, nil)
+		if err != nil {
+			return err
+		}
+
+		tagged := new(cloudscale.TaggedResource)
+		err = client.Do(ctx, req, tagged)
+		if err != nil {
+			return err
+		}
+		in_state := attributes["tags.%"]
+		actual := strconv.Itoa(len(tagged.Tags))
+		if in_state != actual {
+			return fmt.Errorf("State has %s tags, API %s tags", in_state, actual)
+		}
+
+		return nil
 	}
 }

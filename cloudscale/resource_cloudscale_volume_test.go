@@ -254,6 +254,7 @@ func TestAccCloudscaleVolume_tags(t *testing.T) {
 						"cloudscale_volume.basic", "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_volume.basic"),
 				),
 			},
 			{
@@ -261,6 +262,7 @@ func TestAccCloudscaleVolume_tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume.basic", "tags.%", "0"),
+					testTagsMatch("cloudscale_volume.basic"),
 				),
 			},
 			{
@@ -272,6 +274,7 @@ func TestAccCloudscaleVolume_tags(t *testing.T) {
 						"cloudscale_volume.basic", "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_volume.basic"),
 				),
 			},
 		},
