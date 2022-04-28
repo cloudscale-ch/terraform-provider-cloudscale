@@ -44,6 +44,13 @@ The following arguments are supported when creating/changing networks:
 * `zone_slug` - (Optional) The slug of the zone in which the new network will be created. Options include `lpg1` and `rma1`.
 * `mtu` - (Optional) You can specify the MTU size for the network, defaults to 9000.
 * `auto_create_ipv4_subnet` - (Optional) Automatically create an IPv4 Subnet on the network. Can be `true` (default) or `false`.
+* `tags` - (Optional) Tags can be used to specify additional information on resources:
+  ```
+  tags = {
+    foo = "bar"
+  }
+  ```
+  Tags are always strings (both keys and values).
 
 
 ## Attributes Reference

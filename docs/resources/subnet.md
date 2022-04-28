@@ -54,6 +54,13 @@ The following arguments are supported when creating/changing subnets:
 * `network_uuid` - (Required) The network of the subnet.
 * `gateway_address` - (Optional) The gateway address of the subnet.
 * `dns_servers` - (Optional) A list of DNS resolver IP addresses, that act as DNS servers.
+* `tags` - (Optional) Tags can be used to specify additional information on resources:
+  ```
+  tags = {
+    foo = "bar"
+  }
+  ```
+  Tags are always strings (both keys and values).
 
 
 ## Attributes Reference

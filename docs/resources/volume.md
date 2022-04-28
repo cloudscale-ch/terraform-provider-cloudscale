@@ -35,6 +35,13 @@ The following arguments are supported when creating/changing volumes:
 * `zone_slug` - (Optional) The slug of the zone in which the new volume will be created. Options include `lpg1` and `rma1`.
 * `type` - (Optional) For SSD/NVMe volumes specify "ssd" (default) or use "bulk" for our HDD cluster with NVMe caching. This is the only attribute that cannot be altered.
 * `server_uuids` - (Optional) A list of server UUIDs. Default to an empty list. Currently a volume can only be attached to one server UUID.
+* `tags` - (Optional) Tags can be used to specify additional information on resources:
+  ```
+  tags = {
+    foo = "bar"
+  }
+  ```
+  Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

@@ -33,10 +33,18 @@ The following arguments are supported when creating server groups:
 * `name` - (Required) Name of the new server group.
 * `type` - (Required) The type of the server group can currently only be `"anti-affinity"`.
 * `zone_slug` - (Optional) The slug of the zone in which the new server group will be created. Options include `lpg1` and `rma1`.
+* `tags` - (Optional) Tags can be used to specify additional information on resources:
+  ```
+  tags = {
+    foo = "bar"
+  }
+  ```
+  Tags are always strings (both keys and values).
 
 The following arguments are supported when updating server groups:
 
 * `name` -  The new name of the server group.
+* `tags` - (Optional) Change tags (see documentation above)
 
 ## Attributes Reference
 
