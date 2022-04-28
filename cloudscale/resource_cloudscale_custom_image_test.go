@@ -168,6 +168,50 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleCustomImage_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_custom_image.basic"),
+				),
+			},
+			{
+				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "tags.%", "0"),
+					testTagsMatch("cloudscale_custom_image.basic"),
+				),
+			},
+			{
+				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_custom_image.basic"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 	var customImage cloudscale.CustomImage
 	var server cloudscale.Server
@@ -326,6 +370,22 @@ resource "cloudscale_custom_image" "%s" {
   slug               = "terra-test-slug"
   user_data_handling = "extend-cloud-config"
   zone_slugs         = ["lpg1", "rma1"]
+}`, name, imageDownloadURL, rInt)
+}
+
+func customImageConfig_tags(name string, imageDownloadURL string, rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_custom_image" "%s" {
+  import_url         = "%s"
+  import_source_format      = "raw"
+  name               = "terraform-%d"
+  slug               = "terra-test-slug"
+  user_data_handling = "extend-cloud-config"
+  zone_slugs         = ["lpg1", "rma1"]
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }`, name, imageDownloadURL, rInt)
 }
 
