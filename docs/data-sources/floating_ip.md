@@ -24,11 +24,11 @@ data "cloudscale_floating_ip" "web-worker01-net" {
 The following arguments can be used to look up a Floating IP:
 
 * `id` - (Optional) The network IP of the floating IP, e.g. `192.0.2.0` of the network `192.0.2.0/24`.
-* `network` - The CIDR notation of the Floating IP address or network, e.g. `192.0.2.123/32`.
-* `reverse_ptr` - The PTR record (reverse DNS pointer) in case of a single Floating IP address.
-* `ip_version` - `4` or `6`, for an IPv4 or IPv6 address or network respectively.
-* `region_slug` - The slug of the region in which a Regional Floating IP is assigned.
-* `type` - Options include `regional` and `global`.
+* `network` - (Optional) The CIDR notation of the Floating IP address or network, e.g. `192.0.2.123/32`.
+* `reverse_ptr` - (Optional) The PTR record (reverse DNS pointer) in case of a single Floating IP address.
+* `ip_version` - (Optional) `4` or `6`, for an IPv4 or IPv6 address or network respectively.
+* `region_slug` - (Optional) The slug of the region in which a Regional Floating IP is assigned.
+* `type` - (Optional) Options include `regional` and `global`.
 
 ## Attributes Reference
 
