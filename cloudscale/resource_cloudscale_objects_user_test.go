@@ -157,6 +157,50 @@ func TestAccCloudscaleObjectsUser_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleObjectsUser_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleObjectsUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: objectsUserConfigWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_objects_user.basic"),
+				),
+			},
+			{
+				Config: objectsUserConfigMinimal(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "tags.%", "0"),
+					testTagsMatch("cloudscale_objects_user.basic"),
+				),
+			},
+			{
+				Config: objectsUserConfigWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_objects_user.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_objects_user.basic"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleObjectsUserExists(n string, objectsUser *cloudscale.ObjectsUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -235,6 +279,18 @@ func objectsUserConfigMinimal(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_objects_user" "basic" {
   display_name    = "terraform-%d"
+}
+`, rInt)
+}
+
+func objectsUserConfigWithTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_objects_user" "basic" {
+  display_name    = "terraform-%d"
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }
 `, rInt)
 }
