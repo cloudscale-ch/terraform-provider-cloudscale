@@ -72,6 +72,7 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -108,6 +109,7 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOk("type"); ok {
 		opts.Type = attr.(string)
 	}
+	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] FloatingIP create configuration: %#v", opts)
 
@@ -165,7 +167,7 @@ func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"server", "reverse_ptr"} {
+	for _, attribute := range []string{"server", "tags", "reverse_ptr"} {
 		// cloudscale.ch Floating UP attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
 			opts := &cloudscale.FloatingIPUpdateRequest{}
@@ -175,6 +177,8 @@ func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
 				serverUUID := d.Get("server").(string)
 				log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
 				opts.Server = serverUUID
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
 			}
 			err := client.FloatingIPs.Update(context.Background(), id, opts)
 			if err != nil {

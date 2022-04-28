@@ -168,7 +168,7 @@ func TestAccCloudscaleFloatingIP_Update(t *testing.T) {
 					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.gateway", &afterUpdate),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.gateway", "ip_version", "4"),
-					testAccCheckFloaingIPChanged(t, &beforeUpdate, &afterUpdate),
+					testAccCheckFloatingIPChanged(t, &beforeUpdate, &afterUpdate),
 				),
 			},
 		},
@@ -210,6 +210,50 @@ func TestAccCloudscaleFloatingIP_import_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "reverse_ptr", "respect.my.authoritaaa"),
 					testAccCheckFloatingIPIsSame(t, &afterImport, &afterUpdate),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleFloatingIP_tags(t *testing.T) {
+	reversePtr := "cartman.ptr"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached_withTags(reversePtr),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_floating_ip.detached"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached(reversePtr),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "tags.%", "0"),
+					testTagsMatch("cloudscale_floating_ip.detached"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleFloatingIPConfig_detached_withTags(reversePtr),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_floating_ip.detached"),
 				),
 			},
 		},
@@ -289,7 +333,7 @@ func testAccCheckFloatingIPIsSame(t *testing.T,
 	}
 }
 
-func testAccCheckFloaingIPChanged(t *testing.T,
+func testAccCheckFloatingIPChanged(t *testing.T,
 	before, after *cloudscale.FloatingIP) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if before.Server.UUID == after.Server.UUID {
@@ -306,6 +350,19 @@ resource "cloudscale_floating_ip" "detached" {
   ip_version = 6
   region_slug = "lpg"
   reverse_ptr = "%s"
+}`, reversePtr)
+}
+
+func testAccCheckCloudscaleFloatingIPConfig_detached_withTags(reversePtr string) string {
+	return fmt.Sprintf(`
+resource "cloudscale_floating_ip" "detached" {
+  ip_version = 6
+  region_slug = "lpg"
+  reverse_ptr = "%s"
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }`, reversePtr)
 }
 

@@ -68,7 +68,7 @@ func testTagsMatch(resource string) resource.TestCheckFunc {
 		in_state := attributes["tags.%"]
 		actual := strconv.Itoa(len(tagged.Tags))
 		if in_state != actual {
-			return fmt.Errorf("State has %s tags, API %s tags", in_state, actual)
+			return fmt.Errorf("State has %s tags, API has %s tags", in_state, actual)
 		}
 
 		return nil
