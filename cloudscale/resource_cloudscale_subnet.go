@@ -62,6 +62,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -92,6 +93,7 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		s[i] = dnsServers[i].(string)
 	}
 	opts.DNSServers = s
+	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] Subnet create configuration: %#v", opts)
 
@@ -141,7 +143,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"gateway_address", "dns_servers"} {
+	for _, attribute := range []string{"gateway_address", "dns_servers", "tags"} {
 		// cloudscale.ch subnet attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
 			opts := &cloudscale.SubnetUpdateRequest{}
@@ -155,6 +157,8 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 					s[i] = dnsServers[i].(string)
 				}
 				opts.DNSServers = s
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
 			}
 			err := client.Subnets.Update(context.Background(), id, opts)
 			if err != nil {
