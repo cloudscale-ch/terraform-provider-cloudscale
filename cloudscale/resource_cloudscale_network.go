@@ -66,6 +66,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -99,6 +100,7 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 		val := attr.(bool)
 		opts.AutoCreateIPV4Subnet = &val
 	}
+	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] Network create configuration: %#v", opts)
 
@@ -155,7 +157,7 @@ func resourceNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"name", "mtu"} {
+	for _, attribute := range []string{"name", "mtu", "tags"} {
 		// cloudscale.ch network attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
 			opts := &cloudscale.NetworkUpdateRequest{}
@@ -163,6 +165,8 @@ func resourceNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "mtu" {
 				opts.MTU = d.Get(attribute).(int)
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
 			}
 			err := client.Networks.Update(context.Background(), id, opts)
 			if err != nil {
