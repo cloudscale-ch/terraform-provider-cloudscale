@@ -354,6 +354,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOk("status"); ok {
 		originalStatus = attr.(string)
 	}
+	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] Server create configuration: %#v", opts)
 
@@ -393,7 +394,6 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("error waiting for server status (%s) (%s) ", server.UUID, err)
 		}
 	}
-	opts.Tags = CopyTags(d)
 
 	err = resourceServerRead(d, meta)
 	if err != nil {
