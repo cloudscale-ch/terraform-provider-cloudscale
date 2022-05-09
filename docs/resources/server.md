@@ -53,7 +53,7 @@ The following arguments are supported when creating new servers:
 * `allow_stopping_for_update` - (Optional) If true, allows Terraform to stop the instance to update its properties. If you try to update a property that requires stopping the instance without setting this field, the update will fail.
 * `skip_waiting_for_ssh_host_keys` - (Optional) If set to `true`, do not wait until SSH host keys become available.
 * `timeouts` - (Optional) Specify how long certain operations are allowed to take before being considered to have failed. Currently, only the `create` timeout can be specified. Takes a string representation of a duration such as `5m` for 5 minutes (default), `10s` for ten seconds, or `2h` for two hours.
-* `tags` - (Optional) Tags can be used to specify additional information on resources:
+* `tags` - (Optional) Tags allow you to assign custom metadata to resources:
   ```
   tags = {
     foo = "bar"

@@ -42,7 +42,7 @@ The following arguments are supported when adding Floating IPs:
 * `type` - (Optional) You can specify the type. Options include `regional` (default) and `global`.
 * `region_slug` - (Optional) The slug of the region in which the new Regional Floating IP will be created. Options include `lpg` and `rma`.
 * `reverse_ptr` - (Optional) You can specify the PTR record (reverse DNS pointer) in case of a single Floating IP address.
-* `tags` - (Optional) Tags can be used to specify additional information on resources:
+* `tags` - (Optional) Tags allow you to assign custom metadata to resources:
   ```
   tags = {
     foo = "bar"

@@ -55,7 +55,7 @@ The following arguments are supported when creating/changing custom images:
 * `user_data_handling` - (Required) How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.
 * `zone_slugs` - (Required) Specify the zones in which the custom image will be available. Options include `lpg1` and `rma1`.
 * `timeouts` - (Optional) Specify how long certain operations are allowed to take before being considered to have failed. Currently, only the `create` timeout can be specified. Takes a string representation of a duration, such as `20m` for 20 minutes (default), `10s` for ten seconds, or `2h` for two hours.
-* `tags` - (Optional) Tags can be used to specify additional information on resources:
+* `tags` - (Optional) Tags allow you to assign custom metadata to resources:
   ```
   tags = {
     foo = "bar"
