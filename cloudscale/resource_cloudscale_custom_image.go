@@ -174,6 +174,7 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	m["size_gb"] = customImage.SizeGB
 	m["user_data_handling"] = customImage.UserDataHandling
 	m["checksums"] = customImage.Checksums
+	m["tags"] = customImage.Tags
 
 	zoneSlugs := make([]string, 0, len(customImage.Zones))
 	for _, zone := range customImage.Zones {

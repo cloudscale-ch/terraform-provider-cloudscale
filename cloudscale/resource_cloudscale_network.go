@@ -138,6 +138,7 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 		subnets = append(subnets, g)
 	}
 	m["subnets"] = subnets
+	m["tags"] = network.Tags
 	return m
 }
 

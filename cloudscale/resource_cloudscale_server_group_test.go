@@ -183,6 +183,53 @@ func TestAccCloudscaleServerGroup_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleServerGroup_import_withTags(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.ServerGroup
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZoneAndTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterImport),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "name", fmt.Sprintf("terraform-%d-group", rInt)),
+					testTagsMatch("cloudscale_server_group.servergroup"),
+				),
+			},
+			{
+				ResourceName:      "cloudscale_server_group.servergroup",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_server_group.servergroup",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(42),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "name", "terraform-42-group"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.%", "0"),
+					testAccCheckServerGroupIsSame(t, &afterImport, &afterUpdate),
+					testTagsMatch("cloudscale_server_group.servergroup"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleServerGroup_tags(t *testing.T) {
 	rInt := acctest.RandInt()
 

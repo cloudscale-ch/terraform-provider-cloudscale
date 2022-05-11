@@ -138,6 +138,7 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	m["next_hop"] = floatingIP.NextHop
 	m["reverse_ptr"] = floatingIP.ReversePointer
 	m["type"] = floatingIP.Type
+	m["tags"] = floatingIP.Tags
 	if floatingIP.Server != nil {
 		m["server"] = floatingIP.Server.UUID
 	}

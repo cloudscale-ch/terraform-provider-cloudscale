@@ -98,6 +98,7 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	m["href"] = objectsUser.HREF
 	m["user_id"] = objectsUser.ID
 	m["display_name"] = objectsUser.DisplayName
+	m["tags"] = objectsUser.Tags
 
 	keys := make([]map[string]string, 0, len(objectsUser.Keys))
 	for _, keyEntry := range objectsUser.Keys {
