@@ -55,6 +55,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 				},
 			},
 			Computed: true,
+			Sensitive: true,
 		},
 	}
 	if t.isDataSource() {
