@@ -1,4 +1,5 @@
 ## Unreleased
+ * Mark the keys attribute of `cloudscale_objects_user` as sensitive (#63)
  * Use consistent naming and usage of variables across all cloudscale.ch tools (#58)
  * Update to latest terraform-plugin-sdk to ensure compatibility with Terraform v1.1.x (#58)
  * Update to latest cloudscale-go-sdk (#58)
