@@ -7,6 +7,8 @@ github.com/apparentlymart/go-textseg/v13/textseg
 # github.com/cloudscale-ch/cloudscale-go-sdk v1.11.0
 ## explicit
 github.com/cloudscale-ch/cloudscale-go-sdk
+# github.com/cloudscale-ch/cloudscale-go-sdk/v2 v2.0.1
+## explicit
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/fatih/color v1.7.0
