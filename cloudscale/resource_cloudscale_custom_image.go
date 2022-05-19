@@ -8,7 +8,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -68,6 +68,7 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -115,6 +116,7 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 		SourceFormat:     d.Get("import_source_format").(string),
 		Zones:            nil,
 	}
+	opts.Tags = CopyTags(d)
 	zoneSlugs := d.Get("zone_slugs").(*schema.Set).List()
 	z := make([]string, len(zoneSlugs))
 
@@ -172,6 +174,7 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	m["size_gb"] = customImage.SizeGB
 	m["user_data_handling"] = customImage.UserDataHandling
 	m["checksums"] = customImage.Checksums
+	m["tags"] = customImage.Tags
 
 	zoneSlugs := make([]string, 0, len(customImage.Zones))
 	for _, zone := range customImage.Zones {
@@ -203,7 +206,7 @@ func resourceCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"name", "slug", "user_data_handling"} {
+	for _, attribute := range []string{"name", "slug", "user_data_handling", "tags"} {
 		// cloudscale.ch customImage attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
 			opts := &cloudscale.CustomImageRequest{}
@@ -213,6 +216,8 @@ func resourceCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
 				opts.Slug = d.Get(attribute).(string)
 			} else if attribute == "user_data_handling" {
 				opts.UserDataHandling = d.Get(attribute).(string)
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
 			}
 			err := client.CustomImages.Update(context.Background(), id, opts)
 			if err != nil {

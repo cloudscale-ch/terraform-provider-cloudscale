@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -383,6 +383,50 @@ func TestAccCloudscaleNetwork_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleNetwork_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: networkconfigNoSubnetWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_network.basic"),
+				),
+			},
+			{
+				Config: networkconfigNoSubnet(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "tags.%", "0"),
+					testTagsMatch("cloudscale_network.basic"),
+				),
+			},
+			{
+				Config: networkconfigNoSubnetWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_network.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_network.basic"),
+				),
+			},
+		},
+	})
+}
+
 func testAccNetworkIsSame(
 	t *testing.T,
 	before, after *cloudscale.Network) resource.TestCheckFunc {
@@ -506,6 +550,19 @@ resource "cloudscale_network" "basic" {
   name                    = "terraform-%d"
   zone_slug               = "lpg1"
   auto_create_ipv4_subnet = false
+}`, rInt)
+}
+
+func networkconfigNoSubnetWithTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_network" "basic" {
+  name                    = "terraform-%d"
+  zone_slug               = "lpg1"
+  auto_create_ipv4_subnet = false
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }`, rInt)
 }
 

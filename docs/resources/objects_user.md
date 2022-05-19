@@ -24,10 +24,18 @@ resource "cloudscale_objects_user" "basic" {
 The following arguments are supported when adding Objects Users:
 
 * `display_name` - (Required) The display name of the Objects User.
+* `tags` - (Optional) Tags allow you to assign custom metadata to resources:
+  ```
+  tags = {
+    foo = "bar"
+  }
+  ```
+  Tags are always strings (both keys and values).
 
 The following arguments are supported when updating Objects Users:
 
 * `display_name` - (Required) The new display name of the Objects User.
+* `tags` - (Optional) Change tags (see documentation above)
 
 ## Attributes Reference
 

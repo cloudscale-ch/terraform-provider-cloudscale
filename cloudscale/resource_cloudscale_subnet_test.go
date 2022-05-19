@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -339,6 +339,50 @@ func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleSubnet_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: subnetconfigMinimalWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_subnet.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_subnet.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_subnet.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_subnet.basic"),
+				),
+			},
+			{
+				Config: subnetconfigMinimal(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_subnet.basic", "tags.%", "0"),
+					testTagsMatch("cloudscale_subnet.basic"),
+				),
+			},
+			{
+				Config: subnetconfigMinimalWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_subnet.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_subnet.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_subnet.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_subnet.basic"),
+				),
+			},
+		},
+	})
+}
+
 func testAccSubnetIsSame(t *testing.T,
 	before, after *cloudscale.Subnet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -436,6 +480,19 @@ func subnetconfigMinimal(rInt int) string {
 resource "cloudscale_subnet" "basic" {
   cidr            = "10.11.12.0/24"
   network_uuid    = cloudscale_network.basic.id
+}
+`)
+}
+
+func subnetconfigMinimalWithTags(rInt int) string {
+	return networkconfigMinimal(rInt, false) + fmt.Sprintf(`
+resource "cloudscale_subnet" "basic" {
+  cidr            = "10.11.12.0/24"
+  network_uuid    = cloudscale_network.basic.id
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }
 `)
 }

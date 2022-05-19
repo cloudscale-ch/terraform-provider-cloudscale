@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -57,6 +57,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: true,
 			Sensitive: true,
 		},
+		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -73,6 +74,7 @@ func resourceObjectsUserCreate(d *schema.ResourceData, meta interface{}) error {
 	opts := &cloudscale.ObjectsUserRequest{
 		DisplayName: d.Get("display_name").(string),
 	}
+	opts.Tags = CopyTags(d)
 
 	objectsUser, err := client.ObjectsUsers.Create(context.Background(), opts)
 	if err != nil {
@@ -97,6 +99,7 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	m["href"] = objectsUser.HREF
 	m["user_id"] = objectsUser.ID
 	m["display_name"] = objectsUser.DisplayName
+	m["tags"] = objectsUser.Tags
 
 	keys := make([]map[string]string, 0, len(objectsUser.Keys))
 	for _, keyEntry := range objectsUser.Keys {
@@ -126,12 +129,14 @@ func resourceObjectsUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"display_name"} {
+	for _, attribute := range []string{"display_name", "tags"} {
 		// cloudscale.ch objectsUser attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
 			opts := &cloudscale.ObjectsUserRequest{}
 			if attribute == "display_name" {
 				opts.DisplayName = d.Get(attribute).(string)
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
 			}
 			err := client.ObjectsUsers.Update(context.Background(), id, opts)
 			if err != nil {

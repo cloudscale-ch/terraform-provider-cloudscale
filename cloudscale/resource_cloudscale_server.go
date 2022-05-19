@@ -7,7 +7,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -186,6 +186,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 			Optional: t.isResource(),
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 		"server_groups": {
 			Type: schema.TypeList,
 			Elem: &schema.Resource{
@@ -353,6 +354,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOk("status"); ok {
 		originalStatus = attr.(string)
 	}
+	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] Server create configuration: %#v", opts)
 
@@ -493,6 +495,7 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	m["image_slug"] = server.Image.Slug
 	m["zone_slug"] = server.Zone.Slug
 	m["status"] = server.Status
+	m["tags"] = server.Tags
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]interface{}, 0, volumes)
@@ -671,6 +674,15 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		err := client.Servers.Update(context.Background(), id, updateRequest)
 		if err != nil {
 			return fmt.Errorf("Error changing the Server (%s) interfaces (%s) ", id, err)
+		}
+	}
+
+	if d.HasChange("tags") {
+		updateRequest := &cloudscale.ServerUpdateRequest{}
+		updateRequest.Tags = CopyTags(d)
+		err := client.Servers.Update(context.Background(), id, updateRequest)
+		if err != nil {
+			return fmt.Errorf("Error tagging the Server (%s) status (%s) ", id, err)
 		}
 	}
 

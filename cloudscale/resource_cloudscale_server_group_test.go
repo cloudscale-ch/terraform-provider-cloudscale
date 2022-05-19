@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -183,6 +183,97 @@ func TestAccCloudscaleServerGroup_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleServerGroup_import_withTags(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.ServerGroup
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZoneAndTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterImport),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "name", fmt.Sprintf("terraform-%d-group", rInt)),
+					testTagsMatch("cloudscale_server_group.servergroup"),
+				),
+			},
+			{
+				ResourceName:      "cloudscale_server_group.servergroup",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_server_group.servergroup",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(42),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerGroupExists("cloudscale_server_group.servergroup", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "name", "terraform-42-group"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.%", "0"),
+					testAccCheckServerGroupIsSame(t, &afterImport, &afterUpdate),
+					testTagsMatch("cloudscale_server_group.servergroup"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleServerGroup_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZoneAndTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_server_group.servergroup"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZone(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.%", "0"),
+					testTagsMatch("cloudscale_server_group.servergroup"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerGroupConfigWithZoneAndTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server_group.servergroup", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_server_group.servergroup"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckServerGroupIsSame(t *testing.T, before, after *cloudscale.ServerGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if adr := before; adr == after {
@@ -261,5 +352,18 @@ resource "cloudscale_server_group" "servergroup" {
   name = "terraform-%d-group"
   type = "anti-affinity"
   zone_slug = "lpg1"
+}`, rInt)
+}
+
+func testAccCheckCloudscaleServerGroupConfigWithZoneAndTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server_group" "servergroup" {
+  name = "terraform-%d-group"
+  type = "anti-affinity"
+  zone_slug = "lpg1"
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }`, rInt)
 }

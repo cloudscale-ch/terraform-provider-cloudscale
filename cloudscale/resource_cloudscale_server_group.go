@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -46,6 +46,7 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -67,6 +68,7 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOk("zone_slug"); ok {
 		opts.Zone = attr.(string)
 	}
+	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] ServerGroup create configuration: %#v", opts)
 
@@ -94,6 +96,7 @@ func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) Resource
 	m["name"] = serverGroup.Name
 	m["type"] = serverGroup.Type
 	m["zone_slug"] = serverGroup.Zone.Slug
+	m["tags"] = serverGroup.Tags
 	return m
 }
 
@@ -113,12 +116,14 @@ func resourceServerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"name"} {
+	for _, attribute := range []string{"name", "tags"} {
 		// cloudscale.ch ServerGroup attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
 			opts := &cloudscale.ServerGroupRequest{}
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
 			}
 			err := client.ServerGroups.Update(context.Background(), id, opts)
 			if err != nil {

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -530,6 +530,50 @@ func testAccCheckServerRecreated(t *testing.T,
 	}
 }
 
+func TestAccCloudscaleServer_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleServerConfig_withTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_server.basic"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "tags.%", "0"),
+					testTagsMatch("cloudscale_server.basic"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleServerConfig_withTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_server.basic"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleServerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
@@ -538,6 +582,22 @@ resource "cloudscale_server" "basic" {
   allow_stopping_for_update = true
   image_slug     			= "%s"
   volume_size_gb			= 10
+  ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}`, rInt, DefaultImageSlug)
+}
+
+func testAccCheckCloudscaleServerConfig_withTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "basic" {
+  name      					= "terraform-%d"
+  flavor_slug    			= "flex-2"
+  allow_stopping_for_update = true
+  image_slug     			= "%s"
+  volume_size_gb			= 10
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)
 }
