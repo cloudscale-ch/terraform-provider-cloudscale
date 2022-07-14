@@ -46,13 +46,11 @@ jobs:
       max-parallel: 1
       matrix:
         # list whatever Terraform versions here you would like to support
-        terraform:
-          - '1.0.0'
-          - '1.1.0'
-          # test with the latest version, see:
-          # https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors
-          - ''
-
+        runs: [
+          {terraform: '1.0.0', testargs: "-run TestAccCloudscaleServer_Basic"},
+          {terraform: '1.1.0', testargs: "-run TestAccCloudscaleServer_Basic"},
+          {terraform: '', testargs: ""},
+        ]
     steps:
 
     - name: Set up Go
@@ -68,14 +66,15 @@ jobs:
       timeout-minutes: 120
       env:
         TF_ACC: "1"
-        TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform }}
+        TF_ACC_TERRAFORM_VERSION: ${{ matrix.runs.terraform }}
 
         # Set whatever additional acceptance test env vars here. You can
         # optionally use data from your repository secrets using the
         # following syntax:
         # SOME_VAR: ${{ secrets.SOME_VAR }}
         CLOUDSCALE_API_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
+        TESTARGS: ${{ matrix.runs.testargs }}
       if: env.CLOUDSCALE_API_TOKEN != null
 
       run: |
-        go test -mod=vendor ./... -v -timeout 120m
+        go test -mod=vendor ./... -v $TESTARGS -timeout 120m
