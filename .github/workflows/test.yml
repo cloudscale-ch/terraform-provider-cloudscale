@@ -49,6 +49,7 @@ jobs:
         runs: [
           {terraform: '1.0.0', testargs: "-run TestAccCloudscaleServer_Basic"},
           {terraform: '1.1.0', testargs: "-run TestAccCloudscaleServer_Basic"},
+          {terraform: '1.2.0', testargs: "-run TestAccCloudscaleServer_Basic"},
           {terraform: '', testargs: ""},
         ]
     steps:
