@@ -36,7 +36,7 @@ func TestAccCloudscaleServer_DS_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_server.foo", "name", name1),
 					resource.TestCheckResourceAttr(
-						"data.cloudscale_server.foo", "flavor_slug", "flex-2"),
+						"data.cloudscale_server.foo", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_server.foo", "image_slug", DefaultImageSlug),
 					resource.TestCheckResourceAttr(
@@ -144,7 +144,7 @@ func serverConfig_baseline(count, rInt int) string {
 resource "cloudscale_server" "basic" {
   count                     = %d
   name                      = "terraform-%d-${count.index}"
-  flavor_slug               = "flex-2"
+  flavor_slug               = "flex-4-1"
   allow_stopping_for_update = true
   image_slug                = "%s"
   volume_size_gb            = 10

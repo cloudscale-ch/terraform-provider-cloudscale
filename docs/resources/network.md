@@ -22,7 +22,7 @@ resource "cloudscale_network" "privnet" {
 resource "cloudscale_server" "gw" {
   name                = "gateway"
   zone_slug           = "lpg1"
-  flavor_slug         = "flex-4"
+  flavor_slug         = "flex-8-4"
   image_slug          = "debian-9"
   volume_size_gb      = 20
   ssh_keys            = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]

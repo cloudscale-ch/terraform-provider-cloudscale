@@ -378,7 +378,7 @@ func testAccCheckCloudscaleFloatingIPConfig_server(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
@@ -394,7 +394,7 @@ func testAccCheckCloudscaleFloatingIPConfig_update_first(rIntA, rIntB int) strin
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
@@ -402,7 +402,7 @@ resource "cloudscale_server" "basic" {
 
 resource "cloudscale_server" "advanced" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
@@ -418,7 +418,7 @@ func testAccCheckCloudscaleFloatingIPConfig_update_second(rIntA, rIntB int) stri
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
@@ -426,7 +426,7 @@ resource "cloudscale_server" "basic" {
 
 resource "cloudscale_server" "advanced" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   ssh_keys 						= ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
@@ -442,7 +442,7 @@ func testAccCheckCloudscaleFloatingIPConfig_server_with_zone(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "minlpg" {
   name = "terraform-%d"
-  flavor_slug = "flex-2"
+  flavor_slug = "flex-4-1"
   image_slug = "%s"
   volume_size_gb = 10
   zone_slug = "lpg1"
