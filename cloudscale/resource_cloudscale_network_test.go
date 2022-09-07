@@ -571,7 +571,7 @@ func serverConfigWithPrivateNetwork(rInt int, networkIndexes ...int) string {
 resource "cloudscale_server" "basic" {
   name      				= "terraform-%d"
   zone_slug                 = "rma1"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   %s
   volume_size_gb			= 10
@@ -597,7 +597,7 @@ func serverConfigWithPublicAndPrivate(rInt int) string {
 resource "cloudscale_server" "basic" {
   name      				= "terraform-%d"
   zone_slug                 = "lpg1"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   interfaces                {
     type                    = "public"
@@ -617,7 +617,7 @@ func serverConfigWithPublicAndPrivateNoAddress(rInt int) string {
 resource "cloudscale_server" "basic" {
   name      				= "terraform-%d"
   zone_slug                 = "lpg1"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   interfaces                {
     type                    = "public"

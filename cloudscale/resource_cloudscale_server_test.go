@@ -68,7 +68,7 @@ func TestAccCloudscaleServer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
 					resource.TestCheckResourceAttr(
@@ -100,7 +100,7 @@ func TestAccCloudscaleServer_Basic_stopped(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
 					resource.TestCheckResourceAttr(
@@ -131,7 +131,7 @@ func TestAccCloudscaleServer_Basic_skip_waiting_for_ssh_host_keys(t *testing.T) 
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
 					resource.TestCheckResourceAttr(
@@ -162,7 +162,7 @@ func TestAccCloudscaleServer_UpdateStatus(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
 					testAccCheckServerIp("cloudscale_server.basic"),
@@ -234,7 +234,7 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),
 					testAccCheckServerIp("cloudscale_server.basic"),
@@ -247,7 +247,7 @@ func TestAccCloudscaleServer_Recreated(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-4"),
+						"cloudscale_server.basic", "flavor_slug", "flex-8-4"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "interfaces.#", "2"),
 					testAccCheckServerIp("cloudscale_server.basic"),
@@ -300,7 +300,7 @@ func TestAccCloudscaleServer_UpdateNameAndFlavorAndVolumeSize(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-2"),
+						"cloudscale_server.basic", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "running"),
 					resource.TestCheckResourceAttr(
@@ -313,7 +313,7 @@ func TestAccCloudscaleServer_UpdateNameAndFlavorAndVolumeSize(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "flavor_slug", "flex-4"),
+						"cloudscale_server.basic", "flavor_slug", "flex-8-4"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d-foobar", rInt)),
 					resource.TestCheckResourceAttr(
@@ -443,7 +443,7 @@ func testAccCheckCloudscaleServerAttributes(server *cloudscale.Server) resource.
 			return fmt.Errorf("Bad image_slug_slug: %s", server.Image.Slug)
 		}
 
-		if server.Flavor.Slug != "flex-2" {
+		if server.Flavor.Slug != "flex-4-1" {
 			return fmt.Errorf("Bad flavor_slug_slug: %s", server.Image.Slug)
 		}
 
@@ -578,7 +578,7 @@ func testAccCheckCloudscaleServerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   allow_stopping_for_update = true
   image_slug     			= "%s"
   volume_size_gb			= 10
@@ -590,7 +590,7 @@ func testAccCheckCloudscaleServerConfig_withTags(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   allow_stopping_for_update = true
   image_slug     			= "%s"
   volume_size_gb			= 10
@@ -606,7 +606,7 @@ func testAccCheckCloudscaleServerConfig_basic_stopped(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   status							= "stopped"
@@ -618,7 +618,7 @@ func testAccCheckCloudscaleServerConfig_skip_waiting_for_ssh_host_keys(rInt int)
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   skip_waiting_for_ssh_host_keys = true
@@ -630,7 +630,7 @@ func testAccCheckCloudscaleServerConfig_update_state_stopped(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   status 							= "stopped"
@@ -642,7 +642,7 @@ func testAccCheckCloudscaleServerConfig_update_state_running(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   volume_size_gb			= 10
   status 							= "running"
@@ -654,7 +654,7 @@ func testAccCheckCloudscaleServerConfig_update_recreate(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      			    = "terraform-%d"
-  flavor_slug    			= "flex-4"
+  flavor_slug    			= "flex-8-4"
   image_slug     			= "%s"
   use_private_network		= true
   volume_size_gb			= 10
@@ -666,7 +666,7 @@ func testAccCheckCloudscaleServerConfig_only_private_network(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "private" {
   name      			    = "terraform-%d"
-  flavor_slug    			= "flex-4"
+  flavor_slug    			= "flex-8-4"
   image_slug     			= "%s"
   use_private_network		= true
   use_public_network		= false
@@ -679,7 +679,7 @@ func testAccCheckCloudscaleServerConfig_scaled_and_renamed(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "basic" {
   name      					= "terraform-%d-foobar"
-  flavor_slug    			= "flex-4"
+  flavor_slug    			= "flex-8-4"
   allow_stopping_for_update = true
   image_slug     			= "%s"
   volume_size_gb			= 11
@@ -691,7 +691,7 @@ func testServerPasswordConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "password" {
   name                      = "terraform-%d"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   allow_stopping_for_update = true
   image_slug     			= "pfsense-2.6.0"
   volume_size_gb			= 10

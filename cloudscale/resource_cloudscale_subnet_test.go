@@ -524,7 +524,7 @@ func serverConfigWithPublicAndLayerThree(rInt int, fixedAddress string) string {
 resource "cloudscale_server" "basic" {
   name      				= "terraform-%d"
   zone_slug                 = "rma1"
-  flavor_slug    			= "flex-2"
+  flavor_slug    			= "flex-4-1"
   image_slug     			= "%s"
   interfaces                {
     type                    = "public"
@@ -566,7 +566,7 @@ func multipleSubnetConfig(rInt1 int, rInt2 int, networkIndex int, subnetIndex in
 	template := `
 resource "cloudscale_server" "web-worker01" {
  name = "terraform-%d"
- flavor_slug = "flex-4"
+ flavor_slug = "flex-8-4"
  image_slug = "debian-9"
  volume_size_gb = 50
  interfaces {

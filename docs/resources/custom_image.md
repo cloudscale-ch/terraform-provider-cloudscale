@@ -26,7 +26,7 @@ resource "cloudscale_custom_image" "your_image" {
 # Create a Server using the custom image
 resource "cloudscale_server" "your_server" {
   name           = "your-server"
-  flavor_slug    = "plus-8"
+  flavor_slug    = "flex-8-4"
   image_uuid     = "${cloudscale_custom_image.your_image.id}"
   volume_size_gb = 16
   zone_slug      = "rma1"

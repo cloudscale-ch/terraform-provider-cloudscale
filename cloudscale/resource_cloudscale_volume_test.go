@@ -409,7 +409,7 @@ func volumeConfig_reattached_volume(serverInt int, volumeInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "reattach_server" {
   name        = "terraform-%d"
-  flavor_slug = "flex-2"
+  flavor_slug = "flex-4-1"
   image_slug  = "%s"
   ssh_keys    = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }

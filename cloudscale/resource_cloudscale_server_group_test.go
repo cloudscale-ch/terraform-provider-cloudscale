@@ -328,7 +328,7 @@ resource "cloudscale_server_group" "ayyy" {
 resource "cloudscale_server" "some_server" {
   name                      = "terraform-%d-foobar"
   server_group_ids          = ["${cloudscale_server_group.ayyy.id}"]
-  flavor_slug               = "flex-4"
+  flavor_slug               = "flex-8-4"
   image_slug                = "%s"
   ssh_keys                  = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }
@@ -340,7 +340,7 @@ func testAccCheckCloudscaleServerGroupConfigAddServer(rInt int) string {
 resource "cloudscale_server" "some_server2" {
   name                      = "terraform-%d-foobar2"
   server_group_ids          = ["${cloudscale_server_group.ayyy.id}"]
-  flavor_slug               = "flex-4"
+  flavor_slug               = "flex-8-4"
   image_slug                = "%s"
   ssh_keys                  = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, rInt, DefaultImageSlug)

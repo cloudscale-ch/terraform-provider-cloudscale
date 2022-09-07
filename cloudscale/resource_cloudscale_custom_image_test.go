@@ -404,7 +404,7 @@ resource "cloudscale_custom_image" "%s" {
 func serverConfig_customImage(name string, imageName string, rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_server" "%s" {
-  flavor_slug    = "flex-2"
+  flavor_slug    = "flex-4-1"
   image_uuid     = "${cloudscale_custom_image.%s.id}"
   name           = "terraform-%d"
   volume_size_gb = 10

@@ -23,7 +23,7 @@ provider "cloudscale" {
 # Create a new Server
 resource "cloudscale_server" "web-worker01" {
   name           = "web-worker01"
-  flavor_slug    = "flex-4"
+  flavor_slug    = "flex-8-4"
   image_slug     = "debian-9"
   volume_size_gb = 50
   ssh_keys       = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
