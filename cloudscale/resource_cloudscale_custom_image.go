@@ -41,6 +41,12 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 			Required: t.isResource(),
 			Computed: t.isDataSource(),
 		},
+		"firmware_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
 			Elem:     &schema.Schema{Type: schema.TypeString},
@@ -124,6 +130,10 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 		z[i] = zoneSlugs[i].(string)
 	}
 
+	if attr, ok := d.GetOk("firmware_type"); ok {
+		opts.FirmwareType = attr.(string)
+	}
+
 	opts.Zones = z
 
 	log.Printf("[DEBUG] CustomImage create configuration: %#v", opts)
@@ -173,6 +183,7 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	m["slug"] = customImage.Slug
 	m["size_gb"] = customImage.SizeGB
 	m["user_data_handling"] = customImage.UserDataHandling
+	m["firmware_type"] = customImage.FirmwareType
 	m["checksums"] = customImage.Checksums
 	m["tags"] = customImage.Tags
 

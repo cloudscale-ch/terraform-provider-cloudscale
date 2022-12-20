@@ -40,6 +40,8 @@ func TestAccCloudscaleCustomImage_DS_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_custom_image.foo", "user_data_handling", "pass-through"),
 					resource.TestCheckResourceAttr(
+						"data.cloudscale_custom_image.foo", "firmware_type", "bios"),
+					resource.TestCheckResourceAttr(
 						"data.cloudscale_custom_image.foo", "size_gb", "1"),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_custom_image.foo", "zone_slugs.#", "2"),
