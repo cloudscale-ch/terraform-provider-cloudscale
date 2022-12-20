@@ -16,6 +16,7 @@ resource "cloudscale_custom_image" "your_image" {
   name                 = "Your Distro 12.12"
   slug                 = "your-distro-12.12"
   user_data_handling   = "extend-cloud-config"
+  firmware_type        = "bios"
   zone_slugs           = ["rma1"]
   
   timeouts {
@@ -53,6 +54,7 @@ The following arguments are supported when creating/changing custom images:
 * `name` - (Required) The human-readable name of the custom image.
 * `slug` - (Optional) A string identifying the custom image for use within the API.
 * `user_data_handling` - (Required) How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.
+* `firmware_type` - (Optional) The firmware type that will be used for servers created with the custom image. Options include `bios` and `uefi`.
 * `zone_slugs` - (Required) Specify the zones in which the custom image will be available. Options include `lpg1` and `rma1`.
 * `timeouts` - (Optional) Specify how long certain operations are allowed to take before being considered to have failed. Currently, only the `create` timeout can be specified. Takes a string representation of a duration, such as `20m` for 20 minutes (default), `10s` for ten seconds, or `2h` for two hours.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
