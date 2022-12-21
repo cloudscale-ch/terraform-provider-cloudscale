@@ -46,6 +46,18 @@ go get -u github.com/cloudscale-ch/cloudscale-go-sdk
 go mod vendor
 ```
 
+
+Use the following commands to switch to a local version of the go-sdk and back:
+```sh
+go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v2=../cloudscale-go-sdk/"
+go mod vendor
+git commit -m "drop: Use local version of cloudscale-go-sdk"
+```
+```sh
+go mod edit -dropreplace "github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+go mod vendor
+```
+
 To test unreleased driver versions locally add the following to your `~/.terraformrc`
 
 ```hcl
