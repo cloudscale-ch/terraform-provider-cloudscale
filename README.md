@@ -65,6 +65,12 @@ provider_installation {
 }
 ```
 
+To cros-compile a local build, run:
+
+```
+goreleaser release --snapshot --rm-dist
+```
+
 Releasing the Provider
 ---------------------------
 
