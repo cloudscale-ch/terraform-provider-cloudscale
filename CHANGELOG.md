@@ -2,6 +2,7 @@
 
 ## 4.1.0
  * Add firmware_type to custom_image.
+ * Update to go 1.18.
 
 ## 4.0.0
  * Implement tags for resources (#59)
