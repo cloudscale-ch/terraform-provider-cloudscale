@@ -85,6 +85,8 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "extend-cloud-config"),
 					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "firmware_type", "bios"),
+					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "zone_slugs.#", "2"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "checksums.md5", md5sum),
@@ -128,6 +130,8 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "extend-cloud-config"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "firmware_type", "bios"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "zone_slugs.#", "2"),
 					resource.TestCheckResourceAttr(
@@ -369,6 +373,7 @@ resource "cloudscale_custom_image" "%s" {
   name               = "terraform-%d"
   slug               = "terra-test-slug"
   user_data_handling = "extend-cloud-config"
+  firmware_type      = "bios"
   zone_slugs         = ["lpg1", "rma1"]
 }`, name, imageDownloadURL, rInt)
 }

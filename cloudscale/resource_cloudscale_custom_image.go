@@ -23,9 +23,6 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
-		/*Importer: &schema.ResourceImporter{
-			StateContext: resourceCloudscaleCustomImageImport,
-		},*/
 	}
 }
 
@@ -40,6 +37,12 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
 			Computed: t.isDataSource(),
+		},
+		"firmware_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
 		},
 		"zone_slugs": {
 			Type:     schema.TypeSet,
@@ -124,6 +127,10 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 		z[i] = zoneSlugs[i].(string)
 	}
 
+	if attr, ok := d.GetOk("firmware_type"); ok {
+		opts.FirmwareType = attr.(string)
+	}
+
 	opts.Zones = z
 
 	log.Printf("[DEBUG] CustomImage create configuration: %#v", opts)
@@ -173,6 +180,7 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	m["slug"] = customImage.Slug
 	m["size_gb"] = customImage.SizeGB
 	m["user_data_handling"] = customImage.UserDataHandling
+	m["firmware_type"] = customImage.FirmwareType
 	m["checksums"] = customImage.Checksums
 	m["tags"] = customImage.Tags
 
@@ -275,9 +283,4 @@ func newCustomImageImportRefreshFunc(uuid string, d *schema.ResourceData, attrib
 
 		return customImageImport, customImageImport.Status, nil
 	}
-}
-
-func resourceCloudscaleCustomImageImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	d.Set("import_uuid", d.Id())
-	return schema.ImportStatePassthroughContext(ctx, d, meta)
 }

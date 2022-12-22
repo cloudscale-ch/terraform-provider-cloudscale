@@ -4,7 +4,7 @@ github.com/agext/levenshtein
 github.com/apparentlymart/go-cidr/cidr
 # github.com/apparentlymart/go-textseg/v13 v13.0.0
 github.com/apparentlymart/go-textseg/v13/textseg
-# github.com/cloudscale-ch/cloudscale-go-sdk/v2 v2.0.1
+# github.com/cloudscale-ch/cloudscale-go-sdk/v2 v2.1.0
 ## explicit
 github.com/cloudscale-ch/cloudscale-go-sdk/v2
 # github.com/davecgh/go-spew v1.1.1
