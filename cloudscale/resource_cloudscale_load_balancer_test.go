@@ -48,6 +48,8 @@ func testSweepLoadBalancers(region string) error {
 }
 
 func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
+	var loadBalancer cloudscale.LoadBalancer
+
 	rInt := acctest.RandInt()
 	lbName := fmt.Sprintf("terraform-%d-lb", rInt)
 
@@ -59,6 +61,7 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
 					resource.TestCheckResourceAttr(
 						"cloudscale_load_balancer.lb-acc-test", "name", lbName),
 					resource.TestCheckResourceAttr(
@@ -79,6 +82,40 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_cidr"),
 					resource.TestCheckResourceAttrSet(
 						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_uuid"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancer_UpdateName(t *testing.T) {
+	var afterCreate, afterUpdate cloudscale.LoadBalancer
+
+	rInt1 := acctest.RandInt()
+	lbName := fmt.Sprintf("terraform-%d-lb", rInt1)
+	rInt2 := acctest.RandInt()
+	updatedLBName := fmt.Sprintf("terraform-%d-lb", rInt2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterCreate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "name", lbName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "name", updatedLBName),
+					testAccCheckLoadBalancerIsSame(t, &afterCreate, &afterUpdate),
 				),
 			},
 		},
@@ -113,6 +150,53 @@ func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccCheckCloudscaleLoadBalancerExists(n string, server *cloudscale.LoadBalancer) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Load Balancer ID is set")
+		}
+
+		client := testAccProvider.Meta().(*cloudscale.Client)
+
+		id := rs.Primary.ID
+
+		// Try to find the load balancer
+		retrieveLoadBalancer, err := client.LoadBalancers.Get(context.Background(), id)
+
+		if err != nil {
+			return err
+		}
+
+		if retrieveLoadBalancer.UUID != rs.Primary.ID {
+			return fmt.Errorf("Load Balancer not found")
+		}
+
+		*server = *retrieveLoadBalancer
+
+		return nil
+	}
+}
+
+func testAccCheckLoadBalancerIsSame(t *testing.T,
+	before, after *cloudscale.LoadBalancer) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if adr := before; adr == after {
+			t.Fatalf("Passed the same instance twice, address is equal=%v",
+				adr)
+		}
+		if before.UUID != after.UUID {
+			t.Fatalf("Not expected a change of LoadBalancer IDs got=%s, expected=%s",
+				after.UUID, before.UUID)
+		}
+		return nil
+	}
 }
 
 func testAccCloudscaleLoadBalancerConfig_basic(rInt int) string {
