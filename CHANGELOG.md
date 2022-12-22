@@ -1,4 +1,5 @@
 ## Unreleased
+ * Add firmware_type to custom_image.
 
 ## 4.0.0
  * Implement tags for resources (#59)
