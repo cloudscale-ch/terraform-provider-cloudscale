@@ -1,4 +1,6 @@
 ## Unreleased
+
+## 4.1.0
  * Add firmware_type to custom_image.
 
 ## 4.0.0
