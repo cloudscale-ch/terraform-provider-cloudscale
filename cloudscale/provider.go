@@ -27,14 +27,15 @@ func Provider() *schema.Provider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"cloudscale_server":       resourceCloudscaleServer(),
-			"cloudscale_server_group": resourceCloudscaleServerGroup(),
-			"cloudscale_volume":       resourceCloudscaleVolume(),
-			"cloudscale_network":      resourceCloudscaleNetwork(),
-			"cloudscale_subnet":       resourceCloudscaleSubnet(),
-			"cloudscale_floating_ip":  resourceCloudscaleFloatingIP(),
-			"cloudscale_objects_user": resourceCloudscaleObjectsUser(),
-			"cloudscale_custom_image": resourceCloudscaleCustomImage(),
+			"cloudscale_server":        resourceCloudscaleServer(),
+			"cloudscale_server_group":  resourceCloudscaleServerGroup(),
+			"cloudscale_volume":        resourceCloudscaleVolume(),
+			"cloudscale_network":       resourceCloudscaleNetwork(),
+			"cloudscale_subnet":        resourceCloudscaleSubnet(),
+			"cloudscale_floating_ip":   resourceCloudscaleFloatingIP(),
+			"cloudscale_objects_user":  resourceCloudscaleObjectsUser(),
+			"cloudscale_custom_image":  resourceCloudscaleCustomImage(),
+			"cloudscale_load_balancer": resourceCloudscaleLoadBalancer(),
 		},
 		ConfigureFunc: providerConfigureClient,
 	}
