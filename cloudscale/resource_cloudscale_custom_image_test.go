@@ -256,34 +256,6 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 	})
 }
 
-/*
-func TestAccCloudscaleCustomImage_import_basic(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, acctest.RandInt()),
-			},
-			{
-				ResourceName:      "cloudscale_custom_image.basic",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{"import_source_format", "import_url"},
-			},
-			{
-				ResourceName:      "cloudscale_custom_image.basic",
-				ImportState:       true,
-				ImportStateVerify: false,
-				ImportStateId:     "does-not-exist",
-				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
-			},
-		},
-	})
-}
-*/
-
 func testAccCheckCloudscaleCustomImageExists(n string, customImage *cloudscale.CustomImage) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
