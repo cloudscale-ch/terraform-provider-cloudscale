@@ -253,6 +253,50 @@ func TestAccCloudscaleLoadBalancer_import_withTags(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancer_tags(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_load_balancer.tagged"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleLoadBalancerConfigWithZone(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.%", "0"),
+					testTagsMatch("cloudscale_load_balancer.tagged"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.my-bar", "bar"),
+					testTagsMatch("cloudscale_load_balancer.tagged"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
