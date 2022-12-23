@@ -1,7 +1,6 @@
 package cloudscale
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -9,7 +8,6 @@ import (
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccCloudscaleServerGroup_DS_Basic(t *testing.T) {
@@ -107,38 +105,6 @@ func TestAccCloudscaleServerGroup_DS_NotExisting(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckCloudscaleServerGroupExists(n string, server_group *cloudscale.ServerGroup) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Server group ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the server group
-		retrieveServerGroup, err := client.ServerGroups.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveServerGroup.UUID != rs.Primary.ID {
-			return fmt.Errorf("Server group not found")
-		}
-
-		*server_group = *retrieveServerGroup
-
-		return nil
-	}
 }
 
 func serverGroupConfig_baseline(count int, rInt int) string {

@@ -274,6 +274,38 @@ func TestAccCloudscaleServerGroup_tags(t *testing.T) {
 	})
 }
 
+func testAccCheckCloudscaleServerGroupExists(n string, server_group *cloudscale.ServerGroup) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Server group ID is set")
+		}
+
+		client := testAccProvider.Meta().(*cloudscale.Client)
+
+		id := rs.Primary.ID
+
+		// Try to find the server group
+		retrieveServerGroup, err := client.ServerGroups.Get(context.Background(), id)
+
+		if err != nil {
+			return err
+		}
+
+		if retrieveServerGroup.UUID != rs.Primary.ID {
+			return fmt.Errorf("Server group not found")
+		}
+
+		*server_group = *retrieveServerGroup
+
+		return nil
+	}
+}
+
 func testAccCheckServerGroupIsSame(t *testing.T, before, after *cloudscale.ServerGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if adr := before; adr == after {
