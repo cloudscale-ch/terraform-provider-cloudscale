@@ -69,8 +69,8 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 						"cloudscale_load_balancer.lb-acc-test", "flavor_slug", "lb-flex-4-2"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_load_balancer.lb-acc-test", "zone_slug", "lpg1"),
-					resource.TestCheckResourceAttrSet(
-						"cloudscale_load_balancer.lb-acc-test", "status"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "status", "running"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.#", "1"),
 					resource.TestCheckResourceAttr(

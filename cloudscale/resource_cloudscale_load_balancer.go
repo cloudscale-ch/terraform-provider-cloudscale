@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+	"time"
 )
 
 func resourceCloudscaleLoadBalancer() *schema.Resource {
@@ -84,6 +86,9 @@ func getLoadBalancerSchema(t SchemaType) map[string]*schema.Schema {
 }
 
 func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
+	timeout := d.Timeout(schema.TimeoutCreate)
+	startTime := time.Now()
+
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerRequest{
@@ -113,8 +118,39 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta interface
 
 	log.Printf("[INFO] LoadBalancer ID: %s", d.Id())
 
-	fillLoadBalancerSchema(d, loadbalancer)
+	remainingTime := timeout - time.Since(startTime)
+	_, err = waitForStatus([]string{"changing"}, "running", &remainingTime, newLoadBalancerRefreshFunc(d, "status", meta))
+	if err != nil {
+		return fmt.Errorf("error waiting for load balancer (%s) to become ready: %s", d.Id(), err)
+	}
+
+	err = resourceCloudscaleLoadBalancerRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the load balancer (%s): %s", d.Id(), err)
+	}
 	return nil
+}
+
+func newLoadBalancerRefreshFunc(d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+	client := meta.(*cloudscale.Client)
+	return func() (interface{}, string, error) {
+		id := d.Id()
+
+		err := resourceCloudscaleLoadBalancerRead(d, meta)
+		if err != nil {
+			return nil, "", err
+		}
+
+		if attr, ok := d.GetOk(attribute); ok {
+			loadBalancer, err := client.LoadBalancers.Get(context.Background(), id)
+			if err != nil {
+				return nil, "", fmt.Errorf("Error retrieving load balancer (refresh) %s", err)
+			}
+
+			return loadBalancer, attr.(string), nil
+		}
+		return nil, "", nil
+	}
 }
 
 func createVipAddressOptions(d *schema.ResourceData) []cloudscale.VIPAddressRequest {

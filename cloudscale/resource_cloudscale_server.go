@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math"
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
@@ -368,7 +367,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] Server ID %s", d.Id())
 
 	remainingTime := timeout - time.Since(startTime)
-	_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "running", &remainingTime)
+	_, err = waitForStatus([]string{"changing"}, "running", &remainingTime, newServerRefreshFunc(d, "status", meta))
 	if err != nil {
 		return fmt.Errorf("error waiting for server (%s) to become ready: %s", d.Id(), err)
 	}
@@ -389,7 +388,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		remainingTime = timeout - time.Since(startTime)
-		_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", &remainingTime)
+		_, err = waitForStatus([]string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
 		if err != nil {
 			return fmt.Errorf("error waiting for server status (%s) (%s) ", server.UUID, err)
 		}
@@ -616,7 +615,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Error updating server (%s), %s", server.Status, err)
 			}
 
-			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", nil)
+			_, err = waitForStatus([]string{"changing", "running"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
 			if err != nil {
 				return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
 			}
@@ -628,7 +627,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error scaling the Server (%s) status (%s) ", id, err)
 		}
-		_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "stopped", nil)
+		_, err = waitForStatus([]string{"changing"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
 
 		// Signal that we want to start the server again
 		if wantedStatus == "running" {
@@ -650,9 +649,9 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if wantedStatus == "stopped" {
-			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", nil)
+			_, err = waitForStatus([]string{"changing", "running"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
 		} else {
-			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running", nil)
+			_, err = waitForStatus([]string{"changing", "stopped"}, "running", nil, newServerRefreshFunc(d, "status", meta))
 		}
 
 		if err != nil {
@@ -701,29 +700,6 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []string, attribute, target string, timeout *time.Duration) (interface{}, error) {
-	if timeout == nil {
-		defaultTimeout := 5 * time.Minute
-		timeout = &(defaultTimeout)
-	}
-
-	log.Printf(
-		"[INFO] Waiting %s for server (%s) to have %s of %s",
-		timeout, d.Id(), attribute, target)
-
-	stateConf := &resource.StateChangeConf{
-		Pending:        pending,
-		Target:         []string{target},
-		Refresh:        newServerRefreshFunc(d, attribute, meta),
-		Timeout:        *timeout,
-		Delay:          10 * time.Second,
-		MinTimeout:     3 * time.Second,
-		NotFoundChecks: math.MaxInt32,
-	}
-
-	return stateConf.WaitForState()
 }
 
 func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
