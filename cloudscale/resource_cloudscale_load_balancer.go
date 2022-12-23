@@ -142,7 +142,9 @@ func gatherLoadBalancerData(loadbalancer *cloudscale.LoadBalancer) ResourceDataR
 	m["href"] = loadbalancer.HREF
 	m["name"] = loadbalancer.Name
 	m["flavor_slug"] = loadbalancer.Flavor.Slug
+	m["zone_slug"] = loadbalancer.Zone.Slug
 	m["status"] = loadbalancer.Status
+	m["tags"] = loadbalancer.Tags
 
 	if addrss := len(loadbalancer.VIPAddresses); addrss > 0 {
 		vipAddressesMap := make([]map[string]interface{}, 0, addrss)

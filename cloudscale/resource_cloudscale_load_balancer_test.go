@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -155,6 +156,56 @@ func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancer_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.LoadBalancer
+
+	rInt1 := acctest.RandInt()
+	lbName := fmt.Sprintf("terraform-%d-lb", rInt1)
+	rInt2 := acctest.RandInt()
+	updatedName := fmt.Sprintf("terraform-%d-lb", rInt2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1),
+			},
+			{
+				ResourceName:            "cloudscale_load_balancer.lb-acc-test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterImport),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "name", lbName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "name", updatedName),
+					testAccCheckLoadBalancerIsSame(t, &afterImport, &afterUpdate),
+				),
+			},
+			{
+				ResourceName:      "cloudscale_load_balancer.lb-acc-test",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
@@ -185,7 +236,7 @@ func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckCloudscaleLoadBalancerExists(n string, server *cloudscale.LoadBalancer) resource.TestCheckFunc {
+func testAccCheckCloudscaleLoadBalancerExists(n string, loadBalancer *cloudscale.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -211,7 +262,7 @@ func testAccCheckCloudscaleLoadBalancerExists(n string, server *cloudscale.LoadB
 			return fmt.Errorf("Load Balancer not found")
 		}
 
-		*server = *retrieveLoadBalancer
+		*loadBalancer = *retrieveLoadBalancer
 
 		return nil
 	}
