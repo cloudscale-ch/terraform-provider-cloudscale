@@ -206,6 +206,53 @@ func TestAccCloudscaleLoadBalancer_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancer_import_withTags(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.LoadBalancer
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.tagged", &afterImport),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "name", fmt.Sprintf("terraform-%d-lb", rInt)),
+					testTagsMatch("cloudscale_load_balancer.tagged"),
+				),
+			},
+			{
+				ResourceName:      "cloudscale_load_balancer.tagged",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "cloudscale_load_balancer.tagged",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: testAccCheckCloudscaleLoadBalancerConfigWithZone(42),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.tagged", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "name", "terraform-42-lb"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.tagged", "tags.%", "0"),
+					testAccCheckLoadBalancerIsSame(t, &afterImport, &afterUpdate),
+					testTagsMatch("cloudscale_load_balancer.tagged"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
@@ -318,4 +365,28 @@ resource "cloudscale_load_balancer" "lb-acc-test" {
   }
 }
 `, rInt1, cidr, rInt2)
+}
+
+func testAccCheckCloudscaleLoadBalancerConfigWithZone(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer" "tagged" {
+  name        = "terraform-%d-lb"
+  flavor_slug = "lb-flex-4-2"
+  zone_slug   = "lpg1"
+}
+`, rInt)
+}
+
+func testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer" "tagged" {
+  name        = "terraform-%d-lb"
+  flavor_slug = "lb-flex-4-2"
+  zone_slug   = "lpg1"
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
+}
+`, rInt)
 }

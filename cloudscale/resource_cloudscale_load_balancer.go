@@ -225,7 +225,7 @@ func resourceCloudscaleLoadBalancerUpdate(d *schema.ResourceData, meta interface
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
-	for _, attribute := range []string{"name", "flavor_slug"} {
+	for _, attribute := range []string{"name", "tags"} {
 		// cloudscale.ch Load Balancer attributes can only be changed one at a time
 		if d.HasChange(attribute) {
 			opts := &cloudscale.LoadBalancerRequest{}
