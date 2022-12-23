@@ -53,6 +53,7 @@ func getLoadBalancerSchema(t SchemaType) map[string]*schema.Schema {
 					"address": {
 						Type:     schema.TypeString,
 						Computed: true,
+						Optional: true,
 					},
 					"subnet_uuid": {
 						Type:     schema.TypeString,
@@ -69,8 +70,8 @@ func getLoadBalancerSchema(t SchemaType) map[string]*schema.Schema {
 					},
 				},
 			},
+			Optional: t.isResource(),
 			Computed: true,
-			Optional: true,
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -92,6 +93,13 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta interface
 		Name:   d.Get("name").(string),
 		Flavor: d.Get("flavor_slug").(string),
 	}
+
+	vipAddressCount := d.Get("vip_addresses.#").(int)
+	if vipAddressCount > 0 {
+		vipAddressRequests := createVipAddressOptions(d)
+		opts.VIPAddresses = &vipAddressRequests
+	}
+
 	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] LoadBalancer create configuration: %#v", opts)
@@ -107,6 +115,21 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta interface
 
 	fillLoadBalancerSchema(d, loadbalancer)
 	return nil
+}
+
+func createVipAddressOptions(d *schema.ResourceData) []cloudscale.VIPAddressRequest {
+	vipAddressCount := d.Get("vip_addresses.#").(int)
+	result := make([]cloudscale.VIPAddressRequest, vipAddressCount)
+	for i := 0; i < vipAddressCount; i++ {
+		prefix := fmt.Sprintf("vip_addresses.%d", i)
+		result[i] = cloudscale.VIPAddressRequest{
+			Address: d.Get(prefix + ".address").(string),
+			Subnet: cloudscale.SubnetRequest{
+				UUID: d.Get(prefix + ".subnet_uuid").(string),
+			},
+		}
+	}
+	return result
 }
 
 func fillLoadBalancerSchema(d *schema.ResourceData, loadbalancer *cloudscale.LoadBalancer) {

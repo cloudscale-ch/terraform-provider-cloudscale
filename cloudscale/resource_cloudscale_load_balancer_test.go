@@ -122,6 +122,39 @@ func TestAccCloudscaleLoadBalancer_UpdateName(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
+	var loadBalancer cloudscale.LoadBalancer
+
+	rInt1, rInt2 := acctest.RandInt(), acctest.RandInt()
+	cidr := "192.168.42.0/24"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2, cidr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.#", "1"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.version", "4"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.address", "192.168.42.124"),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_href"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_cidr", cidr),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_uuid"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
@@ -207,4 +240,31 @@ resource "cloudscale_load_balancer" "lb-acc-test" {
 	  zone_slug   = "lpg1"
 }
 `, rInt)
+}
+
+func testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2 int, cidr string) string {
+	return fmt.Sprintf(`
+resource "cloudscale_network" "privnet" {
+  name                    = "terraform-%d-network"
+  zone_slug               = "lpg1"
+  mtu                     = "9000"
+  auto_create_ipv4_subnet = "false"
+}
+
+resource "cloudscale_subnet" "privnet-subnet" {
+  cidr               = "%s"
+  network_uuid       = cloudscale_network.privnet.id
+}
+
+resource "cloudscale_load_balancer" "lb-acc-test" {
+  name        = "terraform-%d-lb"
+  flavor_slug = "lb-flex-4-2"
+  zone_slug   = "lpg1"
+
+  vip_addresses {
+    subnet_uuid = cloudscale_subnet.privnet-subnet.id
+    address     = "192.168.42.124"
+  }
+}
+`, rInt1, cidr, rInt2)
 }
