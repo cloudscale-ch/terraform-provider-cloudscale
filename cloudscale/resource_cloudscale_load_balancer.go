@@ -77,10 +77,17 @@ func getLoadBalancerSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
-			Required: true,
+			Required: t.isResource(),
+			Optional: t.isDataSource(),
 			ForceNew: true,
 		},
 		"tags": &TagsSchema,
+	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
 	}
 	return m
 }
@@ -169,10 +176,10 @@ func createVipAddressOptions(d *schema.ResourceData) []cloudscale.VIPAddressRequ
 }
 
 func fillLoadBalancerSchema(d *schema.ResourceData, loadbalancer *cloudscale.LoadBalancer) {
-	fillResourceData(d, gatherLoadBalancerData(loadbalancer))
+	fillResourceData(d, gatherLoadBalancerResourceData(loadbalancer))
 }
 
-func gatherLoadBalancerData(loadbalancer *cloudscale.LoadBalancer) ResourceDataRaw {
+func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) ResourceDataRaw {
 	m := make(map[string]interface{})
 	m["id"] = loadbalancer.UUID
 	m["href"] = loadbalancer.HREF
