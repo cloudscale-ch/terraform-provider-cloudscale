@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"regexp"
 	"testing"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
@@ -78,6 +79,107 @@ func TestAccCloudscaleLoadBalancerPool_UpdateName(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "name", updatedLBPoolName),
 					testAccCheckLoadBalancerPoolIsSame(t, &afterCreate, &afterUpdate),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerPool_import_basic(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.LoadBalancerPool
+
+	rInt1 := acctest.RandInt()
+	lbPoolName := fmt.Sprintf("terraform-%d-lb-pool", rInt1)
+	rInt2 := acctest.RandInt()
+	updatedLBPoolName := fmt.Sprintf("terraform-%d-lb-pool", rInt2)
+
+	resourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", lbPoolName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", updatedLBPoolName),
+					testAccCheckLoadBalancerPoolIsSame(t, &afterImport, &afterUpdate),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerPool_import_withTags(t *testing.T) {
+	var afterImport, afterUpdate cloudscale.LoadBalancerPool
+
+	rInt := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) + testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", fmt.Sprintf("terraform-%d-lb-pool", rInt)),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) + testAccCloudscaleLoadBalancerPoolConfig_basic(42),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", "terraform-42-lb-pool"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "0"),
+					testAccCheckLoadBalancerPoolIsSame(t, &afterImport, &afterUpdate),
+					testTagsMatch(resourceName),
 				),
 			},
 		},
