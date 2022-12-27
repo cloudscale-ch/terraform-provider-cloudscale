@@ -10,10 +10,10 @@ import (
 
 func resourceCloudscaleLoadBalancerPools() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleLoadBalancerPoolsCreate,
-		Read:   resourceCloudscaleLoadBalancerPoolsRead,
-		Update: resourceCloudscaleLoadBalancerPoolsUpdate,
-		Delete: resourceCloudscaleLoadBalancerPoolsDelete,
+		Create: resourceCloudscaleLoadBalancerPoolCreate,
+		Read:   resourceCloudscaleLoadBalancerPoolRead,
+		Update: resourceCloudscaleLoadBalancerPoolUpdate,
+		Delete: resourceCloudscaleLoadBalancerPoolDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -67,7 +67,7 @@ func getLoadBalancerPoolsSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerPoolRequest{
@@ -89,7 +89,7 @@ func resourceCloudscaleLoadBalancerPoolsCreate(d *schema.ResourceData, meta inte
 	d.SetId(loadBalancerPool.UUID)
 
 	log.Printf("[INFO] LoadBalancerPool ID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerPoolsRead(d, meta)
+	err = resourceCloudscaleLoadBalancerPoolRead(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error reading the load balancer pool (%s): %s", d.Id(), err)
 	}
@@ -114,7 +114,7 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
 	loadbalancerpool, err := client.LoadBalancerPools.Get(context.Background(), d.Id())
@@ -126,7 +126,7 @@ func resourceCloudscaleLoadBalancerPoolsRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceCloudscaleLoadBalancerPoolsUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -148,10 +148,10 @@ func resourceCloudscaleLoadBalancerPoolsUpdate(d *schema.ResourceData, meta inte
 			}
 		}
 	}
-	return resourceCloudscaleLoadBalancerRead(d, meta)
+	return resourceCloudscaleLoadBalancerPoolRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerPoolsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
