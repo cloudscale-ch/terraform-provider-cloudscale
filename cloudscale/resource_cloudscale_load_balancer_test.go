@@ -54,6 +54,8 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	lbName := fmt.Sprintf("terraform-%d-lb", rInt)
 
+	resourceName := "cloudscale_load_balancer.lb-acc-test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -62,27 +64,27 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &loadBalancer),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "name", lbName),
+						resourceName, "name", lbName),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "flavor_slug", "lb-flex-4-2"),
+						resourceName, "flavor_slug", "lb-flex-4-2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "zone_slug", "lpg1"),
+						resourceName, "zone_slug", "lpg1"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "status", "running"),
+						resourceName, "status", "running"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.#", "1"),
+						resourceName, "vip_addresses.#", "1"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.version", "4"),
+						resourceName, "vip_addresses.0.version", "4"),
 					resource.TestCheckResourceAttrSet(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.address"),
+						resourceName, "vip_addresses.0.address"),
 					resource.TestCheckResourceAttrSet(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_href"),
+						resourceName, "vip_addresses.0.subnet_href"),
 					resource.TestCheckResourceAttrSet(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_cidr"),
+						resourceName, "vip_addresses.0.subnet_cidr"),
 					resource.TestCheckResourceAttrSet(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_uuid"),
+						resourceName, "vip_addresses.0.subnet_uuid"),
 				),
 			},
 		},
@@ -97,6 +99,8 @@ func TestAccCloudscaleLoadBalancer_UpdateName(t *testing.T) {
 	rInt2 := acctest.RandInt()
 	updatedLBName := fmt.Sprintf("terraform-%d-lb", rInt2)
 
+	resourceName := "cloudscale_load_balancer.lb-acc-test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -105,17 +109,17 @@ func TestAccCloudscaleLoadBalancer_UpdateName(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterCreate),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "name", lbName),
+						resourceName, "name", lbName),
 				),
 			},
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterUpdate),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "name", updatedLBName),
+						resourceName, "name", updatedLBName),
 					testAccCheckLoadBalancerIsSame(t, &afterCreate, &afterUpdate),
 				),
 			},
@@ -129,6 +133,8 @@ func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 	rInt1, rInt2 := acctest.RandInt(), acctest.RandInt()
 	cidr := "192.168.42.0/24"
 
+	resourceName := "cloudscale_load_balancer.lb-acc-test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -137,19 +143,19 @@ func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2, cidr),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &loadBalancer),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.#", "1"),
+						resourceName, "vip_addresses.#", "1"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.version", "4"),
+						resourceName, "vip_addresses.0.version", "4"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.address", "192.168.42.124"),
+						resourceName, "vip_addresses.0.address", "192.168.42.124"),
 					resource.TestCheckResourceAttrSet(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_href"),
+						resourceName, "vip_addresses.0.subnet_href"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_cidr", cidr),
+						resourceName, "vip_addresses.0.subnet_cidr", cidr),
 					resource.TestCheckResourceAttrSet(
-						"cloudscale_load_balancer.lb-acc-test", "vip_addresses.0.subnet_uuid"),
+						resourceName, "vip_addresses.0.subnet_uuid"),
 				),
 			},
 		},
@@ -164,6 +170,8 @@ func TestAccCloudscaleLoadBalancer_import_basic(t *testing.T) {
 	rInt2 := acctest.RandInt()
 	updatedName := fmt.Sprintf("terraform-%d-lb", rInt2)
 
+	resourceName := "cloudscale_load_balancer.lb-acc-test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -173,7 +181,7 @@ func TestAccCloudscaleLoadBalancer_import_basic(t *testing.T) {
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1),
 			},
 			{
-				ResourceName:            "cloudscale_load_balancer.lb-acc-test",
+				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -181,22 +189,22 @@ func TestAccCloudscaleLoadBalancer_import_basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterImport),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "name", lbName),
+						resourceName, "name", lbName),
 				),
 			},
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &afterUpdate),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.lb-acc-test", "name", updatedName),
+						resourceName, "name", updatedName),
 					testAccCheckLoadBalancerIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
 			{
-				ResourceName:      "cloudscale_load_balancer.lb-acc-test",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
@@ -211,6 +219,8 @@ func TestAccCloudscaleLoadBalancer_import_withTags(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
+	resourceName := "cloudscale_load_balancer.tagged"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -219,19 +229,19 @@ func TestAccCloudscaleLoadBalancer_import_withTags(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.tagged", &afterImport),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "name", fmt.Sprintf("terraform-%d-lb", rInt)),
-					testTagsMatch("cloudscale_load_balancer.tagged"),
+						resourceName, "name", fmt.Sprintf("terraform-%d-lb", rInt)),
+					testTagsMatch(resourceName),
 				),
 			},
 			{
-				ResourceName:      "cloudscale_load_balancer.tagged",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				ResourceName:      "cloudscale_load_balancer.tagged",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
@@ -240,13 +250,13 @@ func TestAccCloudscaleLoadBalancer_import_withTags(t *testing.T) {
 			{
 				Config: testAccCheckCloudscaleLoadBalancerConfigWithZone(42),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.tagged", &afterUpdate),
+					testAccCheckCloudscaleLoadBalancerExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "name", "terraform-42-lb"),
+						resourceName, "name", "terraform-42-lb"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.%", "0"),
+						resourceName, "tags.%", "0"),
 					testAccCheckLoadBalancerIsSame(t, &afterImport, &afterUpdate),
-					testTagsMatch("cloudscale_load_balancer.tagged"),
+					testTagsMatch(resourceName),
 				),
 			},
 		},
@@ -256,6 +266,8 @@ func TestAccCloudscaleLoadBalancer_import_withTags(t *testing.T) {
 func TestAccCloudscaleLoadBalancer_tags(t *testing.T) {
 	rInt := acctest.RandInt()
 
+	resourceName := "cloudscale_load_balancer.tagged"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -265,32 +277,32 @@ func TestAccCloudscaleLoadBalancer_tags(t *testing.T) {
 				Config: testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.%", "2"),
+						resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.my-foo", "foo"),
+						resourceName, "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.my-bar", "bar"),
-					testTagsMatch("cloudscale_load_balancer.tagged"),
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
 				),
 			},
 			{
 				Config: testAccCheckCloudscaleLoadBalancerConfigWithZone(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.%", "0"),
-					testTagsMatch("cloudscale_load_balancer.tagged"),
+						resourceName, "tags.%", "0"),
+					testTagsMatch(resourceName),
 				),
 			},
 			{
 				Config: testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.%", "2"),
+						resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.my-foo", "foo"),
+						resourceName, "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_load_balancer.tagged", "tags.my-bar", "bar"),
-					testTagsMatch("cloudscale_load_balancer.tagged"),
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
 				),
 			},
 		},
