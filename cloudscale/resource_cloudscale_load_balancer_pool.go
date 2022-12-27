@@ -117,12 +117,12 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 func resourceCloudscaleLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
-	loadbalancerpool, err := client.LoadBalancerPools.Get(context.Background(), d.Id())
+	loadbalancerPool, err := client.LoadBalancerPools.Get(context.Background(), d.Id())
 	if err != nil {
 		return CheckDeleted(d, err, "Error retrieving load balancer pool")
 	}
 
-	fillLoadBalancerPoolSchema(d, loadbalancerpool)
+	fillLoadBalancerPoolSchema(d, loadbalancerPool)
 	return nil
 }
 
