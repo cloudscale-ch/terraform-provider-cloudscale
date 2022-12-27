@@ -18,11 +18,11 @@ func resourceCloudscaleLoadBalancerPools() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		Schema: getLoadBalancerPoolsSchema(RESOURCE),
+		Schema: getLoadBalancerPoolSchema(RESOURCE),
 	}
 }
 
-func getLoadBalancerPoolsSchema(t SchemaType) map[string]*schema.Schema {
+func getLoadBalancerPoolSchema(t SchemaType) map[string]*schema.Schema {
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
