@@ -84,6 +84,52 @@ func TestAccCloudscaleLoadBalancerPool_UpdateName(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerPool_tags(t *testing.T) {
+	rInt1, rInt2 := acctest.RandInt(), acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "0"),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleLoadBalancerPoolExists(n string, pool *cloudscale.LoadBalancerPool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -123,6 +169,21 @@ resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
   algorithm = "round_robin"
   protocol = "tcp"
   load_balancer_uuid = cloudscale_load_balancer.lb-acc-test.id
+}
+`, rInt)
+}
+
+func testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
+  name = "terraform-%d-lb-pool"
+  algorithm = "round_robin"
+  protocol = "tcp"
+  load_balancer_uuid = cloudscale_load_balancer.lb-acc-test.id
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }
 `, rInt)
 }
