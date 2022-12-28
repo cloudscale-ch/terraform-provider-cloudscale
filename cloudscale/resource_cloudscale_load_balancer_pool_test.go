@@ -81,7 +81,49 @@ func TestAccCloudscaleLoadBalancerPool_UpdateName(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", updatedLBPoolName),
-					testAccCheckLoadBalancerPoolIsSame(t, &afterCreate, &afterUpdate),
+					testAccCheckLoadBalancerPoolIsSame(t, &afterCreate, &afterUpdate, true),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerPool_UpdateLB(t *testing.T) {
+	var lb1, lb2 cloudscale.LoadBalancer
+	var afterCreate, afterUpdate cloudscale.LoadBalancerPool
+
+	rInt := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerPoolConfig_multiple(rInt, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test.0", &lb1),
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test.1", &lb2),
+					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterCreate),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "load_balancer_uuid", &lb1.UUID),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "load_balancer_uuid",
+						"cloudscale_load_balancer.lb-acc-test.0", "id"),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerPoolConfig_multiple(rInt, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
+					testAccCheckLoadBalancerPoolIsSame(t, &afterCreate, &afterUpdate, false),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "load_balancer_uuid", &lb2.UUID),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "load_balancer_uuid",
+						"cloudscale_load_balancer.lb-acc-test.1", "id"),
 				),
 			},
 		},
@@ -129,7 +171,7 @@ func TestAccCloudscaleLoadBalancerPool_import_basic(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", updatedLBPoolName),
-					testAccCheckLoadBalancerPoolIsSame(t, &afterImport, &afterUpdate),
+					testAccCheckLoadBalancerPoolIsSame(t, &afterImport, &afterUpdate, true),
 				),
 			},
 			{
@@ -186,7 +228,7 @@ func TestAccCloudscaleLoadBalancerPool_import_withTags(t *testing.T) {
 						resourceName, "name", "terraform-42-lb-pool"),
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
-					testAccCheckLoadBalancerPoolIsSame(t, &beforeImport, &afterUpdate),
+					testAccCheckLoadBalancerPoolIsSame(t, &beforeImport, &afterUpdate, true),
 					testTagsMatch(resourceName),
 				),
 			},
@@ -286,6 +328,24 @@ resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
 `, rInt)
 }
 
+func testAccCloudscaleLoadBalancerPoolConfig_multiple(rInt int, lbIndex int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer" "lb-acc-test" {
+  count       = 2
+  name        = "terraform-%[1]d-lb-${count.index}"
+  flavor_slug = "lb-flex-4-2"
+  zone_slug   = "rma1"
+}
+
+resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
+  name               = "terraform-%[1]d-lb-pool"
+  load_balancer_uuid = cloudscale_load_balancer.lb-acc-test[%[2]d].id
+  algorithm          = "round_robin"
+  protocol           = "tcp"
+}
+`, rInt, lbIndex)
+}
+
 func testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
@@ -302,16 +362,19 @@ resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
 }
 
 func testAccCheckLoadBalancerPoolIsSame(t *testing.T,
-	before, after *cloudscale.LoadBalancerPool) resource.TestCheckFunc {
+	before, after *cloudscale.LoadBalancerPool,
+	expectSame bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if adr := before; adr == after {
 			t.Fatalf("Passed the same instance twice, address is equal=%v",
 				adr)
 		}
-		if before.UUID != after.UUID {
-			t.Fatalf("Not expected a change of LoadBalancerPool IDs got=%s, expected=%s",
-				after.UUID, before.UUID)
+		isSame := before.UUID == after.UUID
+		if isSame != expectSame {
+			t.Fatalf("Unexpected LoadBalancerPoolMember IDs got=%s, expected=%s, isSame=%t",
+				after.UUID, before.UUID, isSame)
 		}
 		return nil
 	}
+
 }
