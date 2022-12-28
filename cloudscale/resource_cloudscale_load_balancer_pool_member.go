@@ -6,6 +6,7 @@ import (
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+	"strings"
 )
 
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
@@ -16,10 +17,36 @@ func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 		Delete: resourceCloudscaleLoadBalancerPoolMemberDelete,
 
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: func(
+				ctx context.Context,
+				d *schema.ResourceData,
+				m any,
+			) ([]*schema.ResourceData, error) {
+				poolID, id, err := splitImportID(d.Id())
+				if err != nil {
+					return nil, err
+				}
+				err = d.Set("pool_uuid", poolID)
+				if err != nil {
+					return nil, err
+				}
+				d.SetId(id)
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Schema: getLoadBalancerPoolMemberSchema(RESOURCE),
 	}
+}
+
+func splitImportID(id string) (string, string, error) {
+	parts := strings.Split(id, ".")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("invalid import id %q. Expecting {pool_uuid}.{member_uuid}", id)
+	}
+	if len(parts[0]) == 0 || len(parts[1]) == 0 {
+		return "", "", fmt.Errorf("invalid import id %q. Could not parse {pool_uuid}.{member_uuid}", id)
+	}
+	return parts[0], parts[1], nil
 }
 
 func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {

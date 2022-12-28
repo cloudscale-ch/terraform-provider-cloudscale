@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"regexp"
 	"testing"
 )
 
@@ -134,6 +135,105 @@ func TestAccCloudscaleLoadBalancerPoolMember_UpdatePool(t *testing.T) {
 						resourceName, "pool_uuid",
 						"cloudscale_load_balancer_pool.lb-pool-acc-test.1", "id"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerPoolMember_import_basic(t *testing.T) {
+	var pool cloudscale.LoadBalancerPool
+	var beforeImport, afterImport cloudscale.LoadBalancerPoolMember
+
+	rInt1 := acctest.RandInt()
+	lbPoolMemberName := fmt.Sprintf("terraform-%d-lb-pool-member", rInt1)
+	rInt2 := acctest.RandInt()
+	lbPoolMemberNameUpdated := fmt.Sprintf("terraform-%d-lb-pool-member", rInt2)
+
+	poolResourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+	resourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &beforeImport),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+				ImportStateIdFunc: func(state *terraform.State) (string, error) {
+					return fmt.Sprintf("%s.%s", pool.UUID, beforeImport.UUID), nil
+				},
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", lbPoolMemberName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", lbPoolMemberNameUpdated),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerPoolMember_import_error_cases(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`invalid import id "does-not-exist". Expecting {pool_uuid}.{member_uuid}`),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "cb9f381c-50b8-43e7-a192-ef72e43a5cb5.38632c78-8cbd-4f66-b7d8-43d359aaac87",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     ".",
+				ExpectError:       regexp.MustCompile(`invalid import id ".". Could not parse {pool_uuid}.{member_uuid}`),
 			},
 		},
 	})
