@@ -27,7 +27,8 @@ func TestAccCloudscaleLoadBalancerPool_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &loadBalancerPool),
@@ -65,7 +66,8 @@ func TestAccCloudscaleLoadBalancerPool_UpdateName(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
@@ -73,7 +75,8 @@ func TestAccCloudscaleLoadBalancerPool_UpdateName(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
@@ -101,7 +104,8 @@ func TestAccCloudscaleLoadBalancerPool_import_basic(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
 			},
 			{
 				ResourceName:            resourceName,
@@ -110,7 +114,8 @@ func TestAccCloudscaleLoadBalancerPool_import_basic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{},
 			},
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
@@ -118,7 +123,8 @@ func TestAccCloudscaleLoadBalancerPool_import_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
@@ -138,7 +144,7 @@ func TestAccCloudscaleLoadBalancerPool_import_basic(t *testing.T) {
 }
 
 func TestAccCloudscaleLoadBalancerPool_import_withTags(t *testing.T) {
-	var afterImport, afterUpdate cloudscale.LoadBalancerPool
+	var beforeImport, afterUpdate cloudscale.LoadBalancerPool
 
 	rInt := acctest.RandInt()
 
@@ -150,9 +156,10 @@ func TestAccCloudscaleLoadBalancerPool_import_withTags(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) + testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterImport),
+					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &beforeImport),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", fmt.Sprintf("terraform-%d-lb-pool", rInt)),
 					testTagsMatch(resourceName),
@@ -171,14 +178,15 @@ func TestAccCloudscaleLoadBalancerPool_import_withTags(t *testing.T) {
 				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
 			},
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) + testAccCloudscaleLoadBalancerPoolConfig_basic(42),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(42),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", "terraform-42-lb-pool"),
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
-					testAccCheckLoadBalancerPoolIsSame(t, &afterImport, &afterUpdate),
+					testAccCheckLoadBalancerPoolIsSame(t, &beforeImport, &afterUpdate),
 					testTagsMatch(resourceName),
 				),
 			},
@@ -197,7 +205,8 @@ func TestAccCloudscaleLoadBalancerPool_tags(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt2),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "2"),
@@ -209,7 +218,8 @@ func TestAccCloudscaleLoadBalancerPool_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
@@ -217,7 +227,8 @@ func TestAccCloudscaleLoadBalancerPool_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) + testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt2),
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfigWithTags(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "2"),
