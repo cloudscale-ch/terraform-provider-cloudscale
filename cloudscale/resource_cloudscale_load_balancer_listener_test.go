@@ -91,6 +91,74 @@ func TestAccCloudscaleLoadBalancerListener_UpdateName(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerListener_UpdatePool(t *testing.T) {
+	var pool1, pool2 cloudscale.LoadBalancerPool
+	var afterCreate, afterUpdate cloudscale.LoadBalancerListener
+
+	rInt := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_listener.lb-listener-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerListenerConfig_multiple(rInt, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test.0", &pool1),
+					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test.1", &pool2),
+					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &afterCreate),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "pool_uuid", &pool1.UUID),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "pool_uuid",
+						"cloudscale_load_balancer_pool.lb-pool-acc-test.0", "id"),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerListenerConfig_multiple(rInt, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &afterUpdate),
+					testAccCheckLoadBalancerListenerIsSame(t, &afterCreate, &afterUpdate, false),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "pool_uuid", &pool2.UUID),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "pool_uuid",
+						"cloudscale_load_balancer_pool.lb-pool-acc-test.1", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCloudscaleLoadBalancerListenerConfig_multiple(rInt int, poolIndex int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer" "lb-acc-test" {
+  name        = "terraform-%[1]d-lb"
+  flavor_slug = "lb-flex-4-2"
+  zone_slug   = "rma1"
+}
+
+resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
+  count              = 2
+  name               = "terraform-%[1]d-lb-pool-${count.index}"
+  load_balancer_uuid = cloudscale_load_balancer.lb-acc-test.id
+  algorithm          = "round_robin"
+  protocol           = "tcp"
+}
+
+resource "cloudscale_load_balancer_listener" "lb-listener-acc-test" {
+  name          = "terraform-%[1]d-listener"
+  pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test[%[2]d].id
+  protocol      = "tcp"
+  protocol_port = 80
+}
+`, rInt, poolIndex)
+
+}
+
 func testAccCheckCloudscaleLoadBalancerListenerExists(n string, listener *cloudscale.LoadBalancerListener) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
