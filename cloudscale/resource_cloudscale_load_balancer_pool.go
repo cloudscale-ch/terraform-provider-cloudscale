@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-func resourceCloudscaleLoadBalancerPools() *schema.Resource {
+func resourceCloudscaleLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleLoadBalancerPoolCreate,
 		Read:   resourceCloudscaleLoadBalancerPoolRead,
@@ -37,6 +37,7 @@ func getLoadBalancerPoolSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
 			Optional: t.isDataSource(),
+			ForceNew: true,
 		},
 		"load_balancer_name": {
 			Type:     schema.TypeString,

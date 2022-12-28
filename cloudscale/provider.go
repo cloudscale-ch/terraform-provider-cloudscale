@@ -39,8 +39,9 @@ func Provider() *schema.Provider {
 			"cloudscale_objects_user":              resourceCloudscaleObjectsUser(),
 			"cloudscale_custom_image":              resourceCloudscaleCustomImage(),
 			"cloudscale_load_balancer":             resourceCloudscaleLoadBalancer(),
-			"cloudscale_load_balancer_pool":        resourceCloudscaleLoadBalancerPools(),
+			"cloudscale_load_balancer_pool":        resourceCloudscaleLoadBalancerPool(),
 			"cloudscale_load_balancer_pool_member": resourceCloudscaleLoadBalancerPoolMembers(),
+			"cloudscale_load_balancer_listener":    resourceCloudscaleLoadBalancerListener(),
 		},
 		ConfigureFunc: providerConfigureClient,
 	}
