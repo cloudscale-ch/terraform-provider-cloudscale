@@ -16,7 +16,7 @@ func dataSourceCloudscaleServerGroup() *schema.Resource {
 	}
 }
 
-func serverGroupsRead(meta interface{}) ([]ResourceDataRaw, error) {
+func serverGroupsRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
 	client := meta.(*cloudscale.Client)
 	serverGroupList, err := client.ServerGroups.List(context.Background())
 	if err != nil {

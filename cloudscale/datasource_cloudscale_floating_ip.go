@@ -16,7 +16,7 @@ func dataSourceCloudscaleFloatingIP() *schema.Resource {
 	}
 }
 
-func floatingIPsRead(meta interface{}) ([]ResourceDataRaw, error) {
+func floatingIPsRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
 	client := meta.(*cloudscale.Client)
 	floatingIPList, err := client.FloatingIPs.List(context.Background())
 	if err != nil {

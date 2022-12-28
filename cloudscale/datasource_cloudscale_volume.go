@@ -16,7 +16,7 @@ func dataSourceCloudscaleVolume() *schema.Resource {
 	}
 }
 
-func volumesRead(meta interface{}) ([]ResourceDataRaw, error) {
+func volumesRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
 	client := meta.(*cloudscale.Client)
 	volumeList, err := client.Volumes.List(context.Background())
 	if err != nil {

@@ -15,7 +15,8 @@ func TestAccCloudscaleLoadBalancerPool_DS_Basic(t *testing.T) {
 	name1 := fmt.Sprintf("terraform-%d-lb-pool-0", rInt)
 	name2 := fmt.Sprintf("terraform-%d-lb-pool-1", rInt)
 
-	config := loadBalancerConfig_baseline(2, rInt) + loadBalancerPoolConfig_baseline(2, rInt)
+	config := loadBalancerConfig_baseline(2, rInt) +
+		loadBalancerPoolConfig_baseline(2, rInt)
 
 	lbResourceName1 := "cloudscale_load_balancer.basic.0"
 	resourceName1 := "cloudscale_load_balancer_pool.basic.0"
@@ -72,7 +73,7 @@ func TestAccCloudscaleLoadBalancerPool_DS_Basic(t *testing.T) {
 			},
 			{
 				Config:      config + "\n" + `data "cloudscale_load_balancer_pool" "foo" {}`,
-				ExpectError: regexp.MustCompile(`Found \d+ load balancer pools, expected one`),
+				ExpectError: regexp.MustCompile(`Found \d+ load balancer pool members, expected one`),
 			},
 		},
 	})

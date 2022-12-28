@@ -15,7 +15,7 @@ func dataSourceCloudscaleLoadBalancer() *schema.Resource {
 	}
 }
 
-func loadBalancersRead(meta interface{}) ([]ResourceDataRaw, error) {
+func loadBalancersRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
 	client := meta.(*cloudscale.Client)
 	loadBalancerList, err := client.LoadBalancers.List(context.Background())
 	if err != nil {

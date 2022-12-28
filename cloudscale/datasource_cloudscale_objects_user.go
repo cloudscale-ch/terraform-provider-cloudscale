@@ -16,7 +16,7 @@ func dataSourceCloudscaleObjectsUser() *schema.Resource {
 	}
 }
 
-func objectsUsersRead(meta interface{}) ([]ResourceDataRaw, error) {
+func objectsUsersRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
 	client := meta.(*cloudscale.Client)
 	objectsUserList, err := client.ObjectsUsers.List(context.Background())
 	if err != nil {

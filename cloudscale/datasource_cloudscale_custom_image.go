@@ -16,7 +16,7 @@ func dataSourceCloudscaleCustomImage() *schema.Resource {
 	}
 }
 
-func customImagesRead(meta interface{}) ([]ResourceDataRaw, error) {
+func customImagesRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
 	client := meta.(*cloudscale.Client)
 	customImageList, err := client.CustomImages.List(context.Background())
 	if err != nil {

@@ -16,7 +16,7 @@ func dataSourceCloudscaleSubnet() *schema.Resource {
 	}
 }
 
-func subnetsRead(meta interface{}) ([]ResourceDataRaw, error) {
+func subnetsRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
 	client := meta.(*cloudscale.Client)
 	subnetList, err := client.Subnets.List(context.Background())
 	if err != nil {

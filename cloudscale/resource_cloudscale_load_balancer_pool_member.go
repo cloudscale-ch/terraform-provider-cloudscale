@@ -95,6 +95,12 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"tags": &TagsSchema,
 	}
+	if t.isDataSource() {
+		m["id"] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		}
+	}
 	return m
 }
 
