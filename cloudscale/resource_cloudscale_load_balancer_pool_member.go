@@ -56,6 +56,10 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 			Required: t.isResource(),
 			Optional: t.isDataSource(),
 		},
+		"href": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"pool_uuid": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -131,6 +135,7 @@ func fillLoadBalancerPoolMemberSchema(d *schema.ResourceData, loadbalancerpoolMe
 func gatherLoadBalancerPoolMemberResourceData(loadbalancerpoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
 	m := make(map[string]interface{})
 	m["id"] = loadbalancerpoolMember.UUID
+	m["href"] = loadbalancerpoolMember.HREF
 	m["name"] = loadbalancerpoolMember.Name
 	m["pool_uuid"] = loadbalancerpoolMember.Pool.UUID
 	m["pool_name"] = loadbalancerpoolMember.Pool.Name
@@ -162,17 +167,21 @@ func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta
 	poolID := d.Get("pool_uuid").(string)
 
 	for _, attribute := range []string{"name", "protocol_port", "monitor_port", "tags"} {
-		opts := &cloudscale.LoadBalancerPoolMemberRequest{}
-		if attribute == "name" {
-			opts.Name = d.Get(attribute).(string)
-		} else if attribute == "protocol_port" {
-			opts.ProtocolPort = d.Get(attribute).(int)
-		} else if attribute == "monitor_port" {
-			opts.MonitorPort = d.Get(attribute).(int)
-		}
-		err := client.LoadBalancerPoolMembers.Update(context.Background(), poolID, id, opts)
-		if err != nil {
-			return fmt.Errorf("Error updating the Load Balancer Pool Member (%s): %s", id, err)
+		if d.HasChange(attribute) {
+			opts := &cloudscale.LoadBalancerPoolMemberRequest{}
+			if attribute == "name" {
+				opts.Name = d.Get(attribute).(string)
+			} else if attribute == "protocol_port" {
+				opts.ProtocolPort = d.Get(attribute).(int)
+			} else if attribute == "monitor_port" {
+				opts.MonitorPort = d.Get(attribute).(int)
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
+			}
+			err := client.LoadBalancerPoolMembers.Update(context.Background(), poolID, id, opts)
+			if err != nil {
+				return fmt.Errorf("Error updating the Load Balancer Pool Member (%s): %s", id, err)
+			}
 		}
 	}
 	return resourceCloudscaleLoadBalancerPoolMemberRead(d, meta)

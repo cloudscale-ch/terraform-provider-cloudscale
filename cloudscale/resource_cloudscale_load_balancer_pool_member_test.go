@@ -239,6 +239,112 @@ func TestAccCloudscaleLoadBalancerPoolMember_import_error_cases(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerPoolMember_import_withTags(t *testing.T) {
+	var pool cloudscale.LoadBalancerPool
+	var beforeImport, afterUpdate cloudscale.LoadBalancerPoolMember
+
+	rInt := acctest.RandInt()
+	lbPoolMemberName := fmt.Sprintf("terraform-%d-lb-pool-member", rInt)
+
+	poolResourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+	resourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolMemberConfigWithTags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &beforeImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", lbPoolMemberName),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+				ImportStateIdFunc: func(state *terraform.State) (string, error) {
+					return fmt.Sprintf("%s.%s", pool.UUID, beforeImport.UUID), nil
+				},
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(42),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", "42"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "0"),
+					testAccCheckLoadBalancerPoolMemberIsSame(t, &beforeImport, &afterUpdate, true),
+					testTagsMatch(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerPoolMember_tags(t *testing.T) {
+	rInt1, rInt2, rInt3 := acctest.RandInt(), acctest.RandInt(), acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
+					testAccCloudscaleLoadBalancerPoolMemberConfigWithTags(rInt3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "0"),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
+					testAccCloudscaleLoadBalancerPoolMemberConfigWithTags(rInt3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleLoadBalancerPoolMemberExists(n string, member *cloudscale.LoadBalancerPoolMember) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -280,6 +386,21 @@ resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   protocol_port = 80
   address       = "%s"
+}
+`, rInt, TestAddress)
+}
+
+func testAccCloudscaleLoadBalancerPoolMemberConfigWithTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
+  name          = "terraform-%d-lb-pool-member"
+  pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  protocol_port = 80
+  address       = "%s"
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
 }
 `, rInt, TestAddress)
 }
