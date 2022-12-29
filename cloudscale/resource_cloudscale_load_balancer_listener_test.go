@@ -240,6 +240,58 @@ func TestAccCloudscaleLoadBalancerListener_import_withTags(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerListener_tags(t *testing.T) {
+	rInt1, rInt2, rInt3 := acctest.RandInt(), acctest.RandInt(), acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_listener.lb-listener-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
+					testAccCloudscaleLoadBalancerListenerConfigWithTags(rInt3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
+					testAccCloudscaleLoadBalancerListenerConfig_basic(rInt3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "0"),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
+					testAccCloudscaleLoadBalancerListenerConfigWithTags(rInt3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-foo", "foo"),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testAccCloudscaleLoadBalancerListenerConfig_multiple(rInt int, poolIndex int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "lb-acc-test" {
