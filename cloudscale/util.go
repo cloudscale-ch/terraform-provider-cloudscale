@@ -9,7 +9,7 @@ import (
 
 var (
 	TagsSchema schema.Schema = schema.Schema{
-		Type:     schema.TypeMap,
+		Type: schema.TypeMap,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 		},
@@ -20,7 +20,7 @@ var (
 func CopyTags(d *schema.ResourceData) *cloudscale.TagMap {
 	newTags := make(cloudscale.TagMap)
 
-	for k, v := range d.Get("tags").(map[string]interface{}) {
+	for k, v := range d.Get("tags").(map[string]any) {
 		newTags[k] = v.(string)
 	}
 

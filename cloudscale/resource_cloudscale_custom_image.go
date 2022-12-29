@@ -105,7 +105,7 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomImageCreate(d *schema.ResourceData, meta any) error {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -173,7 +173,7 @@ func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *clou
 }
 
 func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = customImage.UUID
 	m["href"] = customImage.HREF
 	m["name"] = customImage.Name
@@ -192,7 +192,7 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	return m
 }
 
-func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomImageRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	customImage, err := client.CustomImages.Get(context.Background(), d.Id())
@@ -210,7 +210,7 @@ func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomImageUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -236,7 +236,7 @@ func resourceCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceCustomImageRead(d, meta)
 }
 
-func resourceCustomImageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomImageDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -249,7 +249,7 @@ func resourceCustomImageDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta interface{}, pending []string, attribute, target string, timeout time.Duration) (interface{}, error) {
+func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta any, pending []string, attribute, target string, timeout time.Duration) (any, error) {
 	log.Printf(
 		"[INFO] Waiting %s for custom image import (%s) to have %s of %s",
 		timeout, uuid, attribute, target)
@@ -267,9 +267,9 @@ func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta in
 	return stateConf.WaitForState()
 }
 
-func newCustomImageImportRefreshFunc(uuid string, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+func newCustomImageImportRefreshFunc(uuid string, d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		customImageImport, err := client.CustomImageImports.Get(context.Background(), uuid)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error retrieving customImageImport (refresh) %s", err)

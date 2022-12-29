@@ -104,7 +104,7 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerPoolMemberRequest{
@@ -139,7 +139,7 @@ func fillLoadBalancerPoolMemberSchema(d *schema.ResourceData, loadbalancerpoolMe
 }
 
 func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = loadbalancerPoolMember.UUID
 	m["href"] = loadbalancerPoolMember.HREF
 	m["name"] = loadbalancerPoolMember.Name
@@ -154,7 +154,7 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolMemberRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	poolID := d.Get("pool_uuid").(string)
@@ -167,7 +167,7 @@ func resourceCloudscaleLoadBalancerPoolMemberRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 	poolID := d.Get("pool_uuid").(string)
@@ -193,7 +193,7 @@ func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta
 	return resourceCloudscaleLoadBalancerPoolMemberRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolMemberDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 	poolID := d.Get("pool_uuid").(string)

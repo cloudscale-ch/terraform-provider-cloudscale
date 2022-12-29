@@ -83,7 +83,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.NetworkCreateRequest{
@@ -122,16 +122,16 @@ func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network
 }
 
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = network.UUID
 	m["href"] = network.HREF
 	m["name"] = network.Name
 	m["mtu"] = network.MTU
 	m["zone_slug"] = network.Zone.Slug
 
-	subnets := make([]map[string]interface{}, 0, len(network.Subnets))
+	subnets := make([]map[string]any, 0, len(network.Subnets))
 	for _, subnet := range network.Subnets {
-		g := make(map[string]interface{})
+		g := make(map[string]any)
 		g["uuid"] = subnet.UUID
 		g["cidr"] = subnet.CIDR
 		g["href"] = subnet.HREF
@@ -142,7 +142,7 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 	return m
 }
 
-func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	network, err := client.Networks.Get(context.Background(), d.Id())
@@ -154,7 +154,7 @@ func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -178,7 +178,7 @@ func resourceNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceNetworkRead(d, meta)
 }
 
-func resourceNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

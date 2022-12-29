@@ -281,7 +281,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceServerCreate(d *schema.ResourceData, meta any) error {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -432,7 +432,7 @@ func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) clouds
 
 	addressKey := prefix + ".addresses"
 	if d.HasChange(addressKey) {
-		addresses := d.Get(addressKey).([]interface{})
+		addresses := d.Get(addressKey).([]any)
 		if len(addresses) > 0 {
 			addresses := createAddressesOptions(addresses)
 			result.Addresses = &addresses
@@ -453,10 +453,10 @@ func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) clouds
 	return result
 }
 
-func createAddressesOptions(addresses []interface{}) []cloudscale.AddressRequest {
+func createAddressesOptions(addresses []any) []cloudscale.AddressRequest {
 	result := make([]cloudscale.AddressRequest, len(addresses))
 	for i, address := range addresses {
-		a := address.(map[string]interface{})
+		a := address.(map[string]any)
 		if a["subnet_uuid"] != "" {
 			result[i].Subnet = a["subnet_uuid"].(string)
 		}
@@ -486,7 +486,7 @@ func fillServerResourceData(d *schema.ResourceData, server *cloudscale.Server) {
 }
 
 func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = server.UUID
 	m["href"] = server.HREF
 	m["name"] = server.Name
@@ -497,9 +497,9 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	m["tags"] = server.Tags
 
 	if volumes := len(server.Volumes); volumes > 0 {
-		volumesMaps := make([]map[string]interface{}, 0, volumes)
+		volumesMaps := make([]map[string]any, 0, volumes)
 		for _, volume := range server.Volumes {
-			v := make(map[string]interface{})
+			v := make(map[string]any)
 			v["type"] = volume.Type
 			v["device_path"] = volume.DevicePath
 			v["size_gb"] = volume.SizeGB
@@ -508,9 +508,9 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 		}
 		m["volumes"] = volumesMaps
 	}
-	serverGroupMaps := make([]map[string]interface{}, 0, len(server.ServerGroups))
+	serverGroupMaps := make([]map[string]any, 0, len(server.ServerGroups))
 	for _, serverGroup := range server.ServerGroups {
-		g := make(map[string]interface{})
+		g := make(map[string]any)
 		g["uuid"] = serverGroup.UUID
 		g["name"] = serverGroup.Name
 		g["href"] = serverGroup.HREF
@@ -519,18 +519,18 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	m["server_groups"] = serverGroupMaps
 
 	if addrss := len(server.Interfaces); addrss > 0 {
-		intsMap := make([]map[string]interface{}, 0, addrss)
+		intsMap := make([]map[string]any, 0, addrss)
 		for _, intr := range server.Interfaces {
 
-			intMap := make(map[string]interface{})
+			intMap := make(map[string]any)
 
 			intMap["network_href"] = intr.Network.HREF
 			intMap["network_name"] = intr.Network.Name
 			intMap["network_uuid"] = intr.Network.UUID
 
-			addrssMap := make([]map[string]interface{}, 0, len(intr.Addresses))
+			addrssMap := make([]map[string]any, 0, len(intr.Addresses))
 			for _, addr := range intr.Addresses {
-				i := make(map[string]interface{})
+				i := make(map[string]any)
 				i["address"] = addr.Address
 				i["version"] = addr.Version
 				i["prefix_length"] = addr.PrefixLength
@@ -562,7 +562,7 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	return m
 }
 
-func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServerRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	id := d.Id()
@@ -575,7 +575,7 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServerUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -688,7 +688,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceServerRead(d, meta)
 }
 
-func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServerDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -702,9 +702,9 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		id := d.Id()
 
 		err := resourceServerRead(d, meta)
@@ -728,7 +728,7 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interfa
 	}
 }
 
-func waitForSSHHostKeys(d *schema.ResourceData, meta interface{}, timeout *time.Duration) error {
+func waitForSSHHostKeys(d *schema.ResourceData, meta any, timeout *time.Duration) error {
 	if d.Get("skip_waiting_for_ssh_host_keys").(bool) {
 		log.Printf("[INFO] Not waiting for server (%s) to have host keys available", d.Id())
 		return nil
@@ -792,7 +792,7 @@ func findIPv4AddrByType(s *cloudscale.Server, addrType string) string {
 	return ""
 }
 
-func resourceCloudscaleServerImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceCloudscaleServerImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	// this attribute is irrelevant for existing servers
 	d.Set("skip_waiting_for_ssh_host_keys", false)
 	return schema.ImportStatePassthroughContext(ctx, d, meta)

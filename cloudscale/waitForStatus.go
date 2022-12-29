@@ -11,7 +11,7 @@ func waitForStatus(
 	target string,
 	timeout *time.Duration,
 	refreshFunc resource.StateRefreshFunc,
-) (interface{}, error) {
+) (any, error) {
 	if timeout == nil {
 		defaultTimeout := 5 * time.Minute
 		timeout = &(defaultTimeout)

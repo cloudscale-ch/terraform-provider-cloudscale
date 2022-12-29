@@ -67,7 +67,7 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVolumeCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.VolumeRequest{
@@ -76,7 +76,7 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 		Type:   d.Get("type").(string),
 	}
 
-	serverUUIDs := d.Get("server_uuids").([]interface{})
+	serverUUIDs := d.Get("server_uuids").([]any)
 	s := make([]string, len(serverUUIDs))
 
 	for i := range serverUUIDs {
@@ -110,7 +110,7 @@ func fillVolumeResourceData(d *schema.ResourceData, volume *cloudscale.Volume) {
 }
 
 func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = volume.UUID
 	m["href"] = volume.HREF
 	m["name"] = volume.Name
@@ -122,7 +122,7 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	return m
 }
 
-func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVolumeRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	volume, err := client.Volumes.Get(context.Background(), d.Id())
@@ -134,7 +134,7 @@ func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVolumeUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -146,7 +146,7 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.VolumeRequest{}
 			if attribute == "server_uuids" {
-				serverUUIDs := d.Get("server_uuids").([]interface{})
+				serverUUIDs := d.Get("server_uuids").([]any)
 				s := make([]string, len(serverUUIDs))
 
 				for i := range serverUUIDs {
@@ -169,7 +169,7 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceVolumeRead(d, meta)
 }
 
-func resourceVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVolumeDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

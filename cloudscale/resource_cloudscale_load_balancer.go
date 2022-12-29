@@ -92,7 +92,7 @@ func getLoadBalancerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta any) error {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -138,9 +138,9 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func newLoadBalancerRefreshFunc(d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+func newLoadBalancerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		id := d.Id()
 
 		err := resourceCloudscaleLoadBalancerRead(d, meta)
@@ -180,7 +180,7 @@ func fillLoadBalancerSchema(d *schema.ResourceData, loadbalancer *cloudscale.Loa
 }
 
 func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = loadbalancer.UUID
 	m["href"] = loadbalancer.HREF
 	m["name"] = loadbalancer.Name
@@ -190,10 +190,10 @@ func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) Resou
 	m["tags"] = loadbalancer.Tags
 
 	if addrss := len(loadbalancer.VIPAddresses); addrss > 0 {
-		vipAddressesMap := make([]map[string]interface{}, 0, addrss)
+		vipAddressesMap := make([]map[string]any, 0, addrss)
 		for _, vip := range loadbalancer.VIPAddresses {
 
-			vipMap := make(map[string]interface{})
+			vipMap := make(map[string]any)
 
 			vipMap["version"] = vip.Version
 			vipMap["address"] = vip.Address
@@ -209,7 +209,7 @@ func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) Resou
 	return m
 }
 
-func resourceCloudscaleLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	loadbalancer, err := client.LoadBalancers.Get(context.Background(), d.Id())
@@ -221,7 +221,7 @@ func resourceCloudscaleLoadBalancerRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCloudscaleLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -243,7 +243,7 @@ func resourceCloudscaleLoadBalancerUpdate(d *schema.ResourceData, meta interface
 	return resourceCloudscaleLoadBalancerRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

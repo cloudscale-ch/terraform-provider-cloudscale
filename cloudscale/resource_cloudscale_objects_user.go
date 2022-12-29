@@ -54,7 +54,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 					},
 				},
 			},
-			Computed: true,
+			Computed:  true,
 			Sensitive: true,
 		},
 		"tags": &TagsSchema,
@@ -68,7 +68,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceObjectsUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceObjectsUserCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ObjectsUserRequest{
@@ -94,7 +94,7 @@ func fillObjectsUserResourceData(d *schema.ResourceData, objectsUser *cloudscale
 }
 
 func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = objectsUser.ID
 	m["href"] = objectsUser.HREF
 	m["user_id"] = objectsUser.ID
@@ -113,7 +113,7 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	return m
 }
 
-func resourceObjectsUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceObjectsUserRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	objectsUser, err := client.ObjectsUsers.Get(context.Background(), d.Id())
@@ -125,7 +125,7 @@ func resourceObjectsUserRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceObjectsUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceObjectsUserUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -147,7 +147,7 @@ func resourceObjectsUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceObjectsUserRead(d, meta)
 }
 
-func resourceObjectsUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceObjectsUserDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

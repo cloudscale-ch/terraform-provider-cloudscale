@@ -73,7 +73,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.SubnetCreateRequest{
@@ -87,7 +87,7 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.GatewayAddress = attr.(string)
 	}
 
-	dnsServers := d.Get("dns_servers").([]interface{})
+	dnsServers := d.Get("dns_servers").([]any)
 	s := make([]string, len(dnsServers))
 	for i := range dnsServers {
 		s[i] = dnsServers[i].(string)
@@ -115,7 +115,7 @@ func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) {
 }
 
 func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = subnet.UUID
 	m["href"] = subnet.HREF
 	m["cidr"] = subnet.CIDR
@@ -128,7 +128,7 @@ func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
 	return m
 }
 
-func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	subnet, err := client.Subnets.Get(context.Background(), d.Id())
@@ -140,7 +140,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -151,7 +151,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 			if attribute == "gateway_address" {
 				opts.GatewayAddress = d.Get(attribute).(string)
 			} else if attribute == "dns_servers" {
-				dnsServers := d.Get("dns_servers").([]interface{})
+				dnsServers := d.Get("dns_servers").([]any)
 				s := make([]string, len(dnsServers))
 
 				for i := range dnsServers {
@@ -170,7 +170,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceSubnetRead(d, meta)
 }
 
-func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubnetDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

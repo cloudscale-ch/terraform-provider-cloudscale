@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type ResourceDataRaw = map[string]interface{}
+type ResourceDataRaw = map[string]any
 
 func fillResourceData(d *schema.ResourceData, map_ ResourceDataRaw) {
 	for k, v := range map_ {
@@ -27,7 +27,7 @@ func dataSourceResourceRead(
 		if err != nil {
 			return diag.Errorf("Issue with fetching resources: %s", err)
 		}
-		var foundItems []map[string]interface{}
+		var foundItems []map[string]any
 
 		for _, m := range resources {
 			match := true

@@ -68,7 +68,7 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerListenerRequest{
@@ -102,7 +102,7 @@ func fillLoadBalancerListenerSchema(d *schema.ResourceData, loadbalancerlistener
 }
 
 func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.LoadBalancerListener) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = loadbalancerlistener.UUID
 	m["href"] = loadbalancerlistener.HREF
 	m["name"] = loadbalancerlistener.Name
@@ -115,7 +115,7 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	return m
 }
 
-func resourceCloudscaleLoadBalancerListenerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerListenerRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	loadbalancerListener, err := client.LoadBalancerListeners.Get(context.Background(), d.Id())
@@ -127,7 +127,7 @@ func resourceCloudscaleLoadBalancerListenerRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -152,7 +152,7 @@ func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta i
 	return resourceCloudscaleLoadBalancerListenerRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerListenerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerListenerDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

@@ -48,7 +48,7 @@ func Provider() *schema.Provider {
 	}
 }
 
-func providerConfigureClient(d *schema.ResourceData) (interface{}, error) {
+func providerConfigureClient(d *schema.ResourceData) (any, error) {
 	config := Config{
 		Token: d.Get("token").(string),
 	}

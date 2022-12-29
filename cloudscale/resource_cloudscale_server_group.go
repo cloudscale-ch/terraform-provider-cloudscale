@@ -57,7 +57,7 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceServerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceServerGroupCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ServerGroupRequest{
@@ -90,7 +90,7 @@ func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale
 }
 
 func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = serverGroup.UUID
 	m["href"] = serverGroup.HREF
 	m["name"] = serverGroup.Name
@@ -100,7 +100,7 @@ func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) Resource
 	return m
 }
 
-func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServerGroupRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	serverGroup, err := client.ServerGroups.Get(context.Background(), d.Id())
@@ -112,7 +112,7 @@ func resourceServerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceServerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServerGroupUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -134,7 +134,7 @@ func resourceServerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceServerGroupRead(d, meta)
 }
 
-func resourceServerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServerGroupDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

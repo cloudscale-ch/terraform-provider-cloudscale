@@ -83,7 +83,7 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.FloatingIPCreateRequest{
@@ -129,7 +129,7 @@ func fillFloatingIPResourceData(d *schema.ResourceData, floatingIP *cloudscale.F
 }
 
 func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = floatingIP.IP()
 	m["href"] = floatingIP.HREF
 	m["ip_version"] = floatingIP.IPVersion
@@ -149,7 +149,7 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	return m
 }
 
-func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFloatingIPRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	id := d.Id()
@@ -164,7 +164,7 @@ func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 
 }
-func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFloatingIPUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -189,7 +189,7 @@ func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	return resourceFloatingIPRead(d, meta)
 }
-func resourceFloatingIPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFloatingIPDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 

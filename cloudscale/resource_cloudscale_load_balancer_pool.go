@@ -68,7 +68,7 @@ func getLoadBalancerPoolSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerPoolRequest{
@@ -102,7 +102,7 @@ func fillLoadBalancerPoolSchema(d *schema.ResourceData, loadbalancerpool *clouds
 }
 
 func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalancerPool) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = loadbalancerpool.UUID
 	m["href"] = loadbalancerpool.HREF
 	m["name"] = loadbalancerpool.Name
@@ -115,7 +115,7 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	loadbalancerPool, err := client.LoadBalancerPools.Get(context.Background(), d.Id())
@@ -127,7 +127,7 @@ func resourceCloudscaleLoadBalancerPoolRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -152,7 +152,7 @@ func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta inter
 	return resourceCloudscaleLoadBalancerPoolRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerPoolDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
