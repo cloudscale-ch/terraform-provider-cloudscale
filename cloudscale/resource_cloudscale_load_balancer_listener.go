@@ -13,7 +13,7 @@ func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 		Create: resourceCloudscaleLoadBalancerListenerCreate,
 		Read:   resourceCloudscaleLoadBalancerListenerRead,
 		Update: resourceCloudscaleLoadBalancerListenerUpdate,
-		Delete: resourceCloudscaleLoadBalancerListenerDelete,
+		Delete: getDeleteOperation("load balancer listener", deleteLoadBalancerListener),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -152,16 +152,8 @@ func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta a
 	return resourceCloudscaleLoadBalancerListenerRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerListenerDelete(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerListener(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting LoadBalancerListener: %s", id)
-	err := client.LoadBalancerListeners.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting load balancer listener")
-	}
-
-	return nil
+	return client.LoadBalancerListeners.Delete(context.Background(), id)
 }

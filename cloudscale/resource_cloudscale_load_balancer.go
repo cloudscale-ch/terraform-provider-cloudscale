@@ -15,7 +15,7 @@ func resourceCloudscaleLoadBalancer() *schema.Resource {
 		Create: resourceCloudscaleLoadBalancerCreate,
 		Read:   resourceCloudscaleLoadBalancerRead,
 		Update: resourceCloudscaleLoadBalancerUpdate,
-		Delete: resourceCloudscaleLoadBalancerDelete,
+		Delete: getDeleteOperation("load balancer", deleteLoadBalancer),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -243,16 +243,8 @@ func resourceCloudscaleLoadBalancerUpdate(d *schema.ResourceData, meta any) erro
 	return resourceCloudscaleLoadBalancerRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerDelete(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancer(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting LoadBalancer: %s", id)
-	err := client.LoadBalancers.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting load balancer")
-	}
-
-	return nil
+	return client.LoadBalancers.Delete(context.Background(), id)
 }

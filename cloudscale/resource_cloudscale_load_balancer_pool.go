@@ -13,7 +13,7 @@ func resourceCloudscaleLoadBalancerPool() *schema.Resource {
 		Create: resourceCloudscaleLoadBalancerPoolCreate,
 		Read:   resourceCloudscaleLoadBalancerPoolRead,
 		Update: resourceCloudscaleLoadBalancerPoolUpdate,
-		Delete: resourceCloudscaleLoadBalancerPoolDelete,
+		Delete: getDeleteOperation("load balancer pool", deleteLoadBalancerPool),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -152,16 +152,8 @@ func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta any) 
 	return resourceCloudscaleLoadBalancerPoolRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerPoolDelete(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerPool(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting LoadBalancerPool: %s", id)
-	err := client.LoadBalancerPools.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting load balancer pool")
-	}
-
-	return nil
+	return client.LoadBalancerPools.Delete(context.Background(), id)
 }

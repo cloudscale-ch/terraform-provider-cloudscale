@@ -13,7 +13,7 @@ func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 		Create: resourceCloudscaleLoadBalancerHealthMonitorCreate,
 		Read:   resourceCloudscaleLoadBalancerHealthMonitorRead,
 		Update: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
-		Delete: resourceCloudscaleLoadBalancerHealthMonitorDelete,
+		Delete: getDeleteOperation("load balancer health monitor", deleteLoadBalancerHealthMonitor),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -170,16 +170,8 @@ func resourceCloudscaleLoadBalancerHealthMonitorUpdate(d *schema.ResourceData, m
 	return resourceCloudscaleLoadBalancerRead(d, meta)
 }
 
-func resourceCloudscaleLoadBalancerHealthMonitorDelete(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting LoadBalancerHealthMonitor: %s", id)
-	err := client.LoadBalancerHealthMonitors.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting load balancer health monitor")
-	}
-
-	return nil
+	return client.LoadBalancerHealthMonitors.Delete(context.Background(), id)
 }
