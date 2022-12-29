@@ -14,7 +14,7 @@ func resourceCloudscaleFloatingIP() *schema.Resource {
 		Create: resourceFloatingIPCreate,
 		Read:   resourceFloatingIPRead,
 		Update: resourceFloatingIPUpdate,
-		Delete: resourceFloatingIPDelete,
+		Delete: getDeleteOperation("Floating IP", deleteFloatingIP),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -189,16 +189,8 @@ func resourceFloatingIPUpdate(d *schema.ResourceData, meta any) error {
 	}
 	return resourceFloatingIPRead(d, meta)
 }
-func resourceFloatingIPDelete(d *schema.ResourceData, meta any) error {
+func deleteFloatingIP(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting FloatingIP: %s", d.Id())
-	err := client.FloatingIPs.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting floating IP")
-	}
-
-	return nil
+	return client.FloatingIPs.Delete(context.Background(), id)
 }

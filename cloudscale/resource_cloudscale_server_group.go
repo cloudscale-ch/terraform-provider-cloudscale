@@ -14,7 +14,7 @@ func resourceCloudscaleServerGroup() *schema.Resource {
 		Create: resourceServerGroupCreate,
 		Read:   resourceServerGroupRead,
 		Update: resourceServerGroupUpdate,
-		Delete: resourceServerGroupDelete,
+		Delete: getDeleteOperation("server group", deleteServerGroup),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -134,15 +134,8 @@ func resourceServerGroupUpdate(d *schema.ResourceData, meta any) error {
 	return resourceServerGroupRead(d, meta)
 }
 
-func resourceServerGroupDelete(d *schema.ResourceData, meta any) error {
+func deleteServerGroup(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting ServerGroup: %s", d.Id())
-	err := client.ServerGroups.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting server group")
-	}
-	return nil
+	return client.ServerGroups.Delete(context.Background(), id)
 }

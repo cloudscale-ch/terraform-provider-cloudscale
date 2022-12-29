@@ -3,11 +3,9 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"log"
-	"time"
-
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"log"
 )
 
 func resourceCloudscaleObjectsUser() *schema.Resource {
@@ -15,7 +13,7 @@ func resourceCloudscaleObjectsUser() *schema.Resource {
 		Create: resourceObjectsUserCreate,
 		Read:   resourceObjectsUserRead,
 		Update: resourceObjectsUserUpdate,
-		Delete: resourceObjectsUserDelete,
+		Delete: getDeleteOperation("Objects User", deleteObjectsUser),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -147,17 +145,8 @@ func resourceObjectsUserUpdate(d *schema.ResourceData, meta any) error {
 	return resourceObjectsUserRead(d, meta)
 }
 
-func resourceObjectsUserDelete(d *schema.ResourceData, meta any) error {
+func deleteObjectsUser(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting objects user: %s", d.Id())
-	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
-	time.Sleep(5 * time.Second)
-	err := client.ObjectsUsers.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting objectsUser")
-	}
-	return nil
+	return client.ObjectsUsers.Delete(context.Background(), id)
 }

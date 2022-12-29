@@ -14,7 +14,7 @@ func resourceCloudscaleNetwork() *schema.Resource {
 		Create: resourceNetworkCreate,
 		Read:   resourceNetworkRead,
 		Update: resourceNetworkUpdate,
-		Delete: resourceNetworkDelete,
+		Delete: getDeleteOperation("network", deleteNetwork),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -178,15 +178,8 @@ func resourceNetworkUpdate(d *schema.ResourceData, meta any) error {
 	return resourceNetworkRead(d, meta)
 }
 
-func resourceNetworkDelete(d *schema.ResourceData, meta any) error {
+func deleteNetwork(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting Network: %s", d.Id())
-	err := client.Networks.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting network")
-	}
-	return nil
+	return client.Networks.Delete(context.Background(), id)
 }

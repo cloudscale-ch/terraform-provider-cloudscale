@@ -15,7 +15,7 @@ func resourceCloudscaleSubnet() *schema.Resource {
 		Create: resourceSubnetCreate,
 		Read:   resourceSubnetRead,
 		Update: resourceSubnetUpdate,
-		Delete: resourceSubnetDelete,
+		Delete: getDeleteOperation("subnet", deleteSubnet),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -170,17 +170,10 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta any) error {
 	return resourceSubnetRead(d, meta)
 }
 
-func resourceSubnetDelete(d *schema.ResourceData, meta any) error {
+func deleteSubnet(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting Subnet: %s", d.Id())
 	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
 	time.Sleep(5 * time.Second)
-	err := client.Subnets.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting subnet")
-	}
-	return nil
+	return client.Subnets.Delete(context.Background(), id)
 }

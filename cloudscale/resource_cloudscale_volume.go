@@ -14,7 +14,7 @@ func resourceCloudscaleVolume() *schema.Resource {
 		Create: resourceVolumeCreate,
 		Read:   resourceVolumeRead,
 		Update: resourceVolumeUpdate,
-		Delete: resourceVolumeDelete,
+		Delete: getDeleteOperation("volume", deleteVolume),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -169,15 +169,8 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta any) error {
 	return resourceVolumeRead(d, meta)
 }
 
-func resourceVolumeDelete(d *schema.ResourceData, meta any) error {
+func deleteVolume(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting Volume: %s", d.Id())
-	err := client.Volumes.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting volume")
-	}
-	return nil
+	return client.Volumes.Delete(context.Background(), id)
 }

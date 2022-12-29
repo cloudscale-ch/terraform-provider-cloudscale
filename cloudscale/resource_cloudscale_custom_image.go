@@ -17,7 +17,7 @@ func resourceCloudscaleCustomImage() *schema.Resource {
 		Create: resourceCustomImageCreate,
 		Read:   resourceCustomImageRead,
 		Update: resourceCustomImageUpdate,
-		Delete: resourceCustomImageDelete,
+		Delete: getDeleteOperation("custom image", deleteCustomImage),
 
 		Schema: getCustomImageSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
@@ -236,17 +236,10 @@ func resourceCustomImageUpdate(d *schema.ResourceData, meta any) error {
 	return resourceCustomImageRead(d, meta)
 }
 
-func resourceCustomImageDelete(d *schema.ResourceData, meta any) error {
+func deleteCustomImage(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting CustomImage: %s", d.Id())
-	err := client.CustomImages.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting customImage")
-	}
-	return nil
+	return client.CustomImages.Delete(context.Background(), id)
 }
 
 func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta any, pending []string, attribute, target string, timeout time.Duration) (any, error) {
