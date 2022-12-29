@@ -10,20 +10,15 @@ func dataSourceCloudscaleLoadBalancer() *schema.Resource {
 	recordSchema := getLoadBalancerSchema(DATA_SOURCE)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("load balancers", recordSchema, loadBalancersRead),
-		Schema:      recordSchema,
+		ReadContext: dataSourceResourceRead("load balancers", recordSchema, getFetchFunc(
+			listLoadBalancers,
+			gatherLoadBalancerResourceData,
+		)),
+		Schema: recordSchema,
 	}
 }
 
-func loadBalancersRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+func listLoadBalancers(d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancer, error) {
 	client := meta.(*cloudscale.Client)
-	loadBalancerList, err := client.LoadBalancers.List(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	var rawItems []ResourceDataRaw
-	for _, loadBalancer := range loadBalancerList {
-		rawItems = append(rawItems, gatherLoadBalancerResourceData(&loadBalancer))
-	}
-	return rawItems, nil
+	return client.LoadBalancers.List(context.Background())
 }

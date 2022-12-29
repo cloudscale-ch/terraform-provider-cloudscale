@@ -20,10 +20,10 @@ func fillResourceData(d *schema.ResourceData, map_ ResourceDataRaw) {
 func dataSourceResourceRead(
 	name string,
 	sourceSchema map[string]*schema.Schema,
-	fetch func(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error),
+	fetchFunc func(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error),
 ) schema.ReadContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-		resources, err := fetch(d, meta)
+		resources, err := fetchFunc(d, meta)
 		if err != nil {
 			return diag.Errorf("Issue with fetching resources: %s", err)
 		}
@@ -54,5 +54,24 @@ func dataSourceResourceRead(
 		fillResourceData(d, item)
 
 		return nil
+	}
+}
+
+func getFetchFunc[TResource any](
+	listFunc func(d *schema.ResourceData, meta any) ([]TResource, error),
+	gatherFunc func(resource *TResource) ResourceDataRaw,
+) func(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+	return func(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+		list, err := listFunc(d, meta)
+		if err != nil {
+			return nil, err
+		}
+
+		var rawItems []ResourceDataRaw
+		for _, resource := range list {
+
+			rawItems = append(rawItems, gatherFunc(&resource))
+		}
+		return rawItems, nil
 	}
 }

@@ -10,21 +10,16 @@ func dataSourceCloudscaleLoadBalancerPoolMember() *schema.Resource {
 	recordSchema := getLoadBalancerPoolMemberSchema(DATA_SOURCE)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("load balancer pool members", recordSchema, loadBalancerPoolMembersRead),
-		Schema:      recordSchema,
+		ReadContext: dataSourceResourceRead("load balancer pool members", recordSchema, getFetchFunc(
+			listLoadBalancerPoolMembers,
+			gatherLoadBalancerPoolMemberResourceData,
+		)),
+		Schema: recordSchema,
 	}
 }
 
-func loadBalancerPoolMembersRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+func listLoadBalancerPoolMembers(d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancerPoolMember, error) {
 	client := meta.(*cloudscale.Client)
 	poolId := d.Get("pool_uuid").(string)
-	loadBalancerPoolMemberList, err := client.LoadBalancerPoolMembers.List(context.Background(), poolId)
-	if err != nil {
-		return nil, err
-	}
-	var rawItems []ResourceDataRaw
-	for _, poolMember := range loadBalancerPoolMemberList {
-		rawItems = append(rawItems, gatherLoadBalancerPoolMemberResourceData(&poolMember))
-	}
-	return rawItems, nil
+	return client.LoadBalancerPoolMembers.List(context.Background(), poolId)
 }

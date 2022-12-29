@@ -138,19 +138,19 @@ func fillLoadBalancerPoolMemberSchema(d *schema.ResourceData, loadbalancerpoolMe
 	fillResourceData(d, gatherLoadBalancerPoolMemberResourceData(loadbalancerpoolMember))
 }
 
-func gatherLoadBalancerPoolMemberResourceData(loadbalancerpoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
+func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
 	m := make(map[string]interface{})
-	m["id"] = loadbalancerpoolMember.UUID
-	m["href"] = loadbalancerpoolMember.HREF
-	m["name"] = loadbalancerpoolMember.Name
-	m["pool_uuid"] = loadbalancerpoolMember.Pool.UUID
-	m["pool_name"] = loadbalancerpoolMember.Pool.Name
-	m["pool_href"] = loadbalancerpoolMember.Pool.HREF
-	m["protocol_port"] = loadbalancerpoolMember.ProtocolPort
-	m["monitor_port"] = loadbalancerpoolMember.MonitorPort
-	m["address"] = loadbalancerpoolMember.Address
-	m["status"] = loadbalancerpoolMember.Status
-	m["tags"] = loadbalancerpoolMember.Tags
+	m["id"] = loadbalancerPoolMember.UUID
+	m["href"] = loadbalancerPoolMember.HREF
+	m["name"] = loadbalancerPoolMember.Name
+	m["pool_uuid"] = loadbalancerPoolMember.Pool.UUID
+	m["pool_name"] = loadbalancerPoolMember.Pool.Name
+	m["pool_href"] = loadbalancerPoolMember.Pool.HREF
+	m["protocol_port"] = loadbalancerPoolMember.ProtocolPort
+	m["monitor_port"] = loadbalancerPoolMember.MonitorPort
+	m["address"] = loadbalancerPoolMember.Address
+	m["status"] = loadbalancerPoolMember.Status
+	m["tags"] = loadbalancerPoolMember.Tags
 	return m
 }
 
