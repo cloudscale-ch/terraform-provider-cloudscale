@@ -73,7 +73,7 @@ func TestAccCloudscaleLoadBalancerPool_DS_Basic(t *testing.T) {
 			},
 			{
 				Config:      config + "\n" + `data "cloudscale_load_balancer_pool" "foo" {}`,
-				ExpectError: regexp.MustCompile(`Found \d+ load balancer pool members, expected one`),
+				ExpectError: regexp.MustCompile(`Found \d+ load balancer pools, expected one`),
 			},
 		},
 	})
