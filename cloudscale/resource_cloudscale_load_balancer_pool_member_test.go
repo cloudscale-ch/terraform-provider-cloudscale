@@ -282,7 +282,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_import_withTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						resourceName, "name", "42"),
+						resourceName, "name", fmt.Sprintf("terraform-%d-lb-pool-member", 42)),
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
 					testAccCheckLoadBalancerPoolMemberIsSame(t, &beforeImport, &afterUpdate, true),
