@@ -80,13 +80,13 @@ func TestAccCloudscaleLoadBalancerPoolMember_DS_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckCloudscaleLoadBalancerPoolMemberConfig_name(name1 string) string {
+func testAccCheckCloudscaleLoadBalancerPoolMemberConfig_name(name string) string {
 	return fmt.Sprintf(`
 data "cloudscale_load_balancer_pool_member" "foo" {
   name      = "%s"
   pool_uuid = cloudscale_load_balancer_pool.basic.0.id
 }
-`, name1)
+`, name)
 }
 
 func testAccCheckCloudscaleLoadBalancerPoolMemberConfig_id() string {

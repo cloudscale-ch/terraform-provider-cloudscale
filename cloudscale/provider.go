@@ -27,6 +27,7 @@ func Provider() *schema.Provider {
 			"cloudscale_load_balancer":             dataSourceCloudscaleLoadBalancer(),
 			"cloudscale_load_balancer_pool":        dataSourceCloudscaleLoadBalancerPool(),
 			"cloudscale_load_balancer_pool_member": dataSourceCloudscaleLoadBalancerPoolMember(),
+			"cloudscale_load_balancer_listener":    dataSourceCloudscaleLoadBalancerListener(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
