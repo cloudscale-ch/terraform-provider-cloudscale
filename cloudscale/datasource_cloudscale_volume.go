@@ -11,20 +11,15 @@ func dataSourceCloudscaleVolume() *schema.Resource {
 	recordSchema := getVolumeSchema(DATA_SOURCE)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("volumes", recordSchema, volumesRead),
-		Schema:      recordSchema,
+		ReadContext: dataSourceResourceRead("volumes", recordSchema, getFetchFunc(
+			listVolumes,
+			gatherVolumeResourceData,
+		)),
+		Schema: recordSchema,
 	}
 }
 
-func volumesRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+func listVolumes(d *schema.ResourceData, meta any) ([]cloudscale.Volume, error) {
 	client := meta.(*cloudscale.Client)
-	volumeList, err := client.Volumes.List(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	var rawItems []ResourceDataRaw
-	for _, volume := range volumeList {
-		rawItems = append(rawItems, gatherVolumeResourceData(&volume))
-	}
-	return rawItems, nil
+	return client.Volumes.List(context.Background())
 }

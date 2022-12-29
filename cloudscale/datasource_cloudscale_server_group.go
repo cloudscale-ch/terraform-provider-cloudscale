@@ -11,20 +11,15 @@ func dataSourceCloudscaleServerGroup() *schema.Resource {
 	recordSchema := getServerGroupSchema(DATA_SOURCE)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("server groups", recordSchema, serverGroupsRead),
-		Schema:      recordSchema,
+		ReadContext: dataSourceResourceRead("server groups", recordSchema, getFetchFunc(
+			listServerGroups,
+			gatherServerGroupResourceData,
+		)),
+		Schema: recordSchema,
 	}
 }
 
-func serverGroupsRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+func listServerGroups(d *schema.ResourceData, meta any) ([]cloudscale.ServerGroup, error) {
 	client := meta.(*cloudscale.Client)
-	serverGroupList, err := client.ServerGroups.List(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	var rawItems []ResourceDataRaw
-	for _, serverGroup := range serverGroupList {
-		rawItems = append(rawItems, gatherServerGroupResourceData(&serverGroup))
-	}
-	return rawItems, nil
+	return client.ServerGroups.List(context.Background())
 }

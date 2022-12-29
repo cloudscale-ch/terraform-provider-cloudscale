@@ -11,20 +11,15 @@ func dataSourceCloudscaleSubnet() *schema.Resource {
 	recordSchema := getSubnetSchema(DATA_SOURCE)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("subnets", recordSchema, subnetsRead),
-		Schema:      recordSchema,
+		ReadContext: dataSourceResourceRead("subnets", recordSchema, getFetchFunc(
+			listSubnets,
+			gatherSubnetResourceData,
+		)),
+		Schema: recordSchema,
 	}
 }
 
-func subnetsRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+func listSubnets(d *schema.ResourceData, meta any) ([]cloudscale.Subnet, error) {
 	client := meta.(*cloudscale.Client)
-	subnetList, err := client.Subnets.List(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	var rawItems []ResourceDataRaw
-	for _, subnet := range subnetList {
-		rawItems = append(rawItems, gatherSubnetResourceData(&subnet))
-	}
-	return rawItems, nil
+	return client.Subnets.List(context.Background())
 }

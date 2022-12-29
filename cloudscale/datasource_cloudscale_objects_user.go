@@ -11,20 +11,15 @@ func dataSourceCloudscaleObjectsUser() *schema.Resource {
 	recordSchema := getObjectsUserSchema(DATA_SOURCE)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("Objects Users", recordSchema, objectsUsersRead),
-		Schema:      recordSchema,
+		ReadContext: dataSourceResourceRead("Objects Users", recordSchema, getFetchFunc(
+			listObjectsUsers,
+			gatherObjectsUserResourceData,
+		)),
+		Schema: recordSchema,
 	}
 }
 
-func objectsUsersRead(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+func listObjectsUsers(d *schema.ResourceData, meta any) ([]cloudscale.ObjectsUser, error) {
 	client := meta.(*cloudscale.Client)
-	objectsUserList, err := client.ObjectsUsers.List(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	var rawItems []ResourceDataRaw
-	for _, objectsUser := range objectsUserList {
-		rawItems = append(rawItems, gatherObjectsUserResourceData(&objectsUser))
-	}
-	return rawItems, nil
+	return client.ObjectsUsers.List(context.Background())
 }
