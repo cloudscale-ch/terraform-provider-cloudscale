@@ -133,6 +133,62 @@ func TestAccCloudscaleLoadBalancerListener_UpdatePool(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerListener_import_basic(t *testing.T) {
+	var pool cloudscale.LoadBalancerPool
+	var beforeImport, afterImport cloudscale.LoadBalancerListener
+
+	rInt1 := acctest.RandInt()
+	lbListenerName := fmt.Sprintf("terraform-%d-lb-listener", rInt1)
+	rInt2 := acctest.RandInt()
+	lbListenerNameUpdated := fmt.Sprintf("terraform-%d-lb-listener", rInt2)
+
+	poolResourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+	resourceName := "cloudscale_load_balancer_listener.lb-listener-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerListenerConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
+					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &beforeImport),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerListenerConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", lbListenerName),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerListenerConfig_basic(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", lbListenerNameUpdated),
+				),
+			},
+		},
+	})
+}
+
 func testAccCloudscaleLoadBalancerListenerConfig_multiple(rInt int, poolIndex int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "lb-acc-test" {
