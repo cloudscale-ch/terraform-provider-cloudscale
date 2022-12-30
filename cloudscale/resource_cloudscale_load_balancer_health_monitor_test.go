@@ -131,6 +131,60 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdatePool(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerHealthMonitor_import_basic(t *testing.T) {
+	var pool cloudscale.LoadBalancerPool
+	var beforeImport, afterImport cloudscale.LoadBalancerHealthMonitor
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	poolResourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+	resourceName := "cloudscale_load_balancer_health_monitor.lb-health_monitor-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &beforeImport),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(15),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "delay", fmt.Sprintf("%v", 10)),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "delay", fmt.Sprintf("%v", 15)),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckLoadBalancerHealthMonitorIsSame(t *testing.T,
 	before *cloudscale.LoadBalancerHealthMonitor, after *cloudscale.LoadBalancerHealthMonitor,
 	expectSame bool) resource.TestCheckFunc {
