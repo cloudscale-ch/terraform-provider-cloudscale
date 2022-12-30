@@ -241,13 +241,16 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.debian", &customImage),
 					testAccCheckCloudscaleServerExists("cloudscale_server.debian-server", &server),
-					testAccCheckCloudscaleServerUsagesImage("cloudscale_server.debian-server", "cloudscale_custom_image.debian"),
+					resource.TestCheckResourceAttrPtr("cloudscale_server.debian-server",
+						"image_uuid", &customImage.UUID),
+					resource.TestCheckResourceAttrPair(
+						"cloudscale_server.debian-server", "image_uuid",
+						"cloudscale_custom_image.debian", "id",
+					),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.debian-server", "status", "running"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.debian-server", "image_slug", "custom:terra-test-slug"),
-					resource.TestCheckResourceAttrSet(
-						"cloudscale_server.debian-server", "image_uuid"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.debian-server", "ssh_fingerprints.#", "6"),
 				),
@@ -283,28 +286,6 @@ func testAccCheckCloudscaleCustomImageExists(n string, customImage *cloudscale.C
 		}
 
 		*customImage = *retrieveCustomImage
-
-		return nil
-	}
-}
-
-func testAccCheckCloudscaleServerUsagesImage(nServer string, nCustomImage string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resourceServer, ok := s.RootModule().Resources[nServer]
-		if !ok {
-			return fmt.Errorf("Not found: %s", nServer)
-		}
-
-		resourceCustomImage, ok := s.RootModule().Resources[nCustomImage]
-		if !ok {
-			return fmt.Errorf("Not found: %s", nCustomImage)
-		}
-
-		customImageUUID := resourceCustomImage.Primary.ID
-		serverImageUUID := resourceServer.Primary.Attributes["image_uuid"]
-		if customImageUUID != serverImageUUID {
-			return fmt.Errorf("%v != %v", customImageUUID, serverImageUUID)
-		}
 
 		return nil
 	}
