@@ -11,8 +11,11 @@ import (
 
 const serverGroupHumanName = "server group"
 
-var resourceCloudscaleServerGroupRead = getReadOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, readServerGroup, gatherServerGroupResourceData)
-var resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, deleteServerGroup)
+var (
+	resourceCloudscaleServerGroupRead   = getReadOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, readServerGroup, gatherServerGroupResourceData)
+	resourceCloudscaleServerGroupUpdate = getUpdateOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, updateServerGroup, resourceCloudscaleServerGroupRead, gatherServerGroupUpdateRequest)
+	resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, deleteServerGroup)
+)
 
 func resourceCloudscaleServerGroup() *schema.Resource {
 	return &schema.Resource{
@@ -109,26 +112,28 @@ func readServerGroup(rId GenericResourceIdentifier, meta any) (*cloudscale.Serve
 	return client.ServerGroups.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleServerGroupUpdate(d *schema.ResourceData, meta any) error {
+func updateServerGroup(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.ServerGroupRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.ServerGroups.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherServerGroupUpdateRequest(d *schema.ResourceData) []*cloudscale.ServerGroupRequest {
+	requests := make([]*cloudscale.ServerGroupRequest, 0)
 
 	for _, attribute := range []string{"name", "tags"} {
-		// cloudscale.ch ServerGroup attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.ServerGroupRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.ServerGroups.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Server Group (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleServerGroupRead(d, meta)
+	return requests
 }
 
 func deleteServerGroup(d *schema.ResourceData, meta any) error {

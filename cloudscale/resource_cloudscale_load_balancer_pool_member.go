@@ -11,8 +11,11 @@ import (
 
 const poolMemberHumanName = "load balancer pool member"
 
-var resourceCloudscaleLoadBalancerPoolMemberRead = getReadOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)
-var resourceCloudscaleLoadBalancerPoolMemberDelete = getDeleteOperation(poolMemberHumanName, deleteLoadBalancerPoolMember)
+var (
+	resourceCloudscaleLoadBalancerPoolMemberRead   = getReadOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)
+	resourceCloudscaleLoadBalancerPoolMemberUpdate = getUpdateOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, updateLoadBalancerPoolMember, resourceCloudscaleLoadBalancerPoolMemberRead, gatherLoadBalancerPoolMemberUpdateRequest)
+	resourceCloudscaleLoadBalancerPoolMemberDelete = getDeleteOperation(poolMemberHumanName, deleteLoadBalancerPoolMember)
+)
 
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 	return &schema.Resource{
@@ -172,14 +175,20 @@ func readLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, me
 	return client.LoadBalancerPoolMembers.Get(context.Background(), rId.PoolID, rId.Id)
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta any) error {
+func updateLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolMemberRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	poolID := d.Get("pool_uuid").(string)
+	return client.LoadBalancerPoolMembers.Update(context.Background(), rId.PoolID, rId.Id, updateRequest)
+}
+
+func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolMemberRequest {
+	requests := make([]*cloudscale.LoadBalancerPoolMemberRequest, 0)
 
 	for _, attribute := range []string{"name", "protocol_port", "monitor_port", "tags"} {
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerPoolMemberRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "protocol_port" {
@@ -189,13 +198,9 @@ func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.LoadBalancerPoolMembers.Update(context.Background(), poolID, id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Load Balancer Pool Member (%s): %s", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleLoadBalancerPoolMemberRead(d, meta)
+	return requests
 }
 
 func deleteLoadBalancerPoolMember(d *schema.ResourceData, meta any) error {

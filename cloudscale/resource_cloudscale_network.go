@@ -11,8 +11,11 @@ import (
 
 const networkHumanName = "network"
 
-var resourceCloudscaleNetworkRead = getReadOperation(networkHumanName, getGenericResourceIdentifierFromSchema, readNetwork, gatherNetworkResourceData)
-var resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, deleteNetwork)
+var (
+	resourceCloudscaleNetworkRead   = getReadOperation(networkHumanName, getGenericResourceIdentifierFromSchema, readNetwork, gatherNetworkResourceData)
+	resourceCloudscaleNetworkUpdate = getUpdateOperation(networkHumanName, getGenericResourceIdentifierFromSchema, updateNetwork, resourceCloudscaleNetworkRead, gatherNetworkUpdateRequest)
+	resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, deleteNetwork)
+)
 
 func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
@@ -150,14 +153,20 @@ func readNetwork(rId GenericResourceIdentifier, meta any) (*cloudscale.Network, 
 	return client.Networks.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleNetworkUpdate(d *schema.ResourceData, meta any) error {
+func updateNetwork(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.NetworkUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.Networks.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpdateRequest {
+	requests := make([]*cloudscale.NetworkUpdateRequest, 0)
 
 	for _, attribute := range []string{"name", "mtu", "tags"} {
-		// cloudscale.ch network attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.NetworkUpdateRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "mtu" {
@@ -165,13 +174,9 @@ func resourceCloudscaleNetworkUpdate(d *schema.ResourceData, meta any) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.Networks.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Network (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleNetworkRead(d, meta)
+	return requests
 }
 
 func deleteNetwork(d *schema.ResourceData, meta any) error {

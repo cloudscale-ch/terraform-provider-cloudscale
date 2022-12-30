@@ -10,8 +10,11 @@ import (
 
 const poolHumanName = "load balancer pool"
 
-var resourceCloudscaleLoadBalancerPoolRead = getReadOperation(poolHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
-var resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, deleteLoadBalancerPool)
+var (
+	resourceCloudscaleLoadBalancerPoolRead   = getReadOperation(poolHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
+	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest)
+	resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, deleteLoadBalancerPool)
+)
 
 func resourceCloudscaleLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
@@ -121,13 +124,20 @@ func readLoadBalancerPool(rId GenericResourceIdentifier, meta any) (*cloudscale.
 	return client.LoadBalancerPools.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta any) error {
+func updateLoadBalancerPool(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.LoadBalancerPools.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolRequest {
+	requests := make([]*cloudscale.LoadBalancerPoolRequest, 0)
 
 	for _, attribute := range []string{"name", "algorithm", "protocol", "tags"} {
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerPoolRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "algorithm" {
@@ -137,13 +147,9 @@ func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta any) 
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.LoadBalancerPools.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Load Balancer Pool (%s): %s", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleLoadBalancerPoolRead(d, meta)
+	return requests
 }
 
 func deleteLoadBalancerPool(d *schema.ResourceData, meta any) error {

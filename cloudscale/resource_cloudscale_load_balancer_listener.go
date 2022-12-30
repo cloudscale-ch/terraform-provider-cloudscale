@@ -10,8 +10,11 @@ import (
 
 const listenerHumanName = "load balancer listener"
 
-var resourceCloudscaleLoadBalancerListenerRead = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
-var resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, deleteLoadBalancerListener)
+var (
+	resourceCloudscaleLoadBalancerListenerRead   = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
+	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest)
+	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, deleteLoadBalancerListener)
+)
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
@@ -121,13 +124,20 @@ func readLoadBalancerListener(rId GenericResourceIdentifier, meta any) (*cloudsc
 	return client.LoadBalancerListeners.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta any) error {
+func updateLoadBalancerListener(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerListenerRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.LoadBalancerListeners.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerListenerRequest {
+	requests := make([]*cloudscale.LoadBalancerListenerRequest, 0)
 
 	for _, attribute := range []string{"name", "protocol", "protocol_port", "tags"} {
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerListenerRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "protocol_port" {
@@ -137,13 +147,9 @@ func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta a
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.LoadBalancerListeners.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Load Balancer Listener (%s): %s", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleLoadBalancerListenerRead(d, meta)
+	return requests
 }
 
 func deleteLoadBalancerListener(d *schema.ResourceData, meta any) error {

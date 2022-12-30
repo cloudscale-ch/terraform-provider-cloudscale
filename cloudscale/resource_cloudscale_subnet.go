@@ -12,8 +12,11 @@ import (
 
 const subnetHumanName = "subnet"
 
-var resourceCloudscaleSubnetRead = getReadOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, readSubnet, gatherSubnetResourceData)
-var resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, deleteSubnet)
+var (
+	resourceCloudscaleSubnetRead   = getReadOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, readSubnet, gatherSubnetResourceData)
+	resourceCloudscaleSubnetUpdate = getUpdateOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, updateSubnet, resourceCloudscaleSubnetRead, gatherSubnetUpdateRequests)
+	resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, deleteSubnet)
+)
 
 func resourceCloudscaleSubnet() *schema.Resource {
 	return &schema.Resource{
@@ -138,20 +141,25 @@ func readSubnet(rId GenericResourceIdentifier, meta any) (*cloudscale.Subnet, er
 	return client.Subnets.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleSubnetUpdate(d *schema.ResourceData, meta any) error {
+func updateSubnet(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.SubnetUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.Subnets.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpdateRequest {
+	requests := make([]*cloudscale.SubnetUpdateRequest, 0)
 
 	for _, attribute := range []string{"gateway_address", "dns_servers", "tags"} {
-		// cloudscale.ch subnet attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.SubnetUpdateRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "gateway_address" {
 				opts.GatewayAddress = d.Get(attribute).(string)
 			} else if attribute == "dns_servers" {
 				dnsServers := d.Get("dns_servers").([]any)
 				s := make([]string, len(dnsServers))
-
 				for i := range dnsServers {
 					s[i] = dnsServers[i].(string)
 				}
@@ -159,13 +167,9 @@ func resourceCloudscaleSubnetUpdate(d *schema.ResourceData, meta any) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.Subnets.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Subnet (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleSubnetRead(d, meta)
+	return requests
 }
 
 func deleteSubnet(d *schema.ResourceData, meta any) error {

@@ -12,8 +12,11 @@ import (
 
 const loadBalancerHumanName = "load balancer"
 
-var resourceCloudscaleLoadBalancerRead = getReadOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancer, gatherLoadBalancerResourceData)
-var resourceCloudscaleLoadBalancerDelete = getDeleteOperation(loadBalancerHumanName, deleteLoadBalancer)
+var (
+	resourceCloudscaleLoadBalancerRead   = getReadOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancer, gatherLoadBalancerResourceData)
+	resourceCloudscaleLoadBalancerUpdate = getUpdateOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancer, resourceCloudscaleLoadBalancerRead, gatherLoadBalancerUpdateRequest)
+	resourceCloudscaleLoadBalancerDelete = getDeleteOperation(loadBalancerHumanName, deleteLoadBalancer)
+)
 
 func resourceCloudscaleLoadBalancer() *schema.Resource {
 	return &schema.Resource{
@@ -215,26 +218,28 @@ func readLoadBalancer(rId GenericResourceIdentifier, meta any) (*cloudscale.Load
 	return client.LoadBalancers.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleLoadBalancerUpdate(d *schema.ResourceData, meta any) error {
+func updateLoadBalancer(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.LoadBalancers.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherLoadBalancerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerRequest {
+	requests := make([]*cloudscale.LoadBalancerRequest, 0)
 
 	for _, attribute := range []string{"name", "tags"} {
-		// cloudscale.ch Load Balancer attributes can only be changed one at a time
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.LoadBalancers.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Load Balancer (%s): %s", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleLoadBalancerRead(d, meta)
+	return requests
 }
 
 func deleteLoadBalancer(d *schema.ResourceData, meta any) error {

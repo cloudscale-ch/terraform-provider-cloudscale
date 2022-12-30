@@ -10,8 +10,11 @@ import (
 
 const objectsUserHumanName = "Objects User"
 
-var resourceCloudscaleObjectsUserRead = getReadOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, readObjectsUser, gatherObjectsUserResourceData)
-var resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, deleteObjectsUser)
+var (
+	resourceCloudscaleObjectsUserRead   = getReadOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, readObjectsUser, gatherObjectsUserResourceData)
+	resourceCloudscaleObjectsUserUpdate = getUpdateOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, updateObjectsUser, resourceCloudscaleObjectsUserRead, gatherObjectsUserUpdateRequest)
+	resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, deleteObjectsUser)
+)
 
 func resourceCloudscaleObjectsUser() *schema.Resource {
 	return &schema.Resource{
@@ -120,26 +123,27 @@ func readObjectsUser(rId GenericResourceIdentifier, meta any) (*cloudscale.Objec
 	return client.ObjectsUsers.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleObjectsUserUpdate(d *schema.ResourceData, meta any) error {
+func updateObjectsUser(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.ObjectsUserRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.ObjectsUsers.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherObjectsUserUpdateRequest(d *schema.ResourceData) []*cloudscale.ObjectsUserRequest {
+	requests := make([]*cloudscale.ObjectsUserRequest, 0)
 
 	for _, attribute := range []string{"display_name", "tags"} {
-		// cloudscale.ch objectsUser attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.ObjectsUserRequest{}
+			requests = append(requests, opts)
 			if attribute == "display_name" {
 				opts.DisplayName = d.Get(attribute).(string)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.ObjectsUsers.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the objects user (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleObjectsUserRead(d, meta)
+	return requests
 }
 
 func deleteObjectsUser(d *schema.ResourceData, meta any) error {

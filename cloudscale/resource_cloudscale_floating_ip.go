@@ -11,8 +11,11 @@ import (
 
 const floatingIPHumanName = "Floating IP"
 
-var resourceFloatingIPRead = getReadOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, readFloatingIP, gatherFloatingIPResourceData)
-var resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, deleteFloatingIP)
+var (
+	resourceFloatingIPRead   = getReadOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, readFloatingIP, gatherFloatingIPResourceData)
+	resourceFloatingIPUpdate = getUpdateOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, updateFloatingIP, resourceFloatingIPRead, gatherFloatingIPUpdateRequest)
+	resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, deleteFloatingIP)
+)
 
 func resourceCloudscaleFloatingIP() *schema.Resource {
 	return &schema.Resource{
@@ -159,14 +162,20 @@ func readFloatingIP(rId GenericResourceIdentifier, meta any) (*cloudscale.Floati
 
 }
 
-func resourceFloatingIPUpdate(d *schema.ResourceData, meta any) error {
+func updateFloatingIP(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.FloatingIPUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.FloatingIPs.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.FloatingIPUpdateRequest {
+	requests := make([]*cloudscale.FloatingIPUpdateRequest, 0)
 
 	for _, attribute := range []string{"server", "tags", "reverse_ptr"} {
-		// cloudscale.ch Floating UP attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.FloatingIPUpdateRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "reverse_ptr" {
 				opts.ReversePointer = d.Get(attribute).(string)
 			} else if attribute == "server" {
@@ -176,14 +185,11 @@ func resourceFloatingIPUpdate(d *schema.ResourceData, meta any) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.FloatingIPs.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the FloatingIPs (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceFloatingIPRead(d, meta)
+	return requests
 }
+
 func deleteFloatingIP(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()

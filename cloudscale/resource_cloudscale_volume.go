@@ -11,8 +11,11 @@ import (
 
 const volumeHumanName = "volume"
 
-var resourceCloudscaleVolumeRead = getReadOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, readVolume, gatherVolumeResourceData)
-var resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, deleteVolume)
+var (
+	resourceCloudscaleVolumeRead   = getReadOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, readVolume, gatherVolumeResourceData)
+	resourceCloudscaleVolumeUpdate = getUpdateOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, updateVolume, resourceCloudscaleVolumeRead, gatherVolumeUpdateRequests)
+	resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, deleteVolume)
+)
 
 func resourceCloudscaleVolume() *schema.Resource {
 	return &schema.Resource{
@@ -131,17 +134,20 @@ func readVolume(rId GenericResourceIdentifier, meta any) (*cloudscale.Volume, er
 	return client.Volumes.Get(context.Background(), rId.Id)
 }
 
-func resourceCloudscaleVolumeUpdate(d *schema.ResourceData, meta any) error {
+func updateVolume(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.Volumes.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeRequest {
+	requests := make([]*cloudscale.VolumeRequest, 0)
 
 	for _, attribute := range []string{"name", "size_gb", "server_uuids", "tags"} {
-		// cloudscale.ch volume attributes can only be changed one at a time.
-		// This means that it's not possible to scale in the same call as
-		// attaching the volume to a different server.
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.VolumeRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "server_uuids" {
 				serverUUIDs := d.Get("server_uuids").([]any)
 				s := make([]string, len(serverUUIDs))
@@ -157,13 +163,9 @@ func resourceCloudscaleVolumeUpdate(d *schema.ResourceData, meta any) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.Volumes.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Volume (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceCloudscaleVolumeRead(d, meta)
+	return requests
 }
 
 func deleteVolume(d *schema.ResourceData, meta any) error {

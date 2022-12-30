@@ -10,8 +10,11 @@ import (
 
 const healthMonitorHumanName = "load balancer health monitor"
 
-var resourceCloudscaleLoadBalancerHealthMonitorRead = getReadOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
-var resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, deleteLoadBalancerHealthMonitor)
+var (
+	resourceCloudscaleLoadBalancerHealthMonitorRead   = getReadOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
+	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests)
+	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, deleteLoadBalancerHealthMonitor)
+)
 
 func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 	return &schema.Resource{
@@ -120,6 +123,37 @@ func readLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) (*cl
 	return client.LoadBalancerHealthMonitors.Get(context.Background(), rId.Id)
 }
 
+func updateLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerHealthMonitorRequest) error {
+	client := meta.(*cloudscale.Client)
+	return client.LoadBalancerHealthMonitors.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cloudscale.LoadBalancerHealthMonitorRequest {
+	requests := make([]*cloudscale.LoadBalancerHealthMonitorRequest, 0)
+
+	for _, attribute := range []string{"delay", "timeout", "max_retries", "max_retries_down", "tags"} {
+		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
+			opts := &cloudscale.LoadBalancerHealthMonitorRequest{}
+			requests = append(requests, opts)
+
+			if attribute == "delay" {
+				opts.Delay = d.Get(attribute).(int)
+			} else if attribute == "timeout" {
+				opts.Timeout = d.Get(attribute).(int)
+			} else if attribute == "max_retries" {
+				opts.MaxRetries = d.Get(attribute).(int)
+			} else if attribute == "max_retries_down" {
+				opts.MaxRetriesDown = d.Get(attribute).(int)
+			} else if attribute == "tags" {
+				opts.Tags = CopyTags(d)
+			}
+		}
+	}
+
+	return requests
+}
+
 func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *cloudscale.LoadBalancerHealthMonitor) ResourceDataRaw {
 	m := make(ResourceDataRaw)
 	m["id"] = loadBalancerHealthMonitor.UUID
@@ -134,34 +168,6 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	m["type"] = loadBalancerHealthMonitor.Type
 	m["tags"] = loadBalancerHealthMonitor.Tags
 	return m
-}
-
-func resourceCloudscaleLoadBalancerHealthMonitorUpdate(d *schema.ResourceData, meta any) error {
-	client := meta.(*cloudscale.Client)
-	id := d.Id()
-
-	for _, attribute := range []string{"delay", "timeout", "max_retries", "max_retries_down", "tags"} {
-		if d.HasChange(attribute) {
-			opts := &cloudscale.LoadBalancerHealthMonitorRequest{}
-			if attribute == "delay" {
-				opts.Delay = d.Get(attribute).(int)
-			} else if attribute == "timeout" {
-				opts.Timeout = d.Get(attribute).(int)
-			} else if attribute == "max_retries" {
-				opts.MaxRetries = d.Get(attribute).(int)
-			} else if attribute == "max_retries_down" {
-				opts.MaxRetriesDown = d.Get(attribute).(int)
-			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
-			}
-			err := client.LoadBalancerHealthMonitors.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Load Balancer Health Monitor (%s): %s", id, err)
-			}
-		}
-	}
-
-	return resourceCloudscaleLoadBalancerHealthMonitorRead(d, meta)
 }
 
 func deleteLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) error {

@@ -14,8 +14,11 @@ import (
 
 const customImageHumanName = "custom image"
 
-var resourceCustomImageRead = getReadOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, readCustomImage, gatherCustomImageResourceData)
-var resourceCustomImageDelete = getDeleteOperation(customImageHumanName, deleteCustomImage)
+var (
+	resourceCustomImageRead   = getReadOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, readCustomImage, gatherCustomImageResourceData)
+	resourceCustomImageUpdate = getUpdateOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, updateCustomImage, resourceCustomImageRead, gatherCustomImageUpdateRequest)
+	resourceCustomImageDelete = getDeleteOperation(customImageHumanName, deleteCustomImage)
+)
 
 func resourceCloudscaleCustomImage() *schema.Resource {
 	return &schema.Resource{
@@ -202,14 +205,20 @@ func readCustomImage(rId GenericResourceIdentifier, meta any) (*cloudscale.Custo
 	return client.CustomImages.Get(context.Background(), rId.Id)
 }
 
-func resourceCustomImageUpdate(d *schema.ResourceData, meta any) error {
+func updateCustomImage(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.CustomImageRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.CustomImages.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherCustomImageUpdateRequest(d *schema.ResourceData) []*cloudscale.CustomImageRequest {
+	requests := make([]*cloudscale.CustomImageRequest, 0)
 
 	for _, attribute := range []string{"name", "slug", "user_data_handling", "tags"} {
-		// cloudscale.ch customImage attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.CustomImageRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "slug" {
@@ -219,13 +228,9 @@ func resourceCustomImageUpdate(d *schema.ResourceData, meta any) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.CustomImages.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the CustomImage (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceCustomImageRead(d, meta)
+	return requests
 }
 
 func deleteCustomImage(d *schema.ResourceData, meta any) error {
