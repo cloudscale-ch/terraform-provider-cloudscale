@@ -185,6 +185,56 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerHealthMonitor_import_withTags(t *testing.T) {
+	var pool cloudscale.LoadBalancerPool
+	var beforeImport, afterUpdate cloudscale.LoadBalancerHealthMonitor
+
+	rInt := acctest.RandInt()
+
+	poolResourceName := "cloudscale_load_balancer_pool.lb-pool-acc-test"
+	resourceName := "cloudscale_load_balancer_health_monitor.lb-health_monitor-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfigWithTags(10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &beforeImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "delay", fmt.Sprintf("%v", 10)),
+					testTagsMatch(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(42),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "delay", fmt.Sprintf("%v", 42)),
+					resource.TestCheckResourceAttr(
+						resourceName, "tags.%", "0"),
+					testAccCheckLoadBalancerHealthMonitorIsSame(t, &beforeImport, &afterUpdate, true),
+					testTagsMatch(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckLoadBalancerHealthMonitorIsSame(t *testing.T,
 	before *cloudscale.LoadBalancerHealthMonitor, after *cloudscale.LoadBalancerHealthMonitor,
 	expectSame bool) resource.TestCheckFunc {
@@ -228,6 +278,23 @@ resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" 
 }
 `, rInt, poolIndex)
 
+}
+
+func testAccCloudscaleLoadBalancerHealthMonitorConfigWithTags(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
+  pool_uuid = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  delay            = %v
+  max_retries      = 3
+  max_retries_down = 3
+  timeout          = 5
+  type             = "tcp"
+  tags = {
+    my-foo = "foo"
+    my-bar = "bar"
+  }
+}
+`, rInt)
 }
 
 func testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt int) string {
