@@ -287,6 +287,39 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_tags(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerHealthMonitor_MemberStatus(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	memberResourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(memberResourceName,
+						"status", "no_monitor"),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(memberResourceName,
+						"status", "fail_x_me"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckLoadBalancerHealthMonitorIsSame(t *testing.T,
 	before *cloudscale.LoadBalancerHealthMonitor, after *cloudscale.LoadBalancerHealthMonitor,
 	expectSame bool) resource.TestCheckFunc {
