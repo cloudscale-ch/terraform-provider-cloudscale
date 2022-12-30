@@ -9,12 +9,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const volumeHumanName = "volume"
+
+var resourceCloudscaleVolumeRead = getReadOperation(volumeHumanName, readVolume, gatherVolumeResourceData)
+var resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, deleteVolume)
+
 func resourceCloudscaleVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVolumeCreate,
-		Read:   resourceVolumeRead,
-		Update: resourceVolumeUpdate,
-		Delete: getDeleteOperation("volume", deleteVolume),
+		Create: resourceCloudscaleVolumeCreate,
+		Read:   resourceCloudscaleVolumeRead,
+		Update: resourceCloudscaleVolumeUpdate,
+		Delete: resourceCloudscaleVolumeDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -67,7 +72,7 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceVolumeCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.VolumeRequest{
@@ -101,12 +106,11 @@ func resourceVolumeCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[INFO] Volume ID %s", d.Id())
 
-	fillVolumeResourceData(d, volume)
+	err = resourceCloudscaleVolumeRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the volume (%s): %s", d.Id(), err)
+	}
 	return nil
-}
-
-func fillVolumeResourceData(d *schema.ResourceData, volume *cloudscale.Volume) {
-	fillResourceData(d, gatherVolumeResourceData(volume))
 }
 
 func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
@@ -122,19 +126,12 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	return m
 }
 
-func resourceVolumeRead(d *schema.ResourceData, meta any) error {
+func readVolume(d *schema.ResourceData, meta any) (*cloudscale.Volume, error) {
 	client := meta.(*cloudscale.Client)
-
-	volume, err := client.Volumes.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving volume")
-	}
-
-	fillVolumeResourceData(d, volume)
-	return nil
+	return client.Volumes.Get(context.Background(), d.Id())
 }
 
-func resourceVolumeUpdate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleVolumeUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -166,7 +163,7 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta any) error {
 			}
 		}
 	}
-	return resourceVolumeRead(d, meta)
+	return resourceCloudscaleVolumeRead(d, meta)
 }
 
 func deleteVolume(d *schema.ResourceData, meta any) error {

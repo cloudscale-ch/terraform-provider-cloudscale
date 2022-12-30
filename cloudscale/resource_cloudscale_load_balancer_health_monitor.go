@@ -8,12 +8,17 @@ import (
 	"log"
 )
 
+const healthMonitorHumanName = "load balancer health monitor"
+
+var resourceCloudscaleLoadBalancerHealthMonitorRead = getReadOperation(healthMonitorHumanName, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
+var resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, deleteLoadBalancerHealthMonitor)
+
 func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleLoadBalancerHealthMonitorCreate,
 		Read:   resourceCloudscaleLoadBalancerHealthMonitorRead,
 		Update: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
-		Delete: getDeleteOperation("load balancer health monitor", deleteLoadBalancerHealthMonitor),
+		Delete: resourceCloudscaleLoadBalancerHealthMonitorDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -110,20 +115,9 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceCloudscaleLoadBalancerHealthMonitorRead(d *schema.ResourceData, meta any) error {
+func readLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
 	client := meta.(*cloudscale.Client)
-
-	loadBalancerHealthMonitor, err := client.LoadBalancerHealthMonitors.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving load balancer health monitor")
-	}
-
-	fillLoadBalancerHealthMonitorSchema(d, loadBalancerHealthMonitor)
-	return nil
-}
-
-func fillLoadBalancerHealthMonitorSchema(d *schema.ResourceData, loadBalancerHealthMonitor *cloudscale.LoadBalancerHealthMonitor) {
-	fillResourceData(d, gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor))
+	return client.LoadBalancerHealthMonitors.Get(context.Background(), d.Id())
 }
 
 func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *cloudscale.LoadBalancerHealthMonitor) ResourceDataRaw {
@@ -167,7 +161,7 @@ func resourceCloudscaleLoadBalancerHealthMonitorUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	return resourceCloudscaleLoadBalancerRead(d, meta)
+	return resourceCloudscaleLoadBalancerHealthMonitorRead(d, meta)
 }
 
 func deleteLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) error {

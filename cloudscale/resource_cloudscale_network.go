@@ -9,12 +9,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const networkHumanName = "network"
+
+var resourceCloudscaleNetworkRead = getReadOperation(networkHumanName, readNetwork, gatherNetworkResourceData)
+var resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, deleteNetwork)
+
 func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNetworkCreate,
-		Read:   resourceNetworkRead,
-		Update: resourceNetworkUpdate,
-		Delete: getDeleteOperation("network", deleteNetwork),
+		Create: resourceCloudscaleNetworkCreate,
+		Read:   resourceCloudscaleNetworkRead,
+		Update: resourceCloudscaleNetworkUpdate,
+		Delete: resourceCloudscaleNetworkDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -83,7 +88,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceNetworkCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleNetworkCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.NetworkCreateRequest{
@@ -112,13 +117,11 @@ func resourceNetworkCreate(d *schema.ResourceData, meta any) error {
 	d.SetId(network.UUID)
 
 	log.Printf("[INFO] Network ID %s", d.Id())
-
-	fillNetworkResourceData(d, network)
+	err = resourceCloudscaleNetworkRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the network (%s): %s", d.Id(), err)
+	}
 	return nil
-}
-
-func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) {
-	fillResourceData(d, gatherNetworkResourceData(network))
 }
 
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
@@ -142,19 +145,12 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 	return m
 }
 
-func resourceNetworkRead(d *schema.ResourceData, meta any) error {
+func readNetwork(d *schema.ResourceData, meta any) (*cloudscale.Network, error) {
 	client := meta.(*cloudscale.Client)
-
-	network, err := client.Networks.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving network")
-	}
-
-	fillNetworkResourceData(d, network)
-	return nil
+	return client.Networks.Get(context.Background(), d.Id())
 }
 
-func resourceNetworkUpdate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleNetworkUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -175,7 +171,7 @@ func resourceNetworkUpdate(d *schema.ResourceData, meta any) error {
 			}
 		}
 	}
-	return resourceNetworkRead(d, meta)
+	return resourceCloudscaleNetworkRead(d, meta)
 }
 
 func deleteNetwork(d *schema.ResourceData, meta any) error {

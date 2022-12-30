@@ -10,12 +10,17 @@ import (
 	"time"
 )
 
+const loadBalancerHumanName = "load balancer"
+
+var resourceCloudscaleLoadBalancerRead = getReadOperation(loadBalancerHumanName, readLoadBalancer, gatherLoadBalancerResourceData)
+var resourceCloudscaleLoadBalancerDelete = getDeleteOperation(loadBalancerHumanName, deleteLoadBalancer)
+
 func resourceCloudscaleLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleLoadBalancerCreate,
 		Read:   resourceCloudscaleLoadBalancerRead,
 		Update: resourceCloudscaleLoadBalancerUpdate,
-		Delete: getDeleteOperation("load balancer", deleteLoadBalancer),
+		Delete: resourceCloudscaleLoadBalancerDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -175,10 +180,6 @@ func createVipAddressOptions(d *schema.ResourceData) []cloudscale.VIPAddressRequ
 	return result
 }
 
-func fillLoadBalancerSchema(d *schema.ResourceData, loadbalancer *cloudscale.LoadBalancer) {
-	fillResourceData(d, gatherLoadBalancerResourceData(loadbalancer))
-}
-
 func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) ResourceDataRaw {
 	m := make(map[string]any)
 	m["id"] = loadbalancer.UUID
@@ -209,16 +210,9 @@ func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) Resou
 	return m
 }
 
-func resourceCloudscaleLoadBalancerRead(d *schema.ResourceData, meta any) error {
+func readLoadBalancer(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancer, error) {
 	client := meta.(*cloudscale.Client)
-
-	loadbalancer, err := client.LoadBalancers.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving load balancer")
-	}
-
-	fillLoadBalancerSchema(d, loadbalancer)
-	return nil
+	return client.LoadBalancers.Get(context.Background(), d.Id())
 }
 
 func resourceCloudscaleLoadBalancerUpdate(d *schema.ResourceData, meta any) error {

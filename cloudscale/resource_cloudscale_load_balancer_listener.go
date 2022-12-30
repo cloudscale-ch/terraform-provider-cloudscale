@@ -8,12 +8,17 @@ import (
 	"log"
 )
 
+const listenerHumanName = "load balancer listener"
+
+var resourceCloudscaleLoadBalancerListenerRead = getReadOperation(listenerHumanName, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
+var resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, deleteLoadBalancerListener)
+
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleLoadBalancerListenerCreate,
 		Read:   resourceCloudscaleLoadBalancerListenerRead,
 		Update: resourceCloudscaleLoadBalancerListenerUpdate,
-		Delete: getDeleteOperation("load balancer listener", deleteLoadBalancerListener),
+		Delete: resourceCloudscaleLoadBalancerListenerDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -97,10 +102,6 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 	return nil
 }
 
-func fillLoadBalancerListenerSchema(d *schema.ResourceData, loadbalancerlistener *cloudscale.LoadBalancerListener) {
-	fillResourceData(d, gatherLoadBalancerListenerResourceData(loadbalancerlistener))
-}
-
 func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.LoadBalancerListener) ResourceDataRaw {
 	m := make(map[string]any)
 	m["id"] = loadbalancerlistener.UUID
@@ -115,16 +116,9 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	return m
 }
 
-func resourceCloudscaleLoadBalancerListenerRead(d *schema.ResourceData, meta any) error {
+func readLoadBalancerListener(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerListener, error) {
 	client := meta.(*cloudscale.Client)
-
-	loadbalancerListener, err := client.LoadBalancerListeners.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving load balancer listener")
-	}
-
-	fillLoadBalancerListenerSchema(d, loadbalancerListener)
-	return nil
+	return client.LoadBalancerListeners.Get(context.Background(), d.Id())
 }
 
 func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta any) error {

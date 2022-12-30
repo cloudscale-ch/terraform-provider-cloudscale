@@ -10,12 +10,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const subnetHumanName = "subnet"
+
+var resourceCloudscaleSubnetRead = getReadOperation(subnetHumanName, readSubnet, gatherSubnetResourceData)
+var resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, deleteSubnet)
+
 func resourceCloudscaleSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSubnetCreate,
-		Read:   resourceSubnetRead,
-		Update: resourceSubnetUpdate,
-		Delete: getDeleteOperation("subnet", deleteSubnet),
+		Create: resourceCloudscaleSubnetCreate,
+		Read:   resourceCloudscaleSubnetRead,
+		Update: resourceCloudscaleSubnetUpdate,
+		Delete: resourceCloudscaleSubnetDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -73,7 +78,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceSubnetCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleSubnetCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.SubnetCreateRequest{
@@ -106,12 +111,12 @@ func resourceSubnetCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[INFO] Subnet ID %s", d.Id())
 
-	fillSubnetResourceData(d, subnet)
-	return nil
-}
+	err = resourceCloudscaleSubnetRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the subnet (%s): %s", d.Id(), err)
+	}
 
-func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) {
-	fillResourceData(d, gatherSubnetResourceData(subnet))
+	return nil
 }
 
 func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
@@ -128,19 +133,12 @@ func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
 	return m
 }
 
-func resourceSubnetRead(d *schema.ResourceData, meta any) error {
+func readSubnet(d *schema.ResourceData, meta any) (*cloudscale.Subnet, error) {
 	client := meta.(*cloudscale.Client)
-
-	subnet, err := client.Subnets.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving subnet")
-	}
-
-	fillSubnetResourceData(d, subnet)
-	return nil
+	return client.Subnets.Get(context.Background(), d.Id())
 }
 
-func resourceSubnetUpdate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleSubnetUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -167,7 +165,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta any) error {
 			}
 		}
 	}
-	return resourceSubnetRead(d, meta)
+	return resourceCloudscaleSubnetRead(d, meta)
 }
 
 func deleteSubnet(d *schema.ResourceData, meta any) error {

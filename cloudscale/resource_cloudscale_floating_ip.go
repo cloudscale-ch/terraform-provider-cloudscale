@@ -9,12 +9,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const floatingIPHumanName = "Floating IP"
+
+var resourceFloatingIPRead = getReadOperation(floatingIPHumanName, readFloatingIP, gatherFloatingIPResourceData)
+var resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, deleteFloatingIP)
+
 func resourceCloudscaleFloatingIP() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceFloatingIPCreate,
 		Read:   resourceFloatingIPRead,
 		Update: resourceFloatingIPUpdate,
-		Delete: getDeleteOperation("Floating IP", deleteFloatingIP),
+		Delete: resourceFloatingIPDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -120,12 +125,11 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
 
 	d.SetId(floatingIP.IP())
 
-	fillFloatingIPResourceData(d, floatingIP)
+	err = resourceFloatingIPRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the floating IP (%s): %s", d.Id(), err)
+	}
 	return nil
-}
-
-func fillFloatingIPResourceData(d *schema.ResourceData, floatingIP *cloudscale.FloatingIP) {
-	fillResourceData(d, gatherFloatingIPResourceData(floatingIP))
 }
 
 func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDataRaw {
@@ -149,21 +153,12 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	return m
 }
 
-func resourceFloatingIPRead(d *schema.ResourceData, meta any) error {
+func readFloatingIP(d *schema.ResourceData, meta any) (*cloudscale.FloatingIP, error) {
 	client := meta.(*cloudscale.Client)
-
-	id := d.Id()
-
-	floatingIP, err := client.FloatingIPs.Get(context.Background(), id)
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving FloatingIP")
-	}
-
-	fillFloatingIPResourceData(d, floatingIP)
-
-	return nil
+	return client.FloatingIPs.Get(context.Background(), d.Id())
 
 }
+
 func resourceFloatingIPUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()

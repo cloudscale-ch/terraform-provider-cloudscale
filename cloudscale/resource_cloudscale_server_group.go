@@ -9,12 +9,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const serverGroupHumanName = "server group"
+
+var resourceCloudscaleServerGroupRead = getReadOperation(serverGroupHumanName, readServerGroup, gatherServerGroupResourceData)
+var resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, deleteServerGroup)
+
 func resourceCloudscaleServerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceServerGroupCreate,
-		Read:   resourceServerGroupRead,
-		Update: resourceServerGroupUpdate,
-		Delete: getDeleteOperation("server group", deleteServerGroup),
+		Create: resourceCloudscaleServerGroupCreate,
+		Read:   resourceCloudscaleServerGroupRead,
+		Update: resourceCloudscaleServerGroupUpdate,
+		Delete: resourceCloudscaleServerGroupDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -57,7 +62,7 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceServerGroupCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleServerGroupCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ServerGroupRequest{
@@ -81,12 +86,11 @@ func resourceServerGroupCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[INFO] ServerGroup ID %s", d.Id())
 
-	fillServerGroupResourceData(d, serverGroup)
+	err = resourceCloudscaleServerGroupRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the server group (%s): %s", d.Id(), err)
+	}
 	return nil
-}
-
-func fillServerGroupResourceData(d *schema.ResourceData, serverGroup *cloudscale.ServerGroup) {
-	fillResourceData(d, gatherServerGroupResourceData(serverGroup))
 }
 
 func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) ResourceDataRaw {
@@ -100,19 +104,12 @@ func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) Resource
 	return m
 }
 
-func resourceServerGroupRead(d *schema.ResourceData, meta any) error {
+func readServerGroup(d *schema.ResourceData, meta any) (*cloudscale.ServerGroup, error) {
 	client := meta.(*cloudscale.Client)
-
-	serverGroup, err := client.ServerGroups.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving server group")
-	}
-
-	fillServerGroupResourceData(d, serverGroup)
-	return nil
+	return client.ServerGroups.Get(context.Background(), d.Id())
 }
 
-func resourceServerGroupUpdate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleServerGroupUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -131,7 +128,7 @@ func resourceServerGroupUpdate(d *schema.ResourceData, meta any) error {
 			}
 		}
 	}
-	return resourceServerGroupRead(d, meta)
+	return resourceCloudscaleServerGroupRead(d, meta)
 }
 
 func deleteServerGroup(d *schema.ResourceData, meta any) error {

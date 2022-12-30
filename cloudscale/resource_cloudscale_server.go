@@ -11,12 +11,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const serverHumanName = "server"
+
+var resourceCloudscaleServerRead = getReadOperation(serverHumanName, readServer, gatherServerResourceData)
+var resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, deleteServer)
+
 func resourceCloudscaleServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceServerCreate,
-		Read:   resourceServerRead,
-		Update: resourceServerUpdate,
-		Delete: getDeleteOperation("server", deleteServer),
+		Create: resourceCloudscaleServerCreate,
+		Read:   resourceCloudscaleServerRead,
+		Update: resourceCloudscaleServerUpdate,
+		Delete: resourceCloudscaleServerDelete,
 
 		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
@@ -281,7 +286,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceServerCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleServerCreate(d *schema.ResourceData, meta any) error {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -394,7 +399,7 @@ func resourceServerCreate(d *schema.ResourceData, meta any) error {
 		}
 	}
 
-	err = resourceServerRead(d, meta)
+	err = resourceCloudscaleServerRead(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error reading the server (%s): %s", d.Id(), err)
 	}
@@ -465,24 +470,6 @@ func createAddressesOptions(addresses []any) []cloudscale.AddressRequest {
 		}
 	}
 	return result
-}
-
-func fillServerResourceData(d *schema.ResourceData, server *cloudscale.Server) {
-	fillResourceData(d, gatherServerResourceData(server))
-
-	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
-		d.SetConnInfo(map[string]string{
-			"type": "ssh",
-			"host": publicIPV4,
-		})
-	} else {
-		if publicIPV6 := findIPv6AddrByType(server, "private"); publicIPV6 != "" {
-			d.SetConnInfo(map[string]string{
-				"type": "ssh",
-				"host": publicIPV6,
-			})
-		}
-	}
 }
 
 func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
@@ -562,20 +549,12 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	return m
 }
 
-func resourceServerRead(d *schema.ResourceData, meta any) error {
+func readServer(d *schema.ResourceData, meta any) (*cloudscale.Server, error) {
 	client := meta.(*cloudscale.Client)
-
-	id := d.Id()
-
-	server, err := client.Servers.Get(context.Background(), id)
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving server")
-	}
-	fillServerResourceData(d, server)
-	return nil
+	return client.Servers.Get(context.Background(), d.Id())
 }
 
-func resourceServerUpdate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -685,7 +664,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta any) error {
 		}
 	}
 
-	return resourceServerRead(d, meta)
+	return resourceCloudscaleServerRead(d, meta)
 }
 
 func deleteServer(d *schema.ResourceData, meta any) error {
@@ -699,7 +678,7 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) re
 	return func() (any, string, error) {
 		id := d.Id()
 
-		err := resourceServerRead(d, meta)
+		err := resourceCloudscaleServerRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
@@ -728,7 +707,7 @@ func waitForSSHHostKeys(d *schema.ResourceData, meta any, timeout *time.Duration
 	log.Printf("[INFO] Waiting %s for server (%s) to have host keys available", timeout, d.Id())
 
 	err := resource.Retry(*timeout, func() *resource.RetryError {
-		err := resourceServerRead(d, meta)
+		err := resourceCloudscaleServerRead(d, meta)
 		if err != nil {
 			return &resource.RetryError{
 				Err:       err,

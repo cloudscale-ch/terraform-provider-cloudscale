@@ -6,6 +6,23 @@ import (
 	"log"
 )
 
+func getReadOperation[TResource any](
+	resourceType string,
+	readFunc func(d *schema.ResourceData, meta any) (*TResource, error),
+	gatherFunc func(resource *TResource) ResourceDataRaw,
+) schema.ReadFunc {
+	return func(d *schema.ResourceData, meta any) error {
+		resource, err := readFunc(d, meta)
+
+		if err != nil {
+			return CheckDeleted(d, err, fmt.Sprintf("Error retrieving %s", resourceType))
+		}
+
+		fillResourceData(d, gatherFunc(resource))
+		return nil
+	}
+}
+
 func getDeleteOperation(
 	resourceType string,
 	deleteFunc func(d *schema.ResourceData, meta any) error,

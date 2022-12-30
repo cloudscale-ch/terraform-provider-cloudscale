@@ -8,12 +8,17 @@ import (
 	"log"
 )
 
+const poolHumanName = "load balancer pool"
+
+var resourceCloudscaleLoadBalancerPoolRead = getReadOperation(poolHumanName, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
+var resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, deleteLoadBalancerPool)
+
 func resourceCloudscaleLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleLoadBalancerPoolCreate,
 		Read:   resourceCloudscaleLoadBalancerPoolRead,
 		Update: resourceCloudscaleLoadBalancerPoolUpdate,
-		Delete: getDeleteOperation("load balancer pool", deleteLoadBalancerPool),
+		Delete: resourceCloudscaleLoadBalancerPoolDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -97,10 +102,6 @@ func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta any) 
 	return nil
 }
 
-func fillLoadBalancerPoolSchema(d *schema.ResourceData, loadbalancerpool *cloudscale.LoadBalancerPool) {
-	fillResourceData(d, gatherLoadBalancerPoolResourceData(loadbalancerpool))
-}
-
 func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalancerPool) ResourceDataRaw {
 	m := make(map[string]any)
 	m["id"] = loadbalancerpool.UUID
@@ -115,16 +116,9 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolRead(d *schema.ResourceData, meta any) error {
+func readLoadBalancerPool(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerPool, error) {
 	client := meta.(*cloudscale.Client)
-
-	loadbalancerPool, err := client.LoadBalancerPools.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving load balancer pool")
-	}
-
-	fillLoadBalancerPoolSchema(d, loadbalancerPool)
-	return nil
+	return client.LoadBalancerPools.Get(context.Background(), d.Id())
 }
 
 func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta any) error {

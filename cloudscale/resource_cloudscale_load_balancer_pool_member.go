@@ -9,12 +9,17 @@ import (
 	"strings"
 )
 
+const poolMemberHumanName = "load balancer pool member"
+
+var resourceCloudscaleLoadBalancerPoolMemberRead = getReadOperation(poolMemberHumanName, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)
+var resourceCloudscaleLoadBalancerPoolMemberDelete = getDeleteOperation(poolMemberHumanName, deleteLoadBalancerPoolMember)
+
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleLoadBalancerPoolMemberCreate,
 		Read:   resourceCloudscaleLoadBalancerPoolMemberRead,
 		Update: resourceCloudscaleLoadBalancerPoolMemberUpdate,
-		Delete: getDeleteOperation("load balancer pool member", deleteLoadBalancerPoolMember),
+		Delete: resourceCloudscaleLoadBalancerPoolMemberDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: func(
@@ -134,10 +139,6 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta
 	return nil
 }
 
-func fillLoadBalancerPoolMemberSchema(d *schema.ResourceData, loadbalancerpoolMember *cloudscale.LoadBalancerPoolMember) {
-	fillResourceData(d, gatherLoadBalancerPoolMemberResourceData(loadbalancerpoolMember))
-}
-
 func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
 	m := make(map[string]any)
 	m["id"] = loadbalancerPoolMember.UUID
@@ -154,17 +155,10 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberRead(d *schema.ResourceData, meta any) error {
+func readLoadBalancerPoolMember(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerPoolMember, error) {
 	client := meta.(*cloudscale.Client)
-
 	poolID := d.Get("pool_uuid").(string)
-	loadbalancerPoolMember, err := client.LoadBalancerPoolMembers.Get(context.Background(), poolID, d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving load balancer pool")
-	}
-
-	fillLoadBalancerPoolMemberSchema(d, loadbalancerPoolMember)
-	return nil
+	return client.LoadBalancerPoolMembers.Get(context.Background(), poolID, d.Id())
 }
 
 func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta any) error {
