@@ -1,7 +1,6 @@
 package cloudscale
 
 import (
-	"context"
 	"fmt"
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -343,40 +342,6 @@ func TestAccCloudscaleLoadBalancerPoolMember_tags(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckCloudscaleLoadBalancerPoolMemberExists(n string, member *cloudscale.LoadBalancerPoolMember) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Load Balancer Pool Member ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-		poolID := rs.Primary.Attributes["pool_uuid"]
-
-		// Try to find the load balancer
-		retrieveLoadBalancerPool, err := client.LoadBalancerPoolMembers.Get(context.Background(), poolID, id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveLoadBalancerPool.UUID != rs.Primary.ID {
-			return fmt.Errorf("Load Balancer Pool Member not found")
-		}
-
-		*member = *retrieveLoadBalancerPool
-
-		return nil
-	}
-
 }
 
 func testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt int) string {

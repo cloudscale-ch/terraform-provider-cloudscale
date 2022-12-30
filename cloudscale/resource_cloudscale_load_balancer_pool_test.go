@@ -1,7 +1,6 @@
 package cloudscale
 
 import (
-	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"regexp"
@@ -283,38 +282,6 @@ func TestAccCloudscaleLoadBalancerPool_tags(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckCloudscaleLoadBalancerPoolExists(n string, pool *cloudscale.LoadBalancerPool) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Load Balancer Pool ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the load balancer
-		retrieveLoadBalancerPool, err := client.LoadBalancerPools.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveLoadBalancerPool.UUID != rs.Primary.ID {
-			return fmt.Errorf("Load Balancer Pool not found")
-		}
-
-		*pool = *retrieveLoadBalancerPool
-
-		return nil
-	}
 }
 
 func testAccCloudscaleLoadBalancerPoolConfig_basic(rInt int) string {

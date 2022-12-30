@@ -11,7 +11,7 @@ import (
 
 const poolMemberHumanName = "load balancer pool member"
 
-var resourceCloudscaleLoadBalancerPoolMemberRead = getReadOperation(poolMemberHumanName, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)
+var resourceCloudscaleLoadBalancerPoolMemberRead = getReadOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)
 var resourceCloudscaleLoadBalancerPoolMemberDelete = getDeleteOperation(poolMemberHumanName, deleteLoadBalancerPoolMember)
 
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
@@ -40,6 +40,18 @@ func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 			},
 		},
 		Schema: getLoadBalancerPoolMemberSchema(RESOURCE),
+	}
+}
+
+type LoadBalancerPoolMemberResourceIdentifier struct {
+	Id     string
+	PoolID string
+}
+
+func getLoadBalancerResourceIdentifierFromSchema(d *schema.ResourceData) LoadBalancerPoolMemberResourceIdentifier {
+	return LoadBalancerPoolMemberResourceIdentifier{
+		Id:     d.Id(),
+		PoolID: d.Get("pool_uuid").(string),
 	}
 }
 
@@ -155,10 +167,9 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	return m
 }
 
-func readLoadBalancerPoolMember(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerPoolMember, error) {
+func readLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, meta any) (*cloudscale.LoadBalancerPoolMember, error) {
 	client := meta.(*cloudscale.Client)
-	poolID := d.Get("pool_uuid").(string)
-	return client.LoadBalancerPoolMembers.Get(context.Background(), poolID, d.Id())
+	return client.LoadBalancerPoolMembers.Get(context.Background(), rId.PoolID, rId.Id)
 }
 
 func resourceCloudscaleLoadBalancerPoolMemberUpdate(d *schema.ResourceData, meta any) error {

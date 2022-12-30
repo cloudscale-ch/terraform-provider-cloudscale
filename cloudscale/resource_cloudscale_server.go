@@ -13,7 +13,7 @@ import (
 
 const serverHumanName = "server"
 
-var resourceCloudscaleServerRead = getReadOperation(serverHumanName, readServer, gatherServerResourceData)
+var resourceCloudscaleServerRead = getReadOperation(serverHumanName, getGenericResourceIdentifierFromSchema, readServer, gatherServerResourceData)
 var resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, deleteServer)
 
 func resourceCloudscaleServer() *schema.Resource {
@@ -549,9 +549,9 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	return m
 }
 
-func readServer(d *schema.ResourceData, meta any) (*cloudscale.Server, error) {
+func readServer(rId GenericResourceIdentifier, meta any) (*cloudscale.Server, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Servers.Get(context.Background(), d.Id())
+	return client.Servers.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {

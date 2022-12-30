@@ -11,7 +11,7 @@ import (
 
 const serverGroupHumanName = "server group"
 
-var resourceCloudscaleServerGroupRead = getReadOperation(serverGroupHumanName, readServerGroup, gatherServerGroupResourceData)
+var resourceCloudscaleServerGroupRead = getReadOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, readServerGroup, gatherServerGroupResourceData)
 var resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, deleteServerGroup)
 
 func resourceCloudscaleServerGroup() *schema.Resource {
@@ -104,9 +104,9 @@ func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) Resource
 	return m
 }
 
-func readServerGroup(d *schema.ResourceData, meta any) (*cloudscale.ServerGroup, error) {
+func readServerGroup(rId GenericResourceIdentifier, meta any) (*cloudscale.ServerGroup, error) {
 	client := meta.(*cloudscale.Client)
-	return client.ServerGroups.Get(context.Background(), d.Id())
+	return client.ServerGroups.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleServerGroupUpdate(d *schema.ResourceData, meta any) error {

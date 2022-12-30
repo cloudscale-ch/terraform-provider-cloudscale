@@ -10,7 +10,7 @@ import (
 
 const listenerHumanName = "load balancer listener"
 
-var resourceCloudscaleLoadBalancerListenerRead = getReadOperation(listenerHumanName, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
+var resourceCloudscaleLoadBalancerListenerRead = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
 var resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, deleteLoadBalancerListener)
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
@@ -116,9 +116,9 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	return m
 }
 
-func readLoadBalancerListener(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerListener, error) {
+func readLoadBalancerListener(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerListener, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerListeners.Get(context.Background(), d.Id())
+	return client.LoadBalancerListeners.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleLoadBalancerListenerUpdate(d *schema.ResourceData, meta any) error {

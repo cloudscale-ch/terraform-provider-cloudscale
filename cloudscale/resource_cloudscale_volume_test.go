@@ -323,38 +323,6 @@ func testAccCheckCloudscaleVolumeDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckCloudscaleVolumeExists(n string, volume *cloudscale.Volume) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Volume ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the volume
-		retrieveVolume, err := client.Volumes.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveVolume.UUID != rs.Primary.ID {
-			return fmt.Errorf("Volume not found")
-		}
-
-		*volume = *retrieveVolume
-
-		return nil
-	}
-}
-
 func assertVolumeAttached(server *cloudscale.Server, volume *cloudscale.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if server.UUID != (*volume.ServerUUIDs)[0] {

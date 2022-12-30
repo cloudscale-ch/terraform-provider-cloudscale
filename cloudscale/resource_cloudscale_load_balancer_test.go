@@ -339,38 +339,6 @@ func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckCloudscaleLoadBalancerExists(n string, loadBalancer *cloudscale.LoadBalancer) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Load Balancer ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the load balancer
-		retrieveLoadBalancer, err := client.LoadBalancers.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveLoadBalancer.UUID != rs.Primary.ID {
-			return fmt.Errorf("Load Balancer not found")
-		}
-
-		*loadBalancer = *retrieveLoadBalancer
-
-		return nil
-	}
-}
-
 func testAccCheckLoadBalancerIsSame(t *testing.T,
 	before, after *cloudscale.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

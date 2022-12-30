@@ -10,7 +10,7 @@ import (
 
 const objectsUserHumanName = "Objects User"
 
-var resourceCloudscaleObjectsUserRead = getReadOperation(objectsUserHumanName, readObjectsUser, gatherObjectsUserResourceData)
+var resourceCloudscaleObjectsUserRead = getReadOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, readObjectsUser, gatherObjectsUserResourceData)
 var resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, deleteObjectsUser)
 
 func resourceCloudscaleObjectsUser() *schema.Resource {
@@ -115,9 +115,9 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	return m
 }
 
-func readObjectsUser(d *schema.ResourceData, meta any) (*cloudscale.ObjectsUser, error) {
+func readObjectsUser(rId GenericResourceIdentifier, meta any) (*cloudscale.ObjectsUser, error) {
 	client := meta.(*cloudscale.Client)
-	return client.ObjectsUsers.Get(context.Background(), d.Id())
+	return client.ObjectsUsers.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleObjectsUserUpdate(d *schema.ResourceData, meta any) error {

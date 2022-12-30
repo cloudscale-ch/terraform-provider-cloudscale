@@ -404,38 +404,6 @@ func testAccCheckCloudscaleServerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckCloudscaleServerExists(n string, server *cloudscale.Server) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Server ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the server
-		retrieveServer, err := client.Servers.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveServer.UUID != rs.Primary.ID {
-			return fmt.Errorf("Server not found")
-		}
-
-		*server = *retrieveServer
-
-		return nil
-	}
-}
-
 func testAccCheckCloudscaleServerAttributes(server *cloudscale.Server) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 

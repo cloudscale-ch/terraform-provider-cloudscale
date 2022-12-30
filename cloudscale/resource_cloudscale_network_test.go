@@ -448,38 +448,6 @@ func testAccCheckCloudscaleNetworkSubnetCount(n string, network *cloudscale.Netw
 	}
 }
 
-func testAccCheckCloudscaleNetworkExists(n string, network *cloudscale.Network) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Network ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the network
-		retrieveNetwork, err := client.Networks.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveNetwork.UUID != rs.Primary.ID {
-			return fmt.Errorf("Network not found")
-		}
-
-		*network = *retrieveNetwork
-
-		return nil
-	}
-}
-
 func testAccCheckCloudscaleNetworkDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 

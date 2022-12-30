@@ -260,38 +260,6 @@ func TestAccCloudscaleFloatingIP_tags(t *testing.T) {
 	})
 }
 
-func testAccCheckCloudscaleFloatingIPExists(n string, floatingIP *cloudscale.FloatingIP) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Record ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-		// Try to find the FloatingIP
-		foundFloatingIP, err := client.FloatingIPs.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if foundFloatingIP.IP() != rs.Primary.ID {
-			return fmt.Errorf("Record not found")
-		}
-
-		*floatingIP = *foundFloatingIP
-
-		return nil
-	}
-}
-
 func testAccCheckCloudscaleFloatingIPDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 

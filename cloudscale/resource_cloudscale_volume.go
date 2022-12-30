@@ -11,7 +11,7 @@ import (
 
 const volumeHumanName = "volume"
 
-var resourceCloudscaleVolumeRead = getReadOperation(volumeHumanName, readVolume, gatherVolumeResourceData)
+var resourceCloudscaleVolumeRead = getReadOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, readVolume, gatherVolumeResourceData)
 var resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, deleteVolume)
 
 func resourceCloudscaleVolume() *schema.Resource {
@@ -126,9 +126,9 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	return m
 }
 
-func readVolume(d *schema.ResourceData, meta any) (*cloudscale.Volume, error) {
+func readVolume(rId GenericResourceIdentifier, meta any) (*cloudscale.Volume, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Volumes.Get(context.Background(), d.Id())
+	return client.Volumes.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleVolumeUpdate(d *schema.ResourceData, meta any) error {

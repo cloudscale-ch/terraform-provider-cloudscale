@@ -11,7 +11,7 @@ import (
 
 const networkHumanName = "network"
 
-var resourceCloudscaleNetworkRead = getReadOperation(networkHumanName, readNetwork, gatherNetworkResourceData)
+var resourceCloudscaleNetworkRead = getReadOperation(networkHumanName, getGenericResourceIdentifierFromSchema, readNetwork, gatherNetworkResourceData)
 var resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, deleteNetwork)
 
 func resourceCloudscaleNetwork() *schema.Resource {
@@ -145,9 +145,9 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 	return m
 }
 
-func readNetwork(d *schema.ResourceData, meta any) (*cloudscale.Network, error) {
+func readNetwork(rId GenericResourceIdentifier, meta any) (*cloudscale.Network, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Networks.Get(context.Background(), d.Id())
+	return client.Networks.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleNetworkUpdate(d *schema.ResourceData, meta any) error {

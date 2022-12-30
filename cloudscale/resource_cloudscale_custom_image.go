@@ -12,12 +12,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const customImageHumanName = "custom image"
+
+var resourceCustomImageRead = getReadOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, readCustomImage, gatherCustomImageResourceData)
+var resourceCustomImageDelete = getDeleteOperation(customImageHumanName, deleteCustomImage)
+
 func resourceCloudscaleCustomImage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCustomImageCreate,
 		Read:   resourceCustomImageRead,
 		Update: resourceCustomImageUpdate,
-		Delete: getDeleteOperation("custom image", deleteCustomImage),
+		Delete: resourceCustomImageDelete,
 
 		Schema: getCustomImageSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
@@ -192,22 +197,9 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	return m
 }
 
-func resourceCustomImageRead(d *schema.ResourceData, meta any) error {
+func readCustomImage(rId GenericResourceIdentifier, meta any) (*cloudscale.CustomImage, error) {
 	client := meta.(*cloudscale.Client)
-
-	customImage, err := client.CustomImages.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving customImage")
-	}
-
-	importUUID, ok := d.GetOk("import_uuid")
-	if !ok {
-		return fmt.Errorf("Error getting import_uuid")
-	}
-	customImageImport, err := client.CustomImageImports.Get(context.Background(), importUUID.(string))
-
-	fillCustomImageResourceData(d, customImageImport, customImage)
-	return nil
+	return client.CustomImages.Get(context.Background(), rId.Id)
 }
 
 func resourceCustomImageUpdate(d *schema.ResourceData, meta any) error {

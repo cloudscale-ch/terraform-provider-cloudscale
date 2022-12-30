@@ -12,7 +12,7 @@ import (
 
 const subnetHumanName = "subnet"
 
-var resourceCloudscaleSubnetRead = getReadOperation(subnetHumanName, readSubnet, gatherSubnetResourceData)
+var resourceCloudscaleSubnetRead = getReadOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, readSubnet, gatherSubnetResourceData)
 var resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, deleteSubnet)
 
 func resourceCloudscaleSubnet() *schema.Resource {
@@ -133,9 +133,9 @@ func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
 	return m
 }
 
-func readSubnet(d *schema.ResourceData, meta any) (*cloudscale.Subnet, error) {
+func readSubnet(rId GenericResourceIdentifier, meta any) (*cloudscale.Subnet, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Subnets.Get(context.Background(), d.Id())
+	return client.Subnets.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleSubnetUpdate(d *schema.ResourceData, meta any) error {

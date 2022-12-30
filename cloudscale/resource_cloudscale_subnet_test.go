@@ -416,38 +416,6 @@ func testAccCheckCloudscaleAddressOnSubnet(server *cloudscale.Server, subnet *cl
 	}
 }
 
-func testAccCheckCloudscaleSubnetExists(n string, subnet *cloudscale.Subnet) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Subnet ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the subnet
-		retrieveSubnet, err := client.Subnets.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveSubnet.UUID != rs.Primary.ID {
-			return fmt.Errorf("Subnet not found")
-		}
-
-		*subnet = *retrieveSubnet
-
-		return nil
-	}
-}
-
 func testAccCheckCloudscaleSubnetDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 

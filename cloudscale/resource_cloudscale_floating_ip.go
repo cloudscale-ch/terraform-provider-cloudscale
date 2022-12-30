@@ -11,7 +11,7 @@ import (
 
 const floatingIPHumanName = "Floating IP"
 
-var resourceFloatingIPRead = getReadOperation(floatingIPHumanName, readFloatingIP, gatherFloatingIPResourceData)
+var resourceFloatingIPRead = getReadOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, readFloatingIP, gatherFloatingIPResourceData)
 var resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, deleteFloatingIP)
 
 func resourceCloudscaleFloatingIP() *schema.Resource {
@@ -153,9 +153,9 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	return m
 }
 
-func readFloatingIP(d *schema.ResourceData, meta any) (*cloudscale.FloatingIP, error) {
+func readFloatingIP(rId GenericResourceIdentifier, meta any) (*cloudscale.FloatingIP, error) {
 	client := meta.(*cloudscale.Client)
-	return client.FloatingIPs.Get(context.Background(), d.Id())
+	return client.FloatingIPs.Get(context.Background(), rId.Id)
 
 }
 

@@ -10,7 +10,7 @@ import (
 
 const healthMonitorHumanName = "load balancer health monitor"
 
-var resourceCloudscaleLoadBalancerHealthMonitorRead = getReadOperation(healthMonitorHumanName, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
+var resourceCloudscaleLoadBalancerHealthMonitorRead = getReadOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
 var resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, deleteLoadBalancerHealthMonitor)
 
 func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
@@ -115,9 +115,9 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 	return nil
 }
 
-func readLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
+func readLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerHealthMonitors.Get(context.Background(), d.Id())
+	return client.LoadBalancerHealthMonitors.Get(context.Background(), rId.Id)
 }
 
 func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *cloudscale.LoadBalancerHealthMonitor) ResourceDataRaw {

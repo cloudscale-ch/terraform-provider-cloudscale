@@ -10,7 +10,7 @@ import (
 
 const poolHumanName = "load balancer pool"
 
-var resourceCloudscaleLoadBalancerPoolRead = getReadOperation(poolHumanName, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
+var resourceCloudscaleLoadBalancerPoolRead = getReadOperation(poolHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
 var resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, deleteLoadBalancerPool)
 
 func resourceCloudscaleLoadBalancerPool() *schema.Resource {
@@ -116,9 +116,9 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 	return m
 }
 
-func readLoadBalancerPool(d *schema.ResourceData, meta any) (*cloudscale.LoadBalancerPool, error) {
+func readLoadBalancerPool(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerPool, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPools.Get(context.Background(), d.Id())
+	return client.LoadBalancerPools.Get(context.Background(), rId.Id)
 }
 
 func resourceCloudscaleLoadBalancerPoolUpdate(d *schema.ResourceData, meta any) error {

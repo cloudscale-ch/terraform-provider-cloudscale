@@ -201,38 +201,6 @@ func TestAccCloudscaleObjectsUser_tags(t *testing.T) {
 	})
 }
 
-func testAccCheckCloudscaleObjectsUserExists(n string, objectsUser *cloudscale.ObjectsUser) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No objects user ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the objectsUser
-		retrieveObjectsUser, err := client.ObjectsUsers.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveObjectsUser.ID != rs.Primary.ID {
-			return fmt.Errorf("ObjectsUser not found")
-		}
-
-		*objectsUser = *retrieveObjectsUser
-
-		return nil
-	}
-}
-
 func testAccCheckObjectsUserIsSame(t *testing.T,
 	before, after *cloudscale.ObjectsUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

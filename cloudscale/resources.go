@@ -6,13 +6,15 @@ import (
 	"log"
 )
 
-func getReadOperation[TResource any](
+func getReadOperation[TResource any, TResourceID any](
 	resourceType string,
-	readFunc func(d *schema.ResourceData, meta any) (*TResource, error),
+	idFunc func(d *schema.ResourceData) TResourceID,
+	readFunc func(rID TResourceID, meta any) (*TResource, error),
 	gatherFunc func(resource *TResource) ResourceDataRaw,
 ) schema.ReadFunc {
 	return func(d *schema.ResourceData, meta any) error {
-		resource, err := readFunc(d, meta)
+		rId := idFunc(d)
+		resource, err := readFunc(rId, meta)
 
 		if err != nil {
 			return CheckDeleted(d, err, fmt.Sprintf("Error retrieving %s", resourceType))
@@ -36,4 +38,12 @@ func getDeleteOperation(
 		}
 		return nil
 	}
+}
+
+type GenericResourceIdentifier struct {
+	Id string
+}
+
+func getGenericResourceIdentifierFromSchema(d *schema.ResourceData) GenericResourceIdentifier {
+	return GenericResourceIdentifier{Id: d.Id()}
 }
