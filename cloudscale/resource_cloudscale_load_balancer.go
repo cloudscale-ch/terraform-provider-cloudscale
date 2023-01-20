@@ -175,9 +175,7 @@ func createVipAddressOptions(d *schema.ResourceData) []cloudscale.VIPAddressRequ
 		prefix := fmt.Sprintf("vip_addresses.%d", i)
 		result[i] = cloudscale.VIPAddressRequest{
 			Address: d.Get(prefix + ".address").(string),
-			Subnet: cloudscale.SubnetRequest{
-				UUID: d.Get(prefix + ".subnet_uuid").(string),
-			},
+			Subnet:  d.Get(prefix + ".subnet_uuid").(string),
 		}
 	}
 	return result
