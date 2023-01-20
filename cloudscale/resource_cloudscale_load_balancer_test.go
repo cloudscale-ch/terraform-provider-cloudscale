@@ -129,10 +129,12 @@ func TestAccCloudscaleLoadBalancer_UpdateName(t *testing.T) {
 
 func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 	var loadBalancer cloudscale.LoadBalancer
+	var subnet cloudscale.Subnet
 
 	rInt1, rInt2 := acctest.RandInt(), acctest.RandInt()
 	cidr := "192.168.42.0/24"
 
+	subnetResourceName := "cloudscale_subnet.privnet-subnet"
 	resourceName := "cloudscale_load_balancer.lb-acc-test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -143,6 +145,7 @@ func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2, cidr),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleSubnetExists(subnetResourceName, &subnet),
 					testAccCheckCloudscaleLoadBalancerExists(resourceName, &loadBalancer),
 					resource.TestCheckResourceAttr(
 						resourceName, "vip_addresses.#", "1"),
@@ -150,12 +153,12 @@ func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 						resourceName, "vip_addresses.0.version", "4"),
 					resource.TestCheckResourceAttr(
 						resourceName, "vip_addresses.0.address", "192.168.42.124"),
-					resource.TestCheckResourceAttrSet(
-						resourceName, "vip_addresses.0.subnet_href"),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "vip_addresses.0.subnet_href", &subnet.HREF),
 					resource.TestCheckResourceAttr(
 						resourceName, "vip_addresses.0.subnet_cidr", cidr),
-					resource.TestCheckResourceAttrSet(
-						resourceName, "vip_addresses.0.subnet_uuid"),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "vip_addresses.0.subnet_uuid", &subnet.UUID),
 				),
 			},
 		},
