@@ -114,7 +114,20 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
-		"status": {
+		"subnet_uuid": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"subnet_cidr": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"subnet_href": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"monitor_status": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -141,6 +154,9 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta
 	if attr, ok := d.GetOkExists("enabled"); ok {
 		val := attr.(bool)
 		opts.Enabled = &val
+	}
+	if attr, ok := d.GetOkExists("subnet_uuid"); ok {
+		opts.Subnet = attr.(string)
 	}
 	opts.Tags = CopyTags(d)
 
@@ -171,10 +187,13 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	m["pool_uuid"] = loadbalancerPoolMember.Pool.UUID
 	m["pool_name"] = loadbalancerPoolMember.Pool.Name
 	m["pool_href"] = loadbalancerPoolMember.Pool.HREF
+	m["subnet_uuid"] = loadbalancerPoolMember.Subnet.UUID
+	m["subnet_cidr"] = loadbalancerPoolMember.Subnet.CIDR
+	m["subnet_href"] = loadbalancerPoolMember.Subnet.HREF
 	m["protocol_port"] = loadbalancerPoolMember.ProtocolPort
 	m["monitor_port"] = loadbalancerPoolMember.MonitorPort
 	m["address"] = loadbalancerPoolMember.Address
-	m["status"] = loadbalancerPoolMember.Status
+	m["monitor_status"] = loadbalancerPoolMember.MonitorStatus
 	m["tags"] = loadbalancerPoolMember.Tags
 	return m
 }
