@@ -38,6 +38,8 @@ func TestAccCloudscaleLoadBalancerPoolMember_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "name", lbPoolName),
 					resource.TestCheckResourceAttr(
+						resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(
 						resourceName, "protocol_port", "80"),
 					resource.TestCheckResourceAttr(
 						resourceName, "monitor_port", "0"),
@@ -133,6 +135,43 @@ func TestAccCloudscaleLoadBalancerPoolMember_UpdatePool(t *testing.T) {
 					resource.TestCheckResourceAttrPair(
 						resourceName, "pool_uuid",
 						"cloudscale_load_balancer_pool.lb-pool-acc-test.1", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerPoolMember_UpdateEnabled(t *testing.T) {
+	var afterCreate, afterUpdate cloudscale.LoadBalancerPoolMember
+
+	rInt1 := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterCreate),
+					resource.TestCheckResourceAttr(
+						resourceName, "enabled", "true"),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_disabled(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "enabled", "false"),
+					testAccCheckLoadBalancerPoolMemberIsSame(t, &afterCreate, &afterUpdate, true),
 				),
 			},
 		},
@@ -351,6 +390,18 @@ resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   protocol_port = 80
   address       = "%s"
+}
+`, rInt, TestAddress)
+}
+
+func testAccCloudscaleLoadBalancerPoolMemberConfig_disabled(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
+  name          = "terraform-%d-lb-pool-member"
+  pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  protocol_port = 80
+  address       = "%s"
+  enabled       = false
 }
 `, rInt, TestAddress)
 }

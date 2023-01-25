@@ -80,6 +80,11 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
 		"pool_uuid": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -133,7 +138,10 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta
 		MonitorPort:  d.Get("monitor_port").(int),
 		Address:      d.Get("address").(string),
 	}
-
+	if attr, ok := d.GetOkExists("enabled"); ok {
+		val := attr.(bool)
+		opts.Enabled = &val
+	}
 	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] LoadBalancerPoolMember create configuration: %#v", opts)
@@ -159,6 +167,7 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	m["id"] = loadbalancerPoolMember.UUID
 	m["href"] = loadbalancerPoolMember.HREF
 	m["name"] = loadbalancerPoolMember.Name
+	m["enabled"] = loadbalancerPoolMember.Enabled
 	m["pool_uuid"] = loadbalancerPoolMember.Pool.UUID
 	m["pool_name"] = loadbalancerPoolMember.Pool.Name
 	m["pool_href"] = loadbalancerPoolMember.Pool.HREF
@@ -183,7 +192,7 @@ func updateLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, 
 func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolMemberRequest {
 	requests := make([]*cloudscale.LoadBalancerPoolMemberRequest, 0)
 
-	for _, attribute := range []string{"name", "protocol_port", "monitor_port", "tags"} {
+	for _, attribute := range []string{"name", "enabled", "protocol_port", "monitor_port", "tags"} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerPoolMemberRequest{}
@@ -191,6 +200,9 @@ func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*clouds
 
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
+			} else if attribute == "enabled" {
+				v := d.Get(attribute).(bool)
+				opts.Enabled = &v
 			} else if attribute == "protocol_port" {
 				opts.ProtocolPort = d.Get(attribute).(int)
 			} else if attribute == "monitor_port" {
