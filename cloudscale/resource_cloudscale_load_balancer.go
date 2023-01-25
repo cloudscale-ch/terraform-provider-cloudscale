@@ -224,7 +224,7 @@ func updateLoadBalancer(rId GenericResourceIdentifier, meta any, updateRequest *
 func gatherLoadBalancerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerRequest {
 	requests := make([]*cloudscale.LoadBalancerRequest, 0)
 
-	for _, attribute := range []string{"name", "tags", "vip_addresses"} {
+	for _, attribute := range []string{"name", "tags"} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerRequest{}
@@ -232,9 +232,6 @@ func gatherLoadBalancerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadB
 
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
-			} else if attribute == "vip_addresses" {
-				vipAddressOptions := createVipAddressOptions(d)
-				opts.VIPAddresses = &vipAddressOptions
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}

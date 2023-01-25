@@ -137,15 +137,13 @@ func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 	subnetResourceName := "cloudscale_subnet.privnet-subnet"
 	resourceName := "cloudscale_load_balancer.lb-acc-test"
 
-	initialVip := "192.168.42.124"
-	newVip := "192.168.42.241"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2, cidr, initialVip),
+				Config: testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2, cidr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleSubnetExists(subnetResourceName, &subnet),
 					testAccCheckCloudscaleLoadBalancerExists(resourceName, &loadBalancer),
@@ -154,26 +152,7 @@ func TestAccCloudscaleLoadBalancer_PrivateNetwork(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "vip_addresses.0.version", "4"),
 					resource.TestCheckResourceAttr(
-						resourceName, "vip_addresses.0.address", initialVip),
-					resource.TestCheckResourceAttrPtr(
-						resourceName, "vip_addresses.0.subnet_href", &subnet.HREF),
-					resource.TestCheckResourceAttr(
-						resourceName, "vip_addresses.0.subnet_cidr", cidr),
-					resource.TestCheckResourceAttrPtr(
-						resourceName, "vip_addresses.0.subnet_uuid", &subnet.UUID),
-				),
-			},
-			{
-				Config: testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2, cidr, newVip),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleSubnetExists(subnetResourceName, &subnet),
-					testAccCheckCloudscaleLoadBalancerExists(resourceName, &loadBalancer),
-					resource.TestCheckResourceAttr(
-						resourceName, "vip_addresses.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "vip_addresses.0.version", "4"),
-					resource.TestCheckResourceAttr(
-						resourceName, "vip_addresses.0.address", newVip),
+						resourceName, "vip_addresses.0.address", "192.168.42.124"),
 					resource.TestCheckResourceAttrPtr(
 						resourceName, "vip_addresses.0.subnet_href", &subnet.HREF),
 					resource.TestCheckResourceAttr(
@@ -388,7 +367,7 @@ resource "cloudscale_load_balancer" "lb-acc-test" {
 `, rInt)
 }
 
-func testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2 int, cidr, vipAddr string) string {
+func testAccCloudscaleLoadBalancerConfig_priateNetwork(rInt1, rInt2 int, cidr string) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "privnet" {
   name                    = "terraform-%d-network"
@@ -409,10 +388,10 @@ resource "cloudscale_load_balancer" "lb-acc-test" {
 
   vip_addresses {
     subnet_uuid = cloudscale_subnet.privnet-subnet.id
-    address     = "%s"
+    address     = "192.168.42.124"
   }
 }
-`, rInt1, cidr, rInt2, vipAddr)
+`, rInt1, cidr, rInt2)
 }
 
 func testAccCheckCloudscaleLoadBalancerConfigWithZone(rInt int) string {
