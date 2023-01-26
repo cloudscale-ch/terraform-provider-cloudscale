@@ -52,23 +52,23 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 		},
 		"delay": {
 			Type:     schema.TypeInt,
-			Required: t.isResource(),
-			Computed: t.isDataSource(),
+			Optional: true,
+			Computed: true,
 		},
 		"timeout": {
 			Type:     schema.TypeInt,
-			Required: t.isResource(),
-			Computed: t.isDataSource(),
+			Optional: true,
+			Computed: true,
 		},
 		"max_retries": {
 			Type:     schema.TypeInt,
-			Required: t.isResource(),
-			Computed: t.isDataSource(),
+			Optional: true,
+			Computed: true,
 		},
 		"max_retries_down": {
 			Type:     schema.TypeInt,
-			Required: t.isResource(),
-			Computed: t.isDataSource(),
+			Optional: true,
+			Computed: true,
 		},
 		"type": {
 			Type:     schema.TypeString,
@@ -91,12 +91,21 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerHealthMonitorRequest{
-		Pool:           d.Get("pool_uuid").(string),
-		Delay:          d.Get("delay").(int),
-		Timeout:        d.Get("timeout").(int),
-		MaxRetries:     d.Get("max_retries").(int),
-		MaxRetriesDown: d.Get("max_retries_down").(int),
-		Type:           d.Get("type").(string),
+		Pool: d.Get("pool_uuid").(string),
+		Type: d.Get("type").(string),
+	}
+
+	if attr, ok := d.GetOk("delay"); ok {
+		opts.Delay = attr.(int)
+	}
+	if attr, ok := d.GetOk("timeout"); ok {
+		opts.Timeout = attr.(int)
+	}
+	if attr, ok := d.GetOk("max_retries"); ok {
+		opts.MaxRetries = attr.(int)
+	}
+	if attr, ok := d.GetOk("max_retries_down"); ok {
+		opts.MaxRetriesDown = attr.(int)
 	}
 
 	opts.Tags = CopyTags(d)
