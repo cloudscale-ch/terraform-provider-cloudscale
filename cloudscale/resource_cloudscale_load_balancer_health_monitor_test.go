@@ -288,9 +288,16 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_tags(t *testing.T) {
 }
 
 func TestAccCloudscaleLoadBalancerHealthMonitor_MemberStatus(t *testing.T) {
+	var loadBalancerPoolMember cloudscale.LoadBalancerPoolMember
+
 	rInt := acctest.RandInt()
 
 	memberResourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	basicConfig := testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerListenerConfig_basic(rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -298,22 +305,28 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_MemberStatus(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt),
+				Config: basicConfig,
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(memberResourceName, &loadBalancerPoolMember),
+					waitForMonitorStatus(&loadBalancerPoolMember, "no_monitor"),
 					resource.TestCheckResourceAttr(memberResourceName,
-						"status", "no_monitor"),
+						"monitor_status", "no_monitor"),
 				),
 			},
 			{
-				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt) +
+				Config: basicConfig +
 					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
 				Check: resource.ComposeTestCheckFunc(
+					waitForMonitorStatus(&loadBalancerPoolMember, "up"),
+				),
+			},
+			{
+				Config: basicConfig +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+				Check: resource.ComposeTestCheckFunc(
+					// this check is in a separate step to ensure the status is refreshed form the API:
 					resource.TestCheckResourceAttr(memberResourceName,
-						"status", "fail_x_me"),
+						"monitor_status", "up"),
 				),
 			},
 		},

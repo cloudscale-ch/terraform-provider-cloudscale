@@ -575,11 +575,13 @@ func testAccCheckLoadBalancerPoolMemberIsSame(t *testing.T,
 
 func waitForMonitorStatus(member *cloudscale.LoadBalancerPoolMember, status string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		var retrievedPoolMember cloudscale.LoadBalancerPoolMember
 		client := testAccProvider.Meta().(*cloudscale.Client)
 
+		var retrievedPoolMember *cloudscale.LoadBalancerPoolMember
+		var err error
+
 		for i := 0; i < 5; i++ {
-			retrievedPoolMember, err := client.LoadBalancerPoolMembers.Get(
+			retrievedPoolMember, err = client.LoadBalancerPoolMembers.Get(
 				context.Background(), member.Pool.UUID, member.UUID,
 			)
 			if err != nil {
@@ -591,7 +593,7 @@ func waitForMonitorStatus(member *cloudscale.LoadBalancerPoolMember, status stri
 			time.Sleep(2 * time.Second)
 		}
 		return fmt.Errorf(
-			"expeted MonitorStatus to become %s, but it's still: %s",
+			"expeted MonitorStatus to become '%s', but it's still: '%s'",
 			status, retrievedPoolMember.MonitorStatus,
 		)
 	}
