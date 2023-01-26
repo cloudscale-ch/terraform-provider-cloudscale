@@ -312,6 +312,45 @@ func TestAccCloudscaleLoadBalancer_tags(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleLoadBalancerPoolMember_ScenarioSubnet(t *testing.T) {
+	// this is a big test case, where we verify a scenario with
+	// a server in a private network and ensure that the health monitor status
+	// becomes "up".
+	var loadBalancerPoolMember cloudscale.LoadBalancerPoolMember
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+	rInt3 := acctest.RandInt()
+	rInt4 := acctest.RandInt()
+	rInt5 := acctest.RandInt()
+	rInt6 := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_pool_member.basic"
+	expectedMonitorStatus := "up"
+	config := testAccCloudscaleLoadBalancerConfig_subnet(rInt1, rInt2, rInt3, rInt4, rInt5, rInt6)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &loadBalancerPoolMember),
+					waitForMonitorStatus(&loadBalancerPoolMember, expectedMonitorStatus)),
+			},
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					// this check is in a separate step to ensure the status is refreshed form the API:
+					resource.TestCheckResourceAttr(
+						resourceName, "monitor_status", expectedMonitorStatus)),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleLoadBalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
@@ -416,4 +455,73 @@ resource "cloudscale_load_balancer" "tagged" {
   }
 }
 `, rInt)
+}
+
+func testAccCloudscaleLoadBalancerConfig_subnet(rInt1, rInt2, rInt3, rInt4, rInt5, rInt6 int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_network" "privnet" {
+  name                    = "terraform-%1d"
+  zone_slug               = "lpg1"
+  mtu                     = "9000"
+  auto_create_ipv4_subnet = "false"
+}
+
+resource "cloudscale_subnet" "privnet-subnet" {
+  cidr               = "10.11.12.0/24"
+  network_uuid       = cloudscale_network.privnet.id
+}
+
+resource "cloudscale_server" "fixed" {
+  name            = "terraform-%2d"
+  zone_slug       = "lpg1"
+  flavor_slug     = "flex-4-1"
+  image_slug      = "debian-10"
+  interfaces      {
+    type          = "private"
+    addresses {
+      subnet_uuid = "${cloudscale_subnet.privnet-subnet.id}"     
+      address     = "10.11.12.13"
+    }
+  }
+  volume_size_gb  = 10
+  ssh_keys        = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
+
+resource "cloudscale_load_balancer" "basic" {
+  name        = "terraform-%3d"
+  flavor_slug = "lb-flex-4-2"
+  zone_slug   = "lpg1"
+}
+
+resource "cloudscale_load_balancer_pool" "basic" {
+  name               = "terraform-%4d"
+  algorithm          = "round_robin"
+  protocol           = "tcp"
+  load_balancer_uuid = "${cloudscale_load_balancer.basic.id}"
+}
+
+resource "cloudscale_load_balancer_listener" "basic" {
+  name          = "terraform-%5d"
+  pool_uuid     = "${cloudscale_load_balancer_pool.basic.id}"
+  protocol      = "tcp"
+  protocol_port = "22"
+}
+
+resource "cloudscale_load_balancer_health_monitor" "basic" {
+  pool_uuid        = "${cloudscale_load_balancer_pool.basic.id}"
+  delay            = 10
+  max_retries      = 3
+  max_retries_down = 3
+  timeout          = 5
+  type             = "tcp"
+}
+
+resource "cloudscale_load_balancer_pool_member" "basic" {
+  name          = "terraform-%6d"
+  pool_uuid     = "${cloudscale_load_balancer_pool.basic.id}"
+  protocol_port = 22
+  subnet_uuid   = "${cloudscale_subnet.privnet-subnet.id}"    
+  address       = "${cloudscale_server.fixed.interfaces[0].addresses[0].address}"
+}
+`, rInt1, rInt2, rInt3, rInt4, rInt5, rInt6)
 }

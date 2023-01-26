@@ -1,12 +1,14 @@
 package cloudscale
 
 import (
+	"context"
 	"fmt"
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
+	"time"
 )
 
 func TestAccCloudscaleLoadBalancerHealthMonitor_Basic(t *testing.T) {
@@ -406,4 +408,30 @@ resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" 
   type             = "tcp"
 }
 `, rInt)
+}
+
+func waitForMonitorStatus(member *cloudscale.LoadBalancerPoolMember, status string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*cloudscale.Client)
+
+		var retrievedPoolMember *cloudscale.LoadBalancerPoolMember
+		var err error
+
+		for i := 0; i < 5; i++ {
+			retrievedPoolMember, err = client.LoadBalancerPoolMembers.Get(
+				context.Background(), member.Pool.UUID, member.UUID,
+			)
+			if err != nil {
+				return err
+			}
+			if retrievedPoolMember.MonitorStatus == status {
+				return nil
+			}
+			time.Sleep(2 * time.Second)
+		}
+		return fmt.Errorf(
+			"expeted MonitorStatus to become '%s', but it's still: '%s'",
+			status, retrievedPoolMember.MonitorStatus,
+		)
+	}
 }
