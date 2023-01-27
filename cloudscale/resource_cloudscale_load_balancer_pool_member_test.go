@@ -30,7 +30,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_Basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
 					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test", &loadBalancerPool),
@@ -77,21 +77,38 @@ func TestAccCloudscaleLoadBalancerPoolMember_UpdateName(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", lbPoolMemberName),
+					resource.TestCheckResourceAttr(
+						resourceName, "enabled", "true"),
 				),
 			},
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt2),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt2, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", lbPoolMemberNameUpdated),
+					resource.TestCheckResourceAttr(
+						resourceName, "enabled", "true"),
+					testAccCheckLoadBalancerPoolMemberIsSame(t, &afterCreate, &afterUpdate, true),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt2, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", lbPoolMemberNameUpdated),
+					resource.TestCheckResourceAttr(
+						resourceName, "enabled", "false"),
 					testAccCheckLoadBalancerPoolMemberIsSame(t, &afterCreate, &afterUpdate, true),
 				),
 			},
@@ -156,7 +173,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_UpdateEnabled(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
@@ -198,7 +215,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_import_basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &beforeImport),
@@ -216,7 +233,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_import_basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt1, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
@@ -226,7 +243,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_import_basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt2),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt2, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
@@ -250,7 +267,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_import_error_cases(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt, true),
 			},
 			{
 				ResourceName:      resourceName,
@@ -316,7 +333,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_import_withTags(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(42),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(42, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
@@ -358,7 +375,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_tags(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
-					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt3),
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt3, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
@@ -383,15 +400,16 @@ func TestAccCloudscaleLoadBalancerPoolMember_tags(t *testing.T) {
 	})
 }
 
-func testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt int) string {
+func testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt int, enabled bool) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
   name          = "terraform-%d-lb-pool-member"
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   protocol_port = 80
   address       = "%s"
+  enabled       = %t
 }
-`, rInt, TestAddress)
+`, rInt, TestAddress, enabled)
 }
 
 func testAccCloudscaleLoadBalancerPoolMemberConfig_disabled(rInt int) string {

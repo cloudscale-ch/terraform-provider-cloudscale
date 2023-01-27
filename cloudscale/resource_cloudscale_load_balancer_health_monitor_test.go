@@ -372,7 +372,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_MemberStatus(t *testing.T) {
 
 	basicConfig := testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 		testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt, true) +
 		testAccCloudscaleLoadBalancerListenerConfig_basic(rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -418,7 +418,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitorHTTP_MemberStatus(t *testing.T) {
 
 	basicConfig := testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 		testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt, true) +
 		testAccCloudscaleLoadBalancerListenerConfig_basic(rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
