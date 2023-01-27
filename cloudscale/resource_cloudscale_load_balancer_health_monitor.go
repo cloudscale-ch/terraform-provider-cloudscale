@@ -76,6 +76,32 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
+		"http_expected_codes": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Optional: true,
+			Computed: true,
+		},
+		"http_method": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"http_url_path": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"http_version": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"http_host": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
@@ -108,6 +134,26 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 		opts.MaxRetriesDown = attr.(int)
 	}
 
+	if opts.Type == "http" {
+		httpOpts := cloudscale.LoadBalancerHealthMonitorHTTPRequest{}
+		if attr, ok := d.GetOk("http_expected_codes"); ok {
+			codes := attr.([]any)
+			s := getCodes(codes)
+			httpOpts.ExpectedCodes = s
+		}
+		if attr, ok := d.GetOk("http_method"); ok {
+			httpOpts.Method = attr.(string)
+		}
+		if attr, ok := d.GetOk("http_url_path"); ok {
+			httpOpts.UrlPath = attr.(string)
+		}
+		if attr, ok := d.GetOk("http_host"); ok {
+			s := attr.(string)
+			httpOpts.Host = &s
+		}
+		opts.HTTP = &httpOpts
+	}
+
 	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] LoadBalancerHealthMonitor create configuration: %#v", opts)
@@ -127,6 +173,14 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 	return nil
 }
 
+func getCodes(codes []any) []string {
+	s := make([]string, len(codes))
+	for i := range codes {
+		s[i] = codes[i].(string)
+	}
+	return s
+}
+
 func readLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
 	client := meta.(*cloudscale.Client)
 	return client.LoadBalancerHealthMonitors.Get(context.Background(), rId.Id)
@@ -140,7 +194,11 @@ func updateLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any, up
 func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cloudscale.LoadBalancerHealthMonitorRequest {
 	requests := make([]*cloudscale.LoadBalancerHealthMonitorRequest, 0)
 
-	for _, attribute := range []string{"delay", "timeout", "max_retries", "max_retries_down", "tags"} {
+	for _, attribute := range []string{
+		"delay", "timeout", "max_retries", "max_retries_down",
+		"http_expected_codes", "http_method", "http_url_path", "http_version", "http_host",
+		"tags",
+	} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerHealthMonitorRequest{}
@@ -156,6 +214,28 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 				opts.MaxRetriesDown = d.Get(attribute).(int)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
+			}
+
+			if d.Get("type").(string) == "http" {
+				httpOpts := cloudscale.LoadBalancerHealthMonitorHTTPRequest{}
+				if attribute == "http_expected_codes" {
+					codes := d.Get(attribute).([]any)
+					s := getCodes(codes)
+					httpOpts.ExpectedCodes = s
+				}
+				if attribute == "http_method" {
+					httpOpts.Method = d.Get(attribute).(string)
+				} else if attribute == "http_url_path" {
+					httpOpts.UrlPath = d.Get(attribute).(string)
+				} else if attribute == "http_version" {
+					httpOpts.Version = d.Get(attribute).(string)
+				} else if attribute == "http_host" {
+					if attr, ok := d.GetOk(attribute); ok {
+						s := attr.(string)
+						httpOpts.Host = &s
+					}
+				}
+				opts.HTTP = &httpOpts
 			}
 		}
 	}
@@ -175,6 +255,15 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	m["max_retries"] = loadBalancerHealthMonitor.MaxRetries
 	m["max_retries_down"] = loadBalancerHealthMonitor.MaxRetriesDown
 	m["type"] = loadBalancerHealthMonitor.Type
+	if loadBalancerHealthMonitor.HTTP != nil {
+		m["http_expected_codes"] = loadBalancerHealthMonitor.HTTP.ExpectedCodes
+		m["http_method"] = loadBalancerHealthMonitor.HTTP.Method
+		m["http_url_path"] = loadBalancerHealthMonitor.HTTP.UrlPath
+		m["http_version"] = loadBalancerHealthMonitor.HTTP.Version
+		m["http_host"] = loadBalancerHealthMonitor.HTTP.Host
+	} else {
+		m["http_expected_codes"] = nil
+	}
 	m["tags"] = loadBalancerHealthMonitor.Tags
 	return m
 }

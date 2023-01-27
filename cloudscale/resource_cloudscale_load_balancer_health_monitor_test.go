@@ -28,13 +28,13 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_Basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
 					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test", &loadBalancerPool),
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &loadBalancerHealthMonitor),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", "1010"),
+						resourceName, "delay", "10"),
 					resource.TestCheckResourceAttr(
 						resourceName, "max_retries", "3"),
 					resource.TestCheckResourceAttr(
@@ -43,6 +43,19 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_Basic(t *testing.T) {
 						resourceName, "timeout", "1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "type", "tcp"),
+
+					// ensure http attrs are not set
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.#", "0"),
+					resource.TestCheckNoResourceAttr(
+						resourceName, "http_method"),
+					resource.TestCheckNoResourceAttr(
+						resourceName, "http_url_path"),
+					resource.TestCheckNoResourceAttr(
+						resourceName, "http_version"),
+					resource.TestCheckNoResourceAttr(
+						resourceName, "http_host"),
+
 					resource.TestCheckResourceAttrPtr(
 						resourceName, "pool_uuid", &loadBalancerPool.UUID),
 					resource.TestCheckResourceAttrPtr(
@@ -59,7 +72,6 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateDelay(t *testing.T) {
 	var afterCreate, afterUpdate cloudscale.LoadBalancerHealthMonitor
 
 	rInt1 := acctest.RandInt()
-	rInt2 := acctest.RandInt()
 
 	resourceName := "cloudscale_load_balancer_health_monitor.lb-health_monitor-acc-test"
 
@@ -71,21 +83,84 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateDelay(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt1),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt1, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("%v", getDelayFromRandomInt(rInt1))),
+						resourceName, "delay", fmt.Sprintf("10")),
 				),
 			},
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt2),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt1, 15),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("%v", getDelayFromRandomInt(rInt1))),
+						resourceName, "delay", fmt.Sprintf("15")),
+					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, true),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateHTTP(t *testing.T) {
+	var afterCreate, afterUpdate cloudscale.LoadBalancerHealthMonitor
+
+	rInt1 := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_health_monitor.lb-health_monitor-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterCreate),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "http"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.#", "1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.0", "200"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_method", "GET"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_url_path", "/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_version", "1.1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_host", "www.cloudscale.ch"),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "http"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.#", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.0", "418"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.1", "425"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_method", "PATCH"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_url_path", "/fail"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_version", "1.1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_host", "www.cloudscale-status.net"),
 					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, true),
 				),
 			},
@@ -150,7 +225,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt1, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &beforeImport),
@@ -165,21 +240,21 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_basic(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt1, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("%v", 1010)),
+						resourceName, "delay", "10"),
 				),
 			},
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(15),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt1, 15),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("%v", 1015)),
+						resourceName, "delay", "15"),
 				),
 			},
 		},
@@ -221,11 +296,11 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_withTags(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(42),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("%v", 1042)),
+						resourceName, "delay", "10"),
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
 					testAccCheckLoadBalancerHealthMonitorIsSame(t, &beforeImport, &afterUpdate, true),
@@ -263,7 +338,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_tags(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt2) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt3),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt3, 10),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
@@ -316,18 +391,71 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_MemberStatus(t *testing.T) {
 			},
 			{
 				Config: basicConfig +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt, 10),
 				Check: resource.ComposeTestCheckFunc(
 					waitForMonitorStatus(&loadBalancerPoolMember, "up"),
 				),
 			},
 			{
 				Config: basicConfig +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt, 10),
 				Check: resource.ComposeTestCheckFunc(
 					// this check is in a separate step to ensure the status is refreshed form the API:
 					resource.TestCheckResourceAttr(memberResourceName,
 						"monitor_status", "up"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerHealthMonitorHTTP_MemberStatus(t *testing.T) {
+	var loadBalancerPoolMember cloudscale.LoadBalancerPoolMember
+
+	rInt := acctest.RandInt()
+
+	memberResourceName := "cloudscale_load_balancer_pool_member.lb-pool-member-acc-test"
+
+	basicConfig := testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt) +
+		testAccCloudscaleLoadBalancerListenerConfig_basic(rInt)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: basicConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(memberResourceName, &loadBalancerPoolMember),
+					waitForMonitorStatus(&loadBalancerPoolMember, "no_monitor"),
+					resource.TestCheckResourceAttr(memberResourceName,
+						"monitor_status", "no_monitor"),
+				),
+			},
+			{
+				Config: basicConfig +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(10),
+				Check: resource.ComposeTestCheckFunc(
+					waitForMonitorStatus(&loadBalancerPoolMember, "up"),
+				),
+			},
+			{
+				Config: basicConfig +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(10),
+				Check: resource.ComposeTestCheckFunc(
+					// this check is in a separate step to ensure the status is refreshed form the API:
+					resource.TestCheckResourceAttr(memberResourceName,
+						"monitor_status", "up"),
+				),
+			},
+			{
+				Config: basicConfig +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(10),
+				Check: resource.ComposeTestCheckFunc(
+					waitForMonitorStatus(&loadBalancerPoolMember, "error"),
 				),
 			},
 		},
@@ -380,28 +508,50 @@ func testAccCloudscaleLoadBalancerHealthMonitorConfigWithTags(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid = cloudscale_load_balancer_pool.lb-pool-acc-test.id
-  delay            = %v
   type             = "tcp"
   tags = {
     my-foo = "foo"
     my-bar = "bar"
   }
 }
-`, getDelayFromRandomInt(rInt))
+`)
 }
 
-func testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt int) string {
+func testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt int, delay int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   delay            = %v
   type             = "tcp"
 }
-`, getDelayFromRandomInt(rInt))
+`, delay)
 }
 
-func getDelayFromRandomInt(rInt int) int {
-	return (rInt % 100) + 1000
+func testAccCloudscaleLoadBalancerHealthMonitorConfig_http(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
+  pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  type             = "http"
+  http_url_path    = "/"
+  http_version     = "1.1"
+  http_host        = "www.cloudscale.ch"
+}
+`)
+}
+
+func testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
+  pool_uuid           = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  delay               = 10
+  type                = "http"
+  http_expected_codes = ["418", "425"]
+  http_method         = "PATCH"
+  http_url_path       = "/fail"
+  http_version        = "1.1"
+  http_host           = "www.cloudscale-status.net"
+}
+`)
 }
 
 func waitForMonitorStatus(member *cloudscale.LoadBalancerPoolMember, status string) resource.TestCheckFunc {
@@ -411,7 +561,7 @@ func waitForMonitorStatus(member *cloudscale.LoadBalancerPoolMember, status stri
 		var retrievedPoolMember *cloudscale.LoadBalancerPoolMember
 		var err error
 
-		for i := 0; i < 5; i++ {
+		for i := 0; i < 30; i++ {
 			retrievedPoolMember, err = client.LoadBalancerPoolMembers.Get(
 				context.Background(), member.Pool.UUID, member.UUID,
 			)
