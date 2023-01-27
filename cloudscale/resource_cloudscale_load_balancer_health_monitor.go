@@ -144,6 +144,9 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 		if attr, ok := d.GetOk("http_method"); ok {
 			httpOpts.Method = attr.(string)
 		}
+		if attr, ok := d.GetOk("http_version"); ok {
+			httpOpts.Version = attr.(string)
+		}
 		if attr, ok := d.GetOk("http_url_path"); ok {
 			httpOpts.UrlPath = attr.(string)
 		}
