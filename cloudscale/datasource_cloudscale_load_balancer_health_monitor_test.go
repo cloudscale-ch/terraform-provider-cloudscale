@@ -33,9 +33,9 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_DS_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName1, &loadBalancerHealthMonitor),
 					resource.TestCheckResourceAttr(
-						resourceName1, "delay", fmt.Sprintf("8%d", 0)),
+						resourceName1, "delay_s", fmt.Sprintf("8%d", 0)),
 					resource.TestCheckResourceAttr(
-						dataSourceName, "delay", fmt.Sprintf("8%d", 0)),
+						dataSourceName, "delay_s", fmt.Sprintf("8%d", 0)),
 					resource.TestCheckResourceAttrPtr(
 						resourceName1, "id", &loadBalancerHealthMonitor.UUID),
 					resource.TestCheckResourceAttrPtr(

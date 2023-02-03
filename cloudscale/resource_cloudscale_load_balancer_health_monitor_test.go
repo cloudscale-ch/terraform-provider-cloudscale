@@ -34,13 +34,13 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_Basic(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test", &loadBalancerPool),
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &loadBalancerHealthMonitor),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", "10"),
+						resourceName, "delay_s", "10"),
 					resource.TestCheckResourceAttr(
-						resourceName, "max_retries", "3"),
+						resourceName, "up_threshold", "3"),
 					resource.TestCheckResourceAttr(
-						resourceName, "max_retries_down", "2"),
+						resourceName, "down_threshold", "2"),
 					resource.TestCheckResourceAttr(
-						resourceName, "timeout", "1"),
+						resourceName, "timeout_s", "1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "type", "tcp"),
 
@@ -87,7 +87,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateDelay(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("10")),
+						resourceName, "delay_s", fmt.Sprintf("10")),
 				),
 			},
 			{
@@ -97,7 +97,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateDelay(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("15")),
+						resourceName, "delay_s", fmt.Sprintf("15")),
 					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, true),
 				),
 			},
@@ -244,7 +244,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", "10"),
+						resourceName, "delay_s", "10"),
 				),
 			},
 			{
@@ -254,7 +254,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", "15"),
+						resourceName, "delay_s", "15"),
 				),
 			},
 		},
@@ -283,7 +283,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_withTags(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &beforeImport),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", fmt.Sprintf("%v", 1010)),
+						resourceName, "delay_s", fmt.Sprintf("%v", 1010)),
 					testTagsMatch(resourceName),
 				),
 			},
@@ -300,7 +300,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_withTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay", "10"),
+						resourceName, "delay_s", "10"),
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "0"),
 					testAccCheckLoadBalancerHealthMonitorIsSame(t, &beforeImport, &afterUpdate, true),

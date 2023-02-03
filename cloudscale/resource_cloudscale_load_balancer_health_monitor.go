@@ -50,22 +50,22 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"delay": {
+		"delay_s": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
 		},
-		"timeout": {
+		"timeout_s": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
 		},
-		"max_retries": {
+		"up_threshold": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
 		},
-		"max_retries_down": {
+		"down_threshold": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
@@ -121,17 +121,17 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 		Type: d.Get("type").(string),
 	}
 
-	if attr, ok := d.GetOk("delay"); ok {
-		opts.Delay = attr.(int)
+	if attr, ok := d.GetOk("delay_s"); ok {
+		opts.DelayS = attr.(int)
 	}
-	if attr, ok := d.GetOk("timeout"); ok {
-		opts.Timeout = attr.(int)
+	if attr, ok := d.GetOk("timeout_s"); ok {
+		opts.TimeoutS = attr.(int)
 	}
-	if attr, ok := d.GetOk("max_retries"); ok {
-		opts.MaxRetries = attr.(int)
+	if attr, ok := d.GetOk("up_threshold"); ok {
+		opts.UpThreshold = attr.(int)
 	}
-	if attr, ok := d.GetOk("max_retries_down"); ok {
-		opts.MaxRetriesDown = attr.(int)
+	if attr, ok := d.GetOk("down_threshold"); ok {
+		opts.DownThreshold = attr.(int)
 	}
 
 	if opts.Type == "http" {
@@ -163,7 +163,7 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 
 	healthMonitor, err := client.LoadBalancerHealthMonitors.Create(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating LoadBalancerHealthMonitor: %s", err)
+		return fmt.Errorf("error creating LoadBalancerHealthMonitor: %s", err)
 	}
 
 	d.SetId(healthMonitor.UUID)
@@ -171,7 +171,7 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 	log.Printf("[INFO] LoadBalancerHealthMonitor UUID: %s", d.Id())
 	err = resourceCloudscaleLoadBalancerHealthMonitorRead(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error reading the load balancer health monitor (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading the load balancer health monitor (%s): %s", d.Id(), err)
 	}
 	return nil
 }
@@ -198,7 +198,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 	requests := make([]*cloudscale.LoadBalancerHealthMonitorRequest, 0)
 
 	for _, attribute := range []string{
-		"delay", "timeout", "max_retries", "max_retries_down",
+		"delay_s", "timeout_s", "up_threshold", "down_threshold",
 		"http_expected_codes", "http_method", "http_url_path", "http_version", "http_host",
 		"tags",
 	} {
@@ -207,14 +207,14 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 			opts := &cloudscale.LoadBalancerHealthMonitorRequest{}
 			requests = append(requests, opts)
 
-			if attribute == "delay" {
-				opts.Delay = d.Get(attribute).(int)
-			} else if attribute == "timeout" {
-				opts.Timeout = d.Get(attribute).(int)
-			} else if attribute == "max_retries" {
-				opts.MaxRetries = d.Get(attribute).(int)
-			} else if attribute == "max_retries_down" {
-				opts.MaxRetriesDown = d.Get(attribute).(int)
+			if attribute == "delay_s" {
+				opts.DelayS = d.Get(attribute).(int)
+			} else if attribute == "timeout_s" {
+				opts.TimeoutS = d.Get(attribute).(int)
+			} else if attribute == "up_threshold" {
+				opts.UpThreshold = d.Get(attribute).(int)
+			} else if attribute == "down_threshold" {
+				opts.DownThreshold = d.Get(attribute).(int)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
@@ -253,10 +253,10 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	m["pool_uuid"] = loadBalancerHealthMonitor.Pool.UUID
 	m["pool_name"] = loadBalancerHealthMonitor.Pool.Name
 	m["pool_href"] = loadBalancerHealthMonitor.Pool.HREF
-	m["delay"] = loadBalancerHealthMonitor.Delay
-	m["timeout"] = loadBalancerHealthMonitor.Timeout
-	m["max_retries"] = loadBalancerHealthMonitor.MaxRetries
-	m["max_retries_down"] = loadBalancerHealthMonitor.MaxRetriesDown
+	m["delay_s"] = loadBalancerHealthMonitor.DelayS
+	m["timeout_s"] = loadBalancerHealthMonitor.TimeoutS
+	m["up_threshold"] = loadBalancerHealthMonitor.UpThreshold
+	m["down_threshold"] = loadBalancerHealthMonitor.DownThreshold
 	m["type"] = loadBalancerHealthMonitor.Type
 	if loadBalancerHealthMonitor.HTTP != nil {
 		m["http_expected_codes"] = loadBalancerHealthMonitor.HTTP.ExpectedCodes
