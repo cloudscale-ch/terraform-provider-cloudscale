@@ -102,11 +102,13 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Required: t.isResource(),
 			Computed: t.isDataSource(),
+			ForceNew: true,
 		},
 		"monitor_port": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: t.isDataSource(),
+			ForceNew: true,
 		},
 		"address": {
 			Type:     schema.TypeString,
@@ -211,7 +213,7 @@ func updateLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, 
 func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolMemberRequest {
 	requests := make([]*cloudscale.LoadBalancerPoolMemberRequest, 0)
 
-	for _, attribute := range []string{"name", "enabled", "protocol_port", "monitor_port", "tags"} {
+	for _, attribute := range []string{"name", "enabled", "tags"} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerPoolMemberRequest{}
@@ -222,10 +224,6 @@ func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*clouds
 			} else if attribute == "enabled" {
 				v := d.Get(attribute).(bool)
 				opts.Enabled = &v
-			} else if attribute == "protocol_port" {
-				opts.ProtocolPort = d.Get(attribute).(int)
-			} else if attribute == "monitor_port" {
-				opts.MonitorPort = d.Get(attribute).(int)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
