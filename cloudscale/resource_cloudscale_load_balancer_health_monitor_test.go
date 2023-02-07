@@ -149,6 +149,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateHTTP(t *testing.T) {
 					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(rInt1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
+					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, true),
 					resource.TestCheckResourceAttr(
 						resourceName, "type", "http"),
 					resource.TestCheckResourceAttr(
@@ -166,6 +167,67 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateHTTP(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "http_host", "www.cloudscale-status.net"),
 					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, true),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerHealthMonitor_SwitchHTTPToHTTPs(t *testing.T) {
+	var afterCreate, afterUpdate cloudscale.LoadBalancerHealthMonitor
+
+	rInt1 := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_health_monitor.lb-health_monitor-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterCreate),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "http"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.#", "1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.0", "200"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_method", "GET"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_url_path", "/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_version", "1.1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_host", "www.cloudscale.ch"),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_https(rInt1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
+					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, false),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "https"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.#", "1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_expected_codes.0", "200"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_method", "GET"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_url_path", "/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_version", "1.1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "http_host", "www.cloudscale.ch"),
 				),
 			},
 		},
@@ -525,13 +587,25 @@ func testAccCloudscaleLoadBalancerHealthMonitorConfig_basic(rInt int, delay int)
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id
-  delay            = %v
+  delay_s          = %v
   type             = "tcp"
 }
 `, delay)
 }
 
 func testAccCloudscaleLoadBalancerHealthMonitorConfig_http(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
+  pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  type             = "http"
+  http_url_path    = "/"
+  http_version     = "1.1"
+  http_host        = "www.cloudscale.ch"
+}
+`)
+}
+
+func testAccCloudscaleLoadBalancerHealthMonitorConfig_https(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id

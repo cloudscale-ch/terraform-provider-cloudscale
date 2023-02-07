@@ -134,7 +134,7 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 		opts.DownThreshold = attr.(int)
 	}
 
-	if opts.Type == "http" {
+	if opts.Type == "http" || opts.Type == "https" {
 		httpOpts := cloudscale.LoadBalancerHealthMonitorHTTPRequest{}
 		if attr, ok := d.GetOk("http_expected_codes"); ok {
 			codes := attr.([]any)
@@ -219,7 +219,8 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 				opts.Tags = CopyTags(d)
 			}
 
-			if d.Get("type").(string) == "http" {
+			monitorType := d.Get("type").(string)
+			if monitorType == "http" || monitorType == "https" {
 				httpOpts := cloudscale.LoadBalancerHealthMonitorHTTPRequest{}
 				if attribute == "http_expected_codes" {
 					codes := d.Get(attribute).([]any)

@@ -523,7 +523,7 @@ resource "cloudscale_load_balancer_listener" "basic" {
 
 resource "cloudscale_load_balancer_health_monitor" "basic" {
   pool_uuid        = "${cloudscale_load_balancer_pool.basic.id}"
-  delay            = 10
+  delay_s          = 10
   max_retries      = 3
   max_retries_down = 3
   timeout          = 5
