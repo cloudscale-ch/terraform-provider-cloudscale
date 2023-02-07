@@ -59,11 +59,13 @@ func getLoadBalancerPoolSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
 			Computed: t.isDataSource(),
+			ForceNew: true,
 		},
 		"protocol": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
 			Computed: t.isDataSource(),
+			ForceNew: true,
 		},
 		"tags": &TagsSchema,
 	}
@@ -132,7 +134,7 @@ func updateLoadBalancerPool(rId GenericResourceIdentifier, meta any, updateReque
 func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolRequest {
 	requests := make([]*cloudscale.LoadBalancerPoolRequest, 0)
 
-	for _, attribute := range []string{"name", "algorithm", "protocol", "tags"} {
+	for _, attribute := range []string{"name", "tags"} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerPoolRequest{}
@@ -140,10 +142,6 @@ func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.L
 
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
-			} else if attribute == "algorithm" {
-				opts.Algorithm = d.Get(attribute).(string)
-			} else if attribute == "protocol" {
-				opts.Protocol = d.Get(attribute).(string)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
