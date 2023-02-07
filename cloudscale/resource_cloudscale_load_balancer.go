@@ -141,7 +141,7 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta any) erro
 
 	err = resourceCloudscaleLoadBalancerRead(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error reading the load balancer (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading the load balancer (%s): %s", d.Id(), err)
 	}
 	return nil
 }
@@ -151,20 +151,24 @@ func newLoadBalancerRefreshFunc(d *schema.ResourceData, attribute string, meta a
 	return func() (any, string, error) {
 		id := d.Id()
 
+		// read the latest data into d
 		err := resourceCloudscaleLoadBalancerRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
-
-		if attr, ok := d.GetOk(attribute); ok {
-			loadBalancer, err := client.LoadBalancers.Get(context.Background(), id)
-			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving load balancer (refresh) %s", err)
-			}
-
-			return loadBalancer, attr.(string), nil
+		// get the instance
+		loadBalancer, err := client.LoadBalancers.Get(context.Background(), id)
+		if err != nil {
+			return nil, "", fmt.Errorf("error retrieving load balancer (refresh) %s", err)
 		}
-		return nil, "", nil
+
+		attr, ok := d.GetOk(attribute)
+		if !ok {
+			return nil, "", nil
+		}
+
+		// return attr
+		return loadBalancer, attr.(string), nil
 	}
 }
 

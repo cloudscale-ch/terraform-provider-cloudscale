@@ -678,24 +678,24 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) re
 	return func() (any, string, error) {
 		id := d.Id()
 
+		// read the latest data into d
 		err := resourceCloudscaleServerRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
-
-		if attr, ok := d.GetOk(attribute); ok {
-			server, err := client.Servers.Get(context.Background(), id)
-			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving server (refresh) %s", err)
-			}
-
-			if server.Status == "errored" {
-				return nil, "", fmt.Errorf("Server status %s, abort", server.Status)
-			}
-
-			return server, attr.(string), nil
+		// get the instance
+		server, err := client.Servers.Get(context.Background(), id)
+		if err != nil {
+			return nil, "", fmt.Errorf("error retrieving server (refresh) %s", err)
 		}
-		return nil, "", nil
+
+		attr, ok := d.GetOk(attribute)
+		if !ok {
+			return nil, "", nil
+		}
+
+		// return attr
+		return server, attr.(string), nil
 	}
 }
 
