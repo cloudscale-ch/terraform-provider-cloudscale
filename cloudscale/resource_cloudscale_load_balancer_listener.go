@@ -65,6 +65,32 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 			Required: t.isResource(),
 			Computed: t.isDataSource(),
 		},
+		"timeout_client_data_ms": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Computed: true,
+		},
+		"timeout_member_connect_ms": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Computed: true,
+		},
+		"timeout_member_data_ms": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Computed: true,
+		},
+		"timeout_tcp_inspect_ms": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Computed: true,
+		},
+		"allowed_cidrs": {
+			Type:     schema.TypeList,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Optional: true,
+			Computed: true,
+		},
 		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
@@ -85,6 +111,26 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 		Protocol:     d.Get("protocol").(string),
 		ProtocolPort: d.Get("protocol_port").(int),
 	}
+
+	if attr, ok := d.GetOk("timeout_client_data_ms"); ok {
+		opts.TimeoutClientDataMS = attr.(int)
+	}
+	if attr, ok := d.GetOk("timeout_member_connect_ms"); ok {
+		opts.TimeoutMemberConnectMS = attr.(int)
+	}
+	if attr, ok := d.GetOk("timeout_member_data_ms"); ok {
+		opts.TimeoutMemberDataMS = attr.(int)
+	}
+	if attr, ok := d.GetOk("timeout_tcp_inspect_ms"); ok {
+		opts.TimeoutTCPInspectMS = attr.(int)
+	}
+
+	allowedCIDRs := d.Get("allowed_cidrs").([]any)
+	s := make([]string, len(allowedCIDRs))
+	for i := range allowedCIDRs {
+		s[i] = allowedCIDRs[i].(string)
+	}
+	opts.AllowedCIDRs = s
 
 	opts.Tags = CopyTags(d)
 
@@ -115,6 +161,11 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	m["pool_href"] = loadbalancerlistener.Pool.HREF
 	m["protocol"] = loadbalancerlistener.Protocol
 	m["protocol_port"] = loadbalancerlistener.ProtocolPort
+	m["timeout_client_data_ms"] = loadbalancerlistener.TimeoutClientDataMS
+	m["timeout_member_connect_ms"] = loadbalancerlistener.TimeoutMemberConnectMS
+	m["timeout_member_data_ms"] = loadbalancerlistener.TimeoutMemberDataMS
+	m["timeout_tcp_inspect_ms"] = loadbalancerlistener.TimeoutTCPInspectMS
+	m["allowed_cidrs"] = loadbalancerlistener.AllowedCIDRs
 	m["tags"] = loadbalancerlistener.Tags
 	return m
 }
@@ -132,7 +183,12 @@ func updateLoadBalancerListener(rId GenericResourceIdentifier, meta any, updateR
 func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerListenerRequest {
 	requests := make([]*cloudscale.LoadBalancerListenerRequest, 0)
 
-	for _, attribute := range []string{"name", "protocol", "protocol_port", "tags"} {
+	for _, attribute := range []string{
+		"name", "protocol", "protocol_port",
+		"timeout_client_data_ms", "timeout_member_connect_ms", "timeout_member_data_ms", "timeout_tcp_inspect_ms",
+		"allowed_cidrs",
+		"tags",
+	} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.LoadBalancerListenerRequest{}
@@ -144,6 +200,21 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 				opts.ProtocolPort = d.Get(attribute).(int)
 			} else if attribute == "protocol" {
 				opts.Protocol = d.Get(attribute).(string)
+			} else if attribute == "timeout_client_data_ms" {
+				opts.TimeoutClientDataMS = d.Get(attribute).(int)
+			} else if attribute == "timeout_member_connect_ms" {
+				opts.TimeoutMemberConnectMS = d.Get(attribute).(int)
+			} else if attribute == "timeout_member_data_ms" {
+				opts.TimeoutMemberDataMS = d.Get(attribute).(int)
+			} else if attribute == "timeout_tcp_inspect_ms" {
+				opts.TimeoutTCPInspectMS = d.Get(attribute).(int)
+			} else if attribute == "allowed_cidrs" {
+				allowedCIDRs := d.Get("allowed_cidrs").([]any)
+				s := make([]string, len(allowedCIDRs))
+				for i := range allowedCIDRs {
+					s[i] = allowedCIDRs[i].(string)
+				}
+				opts.AllowedCIDRs = s
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}

@@ -44,6 +44,16 @@ func TestAccCloudscaleLoadBalancerListener_Basic(t *testing.T) {
 						resourceName, "pool_name", &loadBalancerPool.Name),
 					resource.TestCheckResourceAttrPtr(
 						resourceName, "pool_href", &loadBalancerPool.HREF),
+					resource.TestCheckResourceAttr(
+						resourceName, "timeout_client_data_ms", "50000"),
+					resource.TestCheckResourceAttr(
+						resourceName, "timeout_member_connect_ms", "5000"),
+					resource.TestCheckResourceAttr(
+						resourceName, "timeout_member_data_ms", "50000"),
+					resource.TestCheckResourceAttr(
+						resourceName, "timeout_tcp_inspect_ms", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "allowed_cidrs.#", "0"),
 				),
 			},
 		},
@@ -83,6 +93,50 @@ func TestAccCloudscaleLoadBalancerListener_UpdateName(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", lbListenerNameUpdated),
+					testAccCheckLoadBalancerListenerIsSame(t, &afterCreate, &afterUpdate, true),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleLoadBalancerListener_UpdateAllowedCidrs(t *testing.T) {
+	var afterCreate, afterUpdate cloudscale.LoadBalancerListener
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	resourceName := "cloudscale_load_balancer_listener.lb-listener-acc-test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerListenerConfig_cidrs(rInt1, `["10.0.0.0/8"]`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &afterCreate),
+					resource.TestCheckResourceAttr(
+						resourceName, "allowed_cidrs.#", "1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "allowed_cidrs.0", "10.0.0.0/8"),
+				),
+			},
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
+					testAccCloudscaleLoadBalancerListenerConfig_cidrs(rInt2, `["172.16.0.0/12", "192.168.0.0/16"]`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &afterUpdate),
+					resource.TestCheckResourceAttr(
+						resourceName, "allowed_cidrs.#", "2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "allowed_cidrs.0", "172.16.0.0/12"),
+					resource.TestCheckResourceAttr(
+						resourceName, "allowed_cidrs.1", "192.168.0.0/16"),
 					testAccCheckLoadBalancerListenerIsSame(t, &afterCreate, &afterUpdate, true),
 				),
 			},
@@ -326,6 +380,19 @@ resource "cloudscale_load_balancer_listener" "lb-listener-acc-test" {
   protocol_port = 80
 }
 `, rInt)
+}
+
+func testAccCloudscaleLoadBalancerListenerConfig_cidrs(rInt int, cidrs string) string {
+	return fmt.Sprintf(`
+resource "cloudscale_load_balancer_listener" "lb-listener-acc-test" {
+  name = "terraform-%d-lb-listener"
+  pool_uuid = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  protocol = "tcp"
+  protocol_port = 80
+  
+  allowed_cidrs = %s
+}
+`, rInt, cidrs)
 }
 
 func testAccCloudscaleLoadBalancerListenerConfigWithTags(rInt int) string {
