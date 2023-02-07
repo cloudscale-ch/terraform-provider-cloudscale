@@ -65,6 +65,10 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerExists(resourceName, &loadBalancer),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "href", &loadBalancer.HREF),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "id", &loadBalancer.UUID),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", lbName),
 					resource.TestCheckResourceAttr(

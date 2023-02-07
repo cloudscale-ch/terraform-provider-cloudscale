@@ -32,6 +32,10 @@ func TestAccCloudscaleLoadBalancerListener_Basic(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
 					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test", &loadBalancerPool),
 					testAccCheckCloudscaleLoadBalancerListenerExists(resourceName, &loadBalancerListener),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "href", &loadBalancerListener.HREF),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "id", &loadBalancerListener.UUID),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", lbListenerName),
 					resource.TestCheckResourceAttr(

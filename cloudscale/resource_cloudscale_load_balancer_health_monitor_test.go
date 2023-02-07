@@ -33,6 +33,10 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_Basic(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
 					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test", &loadBalancerPool),
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &loadBalancerHealthMonitor),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "href", &loadBalancerHealthMonitor.HREF),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "id", &loadBalancerHealthMonitor.UUID),
 					resource.TestCheckResourceAttr(
 						resourceName, "delay_s", "10"),
 					resource.TestCheckResourceAttr(
