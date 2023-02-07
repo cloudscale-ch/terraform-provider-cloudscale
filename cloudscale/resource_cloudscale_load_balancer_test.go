@@ -74,9 +74,9 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "status", "running"),
 					resource.TestCheckResourceAttr(
-						resourceName, "vip_addresses.#", "1"),
+						resourceName, "vip_addresses.#", "2"),
 					resource.TestCheckResourceAttr(
-						resourceName, "vip_addresses.0.version", "4"),
+						resourceName, "vip_addresses.0.version", "6"),
 					resource.TestCheckResourceAttrSet(
 						resourceName, "vip_addresses.0.address"),
 					resource.TestCheckResourceAttrSet(
@@ -85,6 +85,16 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 						resourceName, "vip_addresses.0.subnet_cidr"),
 					resource.TestCheckResourceAttrSet(
 						resourceName, "vip_addresses.0.subnet_uuid"),
+					resource.TestCheckResourceAttr(
+						resourceName, "vip_addresses.1.version", "4"),
+					resource.TestCheckResourceAttrSet(
+						resourceName, "vip_addresses.1.address"),
+					resource.TestCheckResourceAttrSet(
+						resourceName, "vip_addresses.1.subnet_href"),
+					resource.TestCheckResourceAttrSet(
+						resourceName, "vip_addresses.1.subnet_cidr"),
+					resource.TestCheckResourceAttrSet(
+						resourceName, "vip_addresses.1.subnet_uuid"),
 				),
 			},
 		},
