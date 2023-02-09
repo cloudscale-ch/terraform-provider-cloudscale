@@ -62,10 +62,10 @@ func loadBalancerHealthMonitorConfig_baseline(count int, rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "basic" {
   pool_uuid        = cloudscale_load_balancer_pool.basic[count.index].id
-  delay            = "8${count.index}"
-  max_retries      = 3
-  max_retries_down = 3
-  timeout          = 5
+  delay_s          = "8${count.index}"
+  up_threshold     = 3
+  down_threshold   = 3
+  timeout_s        = 5
   count		       =  %d
   type             = "tcp"
 }

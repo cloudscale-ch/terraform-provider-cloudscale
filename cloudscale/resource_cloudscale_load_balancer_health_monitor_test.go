@@ -40,9 +40,9 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "delay_s", "10"),
 					resource.TestCheckResourceAttr(
-						resourceName, "up_threshold", "3"),
+						resourceName, "up_threshold", "2"),
 					resource.TestCheckResourceAttr(
-						resourceName, "down_threshold", "2"),
+						resourceName, "down_threshold", "3"),
 					resource.TestCheckResourceAttr(
 						resourceName, "timeout_s", "1"),
 					resource.TestCheckResourceAttr(
@@ -349,7 +349,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_import_withTags(t *testing.T) {
 					testAccCheckCloudscaleLoadBalancerPoolExists(poolResourceName, &pool),
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &beforeImport),
 					resource.TestCheckResourceAttr(
-						resourceName, "delay_s", fmt.Sprintf("%v", 1010)),
+						resourceName, "delay_s", "2"),
 					testTagsMatch(resourceName),
 				),
 			},
@@ -521,7 +521,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitorHTTP_MemberStatus(t *testing.T) {
 				Config: basicConfig +
 					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(10),
 				Check: resource.ComposeTestCheckFunc(
-					waitForMonitorStatus(&loadBalancerPoolMember, "error"),
+					waitForMonitorStatus(&loadBalancerPoolMember, "down"),
 				),
 			},
 		},
@@ -549,7 +549,7 @@ func testAccCloudscaleLoadBalancerHealthMonitorConfig_multiple(rInt int, poolInd
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "lb-acc-test" {
   name        = "terraform-%[1]d-lb"
-  flavor_slug = "lb-flex-4-2"
+  flavor_slug = "lb-small"
   zone_slug   = "rma1"
 }
 
@@ -563,7 +563,7 @@ resource "cloudscale_load_balancer_pool" "lb-pool-acc-test" {
 
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test[%[2]d].id
-  delay            = %[1]d
+  delay_s          = %[1]d
   type             = "tcp"
 }
 `, rInt, poolIndex)
@@ -609,7 +609,7 @@ func testAccCloudscaleLoadBalancerHealthMonitorConfig_https(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id
-  type             = "http"
+  type             = "https"
   http_url_path    = "/"
   http_version     = "1.1"
   http_host        = "www.cloudscale.ch"
@@ -621,7 +621,7 @@ func testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(rInt int) st
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid           = cloudscale_load_balancer_pool.lb-pool-acc-test.id
-  delay               = 10
+  delay_s             = 10
   type                = "http"
   http_expected_codes = ["418", "425"]
   http_method         = "PATCH"

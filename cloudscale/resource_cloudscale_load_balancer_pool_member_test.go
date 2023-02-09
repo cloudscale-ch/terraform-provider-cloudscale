@@ -50,7 +50,7 @@ func TestAccCloudscaleLoadBalancerPoolMember_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "address", TestAddress),
 					resource.TestCheckResourceAttr(
-						resourceName, "status", "no_monitor"),
+						resourceName, "monitor_status", "no_monitor"),
 					resource.TestCheckResourceAttrPtr(
 						resourceName, "pool_uuid", &loadBalancerPool.UUID),
 					resource.TestCheckResourceAttrPtr(
@@ -447,7 +447,7 @@ func testAccCloudscaleLoadBalancerPoolMemberConfig_multiple(rInt int, poolIndex 
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "lb-acc-test" {
   name        = "terraform-%[1]d-lb"
-  flavor_slug = "lb-flex-4-2"
+  flavor_slug = "lb-small"
   zone_slug   = "rma1"
 }
 

@@ -304,7 +304,7 @@ func testAccCloudscaleLoadBalancerPoolConfig_multiple(rInt int, lbIndex int) str
 resource "cloudscale_load_balancer" "lb-acc-test" {
   count       = 2
   name        = "terraform-%[1]d-lb-${count.index}"
-  flavor_slug = "lb-flex-4-2"
+  flavor_slug = "lb-small"
   zone_slug   = "rma1"
 }
 
