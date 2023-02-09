@@ -262,7 +262,7 @@ func newCustomImageImportRefreshFunc(uuid string, d *schema.ResourceData, attrib
 	return func() (any, string, error) {
 		customImageImport, err := client.CustomImageImports.Get(context.Background(), uuid)
 		if err != nil {
-			return nil, "", fmt.Errorf("Error retrieving customImageImport (refresh) %s", err)
+			return nil, "", fmt.Errorf("Error retrieving customImageImport (%s) (refresh) %s", uuid, err)
 		}
 
 		log.Printf("[INFO] Status is %s", customImageImport.Status)

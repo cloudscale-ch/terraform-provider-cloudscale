@@ -159,7 +159,7 @@ func newLoadBalancerRefreshFunc(d *schema.ResourceData, attribute string, meta a
 		// get the instance
 		loadBalancer, err := client.LoadBalancers.Get(context.Background(), id)
 		if err != nil {
-			return nil, "", fmt.Errorf("error retrieving load balancer (refresh) %s", err)
+			return nil, "", fmt.Errorf("error retrieving load balancer(%s) (refresh) %s", id, err)
 		}
 
 		attr, ok := d.GetOk(attribute)

@@ -17,7 +17,7 @@ func getReadOperation[TResource any, TResourceID any](
 		resource, err := readFunc(rId, meta)
 
 		if err != nil {
-			return CheckDeleted(d, err, fmt.Sprintf("Error retrieving %s", resourceHumanName))
+			return CheckDeleted(d, err, fmt.Sprintf("Error retrieving %s (%v)", resourceHumanName, rId))
 		}
 
 		fillResourceData(d, gatherFunc(resource))
