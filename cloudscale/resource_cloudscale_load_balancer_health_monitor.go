@@ -96,6 +96,7 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 		},
 		"http_host": {
 			Type:     schema.TypeString,
@@ -199,7 +200,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 
 	for _, attribute := range []string{
 		"delay_s", "timeout_s", "up_threshold", "down_threshold",
-		"http_expected_codes", "http_method", "http_url_path", "http_version", "http_host",
+		"http_expected_codes", "http_method", "http_url_path", "http_host",
 		"tags",
 	} {
 		if d.HasChange(attribute) {
@@ -231,9 +232,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 					httpOpts.Method = d.Get(attribute).(string)
 				} else if attribute == "http_url_path" {
 					httpOpts.UrlPath = d.Get(attribute).(string)
-				} else if attribute == "http_version" {
-					httpOpts.Version = d.Get(attribute).(string)
-				} else if attribute == "http_host" {
+				}else if attribute == "http_host" {
 					if attr, ok := d.GetOk(attribute); ok {
 						s := attr.(string)
 						httpOpts.Host = &s
