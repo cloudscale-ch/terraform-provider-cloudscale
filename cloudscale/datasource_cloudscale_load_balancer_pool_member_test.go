@@ -100,14 +100,17 @@ data "cloudscale_load_balancer_pool_member" "foo" {
 
 func loadBalancerPoolMemberConfig_baseline(count int, rInt int) string {
 	return fmt.Sprintf(`
+%s
+
 resource "cloudscale_load_balancer_pool_member" "basic" {
   count         = %d
   name          = "terraform-%d-lb-pool-member-${count.index}"
   pool_uuid     = cloudscale_load_balancer_pool.basic.0.id
   protocol_port = 80
   address       = "10.0.0.${count.index}"
+  subnet_uuid   = cloudscale_subnet.lb-subnet.id
 }
-`, count, rInt)
+`, testAccCloudscaleLoadBalancerSubnet(rInt), count, rInt)
 }
 
 func testAccCheckCloudscaleLoadBalancerPoolMemberConfig_pool() string {

@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var TestAddress = "5.102.144.111"
+var TestAddress = "10.100.10.100"
 
 func TestAccCloudscaleLoadBalancerPoolMember_Basic(t *testing.T) {
 	var loadBalancer cloudscale.LoadBalancer
@@ -27,6 +27,17 @@ func TestAccCloudscaleLoadBalancerPoolMember_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudscaleLoadBalancerDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
+					testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleLoadBalancerExists("cloudscale_load_balancer.lb-acc-test", &loadBalancer),
+					testAccCheckCloudscaleLoadBalancerPoolExists("cloudscale_load_balancer_pool.lb-pool-acc-test", &loadBalancerPool),
+					testAccCheckCloudscaleLoadBalancerPoolMemberExists(resourceName, &loadBalancerPoolMember),
+					waitForMonitorStatus(&loadBalancerPoolMember, "no_monitor"),
+				),
+			},
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
@@ -404,47 +415,74 @@ func TestAccCloudscaleLoadBalancerPoolMember_tags(t *testing.T) {
 	})
 }
 
+func testAccCloudscaleLoadBalancerSubnet(rInt int) string {
+	return fmt.Sprintf(
+		`
+resource "cloudscale_network" "lb-net" {
+  name                    = "terraform-%[1]d-network"
+  zone_slug               = "rma1"
+  mtu                     = "9000"
+  auto_create_ipv4_subnet = "false"
+}
+
+resource "cloudscale_subnet" "lb-subnet" {
+  cidr               = "10.100.10.0/24"
+  network_uuid       = cloudscale_network.lb-net.id
+}`, rInt)
+}
+
 func testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt int, enabled bool) string {
 	return fmt.Sprintf(`
+%[4]s
+
 resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
-  name          = "terraform-%d-lb-pool-member"
+  name          = "terraform-%[1]d-lb-pool-member"
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   protocol_port = 80
-  address       = "%s"
-  enabled       = %t
+  address       = "%[2]s"
+  enabled       = %[3]t
+  subnet_uuid   = cloudscale_subnet.lb-subnet.id
 }
-`, rInt, TestAddress, enabled)
+`, rInt, TestAddress, enabled, testAccCloudscaleLoadBalancerSubnet(rInt))
 }
 
 func testAccCloudscaleLoadBalancerPoolMemberConfig_disabled(rInt int) string {
 	return fmt.Sprintf(`
+%s
+
 resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
   name          = "terraform-%d-lb-pool-member"
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   protocol_port = 80
   address       = "%s"
   enabled       = false
+  subnet_uuid   = cloudscale_subnet.lb-subnet.id
 }
-`, rInt, TestAddress)
+`, testAccCloudscaleLoadBalancerSubnet(rInt), rInt, TestAddress)
 }
 
 func testAccCloudscaleLoadBalancerPoolMemberConfigWithTags(rInt int) string {
 	return fmt.Sprintf(`
+%s
+
 resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
   name          = "terraform-%d-lb-pool-member"
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   protocol_port = 80
   address       = "%s"
+  subnet_uuid   = cloudscale_subnet.lb-subnet.id
   tags = {
     my-foo = "foo"
     my-bar = "bar"
   }
 }
-`, rInt, TestAddress)
+`, testAccCloudscaleLoadBalancerSubnet(rInt), rInt, TestAddress)
 }
 
 func testAccCloudscaleLoadBalancerPoolMemberConfig_multiple(rInt int, poolIndex int) string {
 	return fmt.Sprintf(`
+%[4]s
+
 resource "cloudscale_load_balancer" "lb-acc-test" {
   name        = "terraform-%[1]d-lb"
   flavor_slug = "lb-small"
@@ -463,9 +501,10 @@ resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
   name          = "terraform-%[1]d-lb-pool-member"
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test[%[2]d].id
   address       = "%[3]s"
+  subnet_uuid   = cloudscale_subnet.lb-subnet.id
   protocol_port = 80
 }
-`, rInt, poolIndex, TestAddress)
+`, rInt, poolIndex, TestAddress, testAccCloudscaleLoadBalancerSubnet(rInt))
 }
 
 func testAccCheckLoadBalancerPoolMemberIsSame(t *testing.T,

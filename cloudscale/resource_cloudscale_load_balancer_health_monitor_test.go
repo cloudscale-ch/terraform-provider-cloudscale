@@ -124,7 +124,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateHTTP(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(rInt1),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
@@ -146,7 +146,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_UpdateHTTP(t *testing.T) {
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(rInt1),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, true),
@@ -188,7 +188,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_SwitchHTTPToHTTPs(t *testing.T) 
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(rInt1),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterCreate),
 					resource.TestCheckResourceAttr(
@@ -210,7 +210,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_SwitchHTTPToHTTPs(t *testing.T) 
 			{
 				Config: testAccCloudscaleLoadBalancerConfig_basic(rInt1) +
 					testAccCloudscaleLoadBalancerPoolConfig_basic(rInt1) +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_https(rInt1),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_https(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerHealthMonitorExists(resourceName, &afterUpdate),
 					testAccCheckLoadBalancerHealthMonitorIsSame(t, &afterCreate, &afterUpdate, false),
@@ -438,7 +438,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_MemberStatus(t *testing.T) {
 
 	basicConfig := testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 		testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt, true) +
+		testAccCloudscaleLoadBalancerPoolMemberConfig_server(rInt) +
 		testAccCloudscaleLoadBalancerListenerConfig_basic(rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -451,8 +451,6 @@ func TestAccCloudscaleLoadBalancerHealthMonitor_MemberStatus(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(memberResourceName, &loadBalancerPoolMember),
 					waitForMonitorStatus(&loadBalancerPoolMember, "no_monitor"),
-					resource.TestCheckResourceAttr(memberResourceName,
-						"monitor_status", "no_monitor"),
 				),
 			},
 			{
@@ -484,7 +482,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitorHTTP_MemberStatus(t *testing.T) {
 
 	basicConfig := testAccCloudscaleLoadBalancerConfig_basic(rInt) +
 		testAccCloudscaleLoadBalancerPoolConfig_basic(rInt) +
-		testAccCloudscaleLoadBalancerPoolMemberConfig_basic(rInt, true) +
+		testAccCloudscaleLoadBalancerPoolMemberConfig_server(rInt) +
 		testAccCloudscaleLoadBalancerListenerConfig_basic(rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -497,20 +495,18 @@ func TestAccCloudscaleLoadBalancerHealthMonitorHTTP_MemberStatus(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleLoadBalancerPoolMemberExists(memberResourceName, &loadBalancerPoolMember),
 					waitForMonitorStatus(&loadBalancerPoolMember, "no_monitor"),
-					resource.TestCheckResourceAttr(memberResourceName,
-						"monitor_status", "no_monitor"),
 				),
 			},
 			{
 				Config: basicConfig +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(),
 				Check: resource.ComposeTestCheckFunc(
 					waitForMonitorStatus(&loadBalancerPoolMember, "up"),
 				),
 			},
 			{
 				Config: basicConfig +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http(),
 				Check: resource.ComposeTestCheckFunc(
 					// this check is in a separate step to ensure the status is refreshed form the API:
 					resource.TestCheckResourceAttr(memberResourceName,
@@ -519,7 +515,7 @@ func TestAccCloudscaleLoadBalancerHealthMonitorHTTP_MemberStatus(t *testing.T) {
 			},
 			{
 				Config: basicConfig +
-					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(10),
+					testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(),
 				Check: resource.ComposeTestCheckFunc(
 					waitForMonitorStatus(&loadBalancerPoolMember, "down"),
 				),
@@ -593,7 +589,7 @@ resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" 
 `, delay)
 }
 
-func testAccCloudscaleLoadBalancerHealthMonitorConfig_http(rInt int) string {
+func testAccCloudscaleLoadBalancerHealthMonitorConfig_http() string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id
@@ -605,7 +601,7 @@ resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" 
 `)
 }
 
-func testAccCloudscaleLoadBalancerHealthMonitorConfig_https(rInt int) string {
+func testAccCloudscaleLoadBalancerHealthMonitorConfig_https() string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid        = cloudscale_load_balancer_pool.lb-pool-acc-test.id
@@ -617,7 +613,7 @@ resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" 
 `)
 }
 
-func testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified(rInt int) string {
+func testAccCloudscaleLoadBalancerHealthMonitorConfig_http_modified() string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer_health_monitor" "lb-health_monitor-acc-test" {
   pool_uuid           = cloudscale_load_balancer_pool.lb-pool-acc-test.id
@@ -639,15 +635,24 @@ func waitForMonitorStatus(member *cloudscale.LoadBalancerPoolMember, status stri
 		var retrievedPoolMember *cloudscale.LoadBalancerPoolMember
 		var err error
 
-		for i := 0; i < 30; i++ {
+		const requiredSuccessProbes = 10 // require 10 probes of the given status, to avoid unstable tests
+		var successProbes = 0
+
+		for i := 0; i < 40; i++ {
 			retrievedPoolMember, err = client.LoadBalancerPoolMembers.Get(
 				context.Background(), member.Pool.UUID, member.UUID,
 			)
+
 			if err != nil {
 				return err
 			}
 			if retrievedPoolMember.MonitorStatus == status {
-				return nil
+				successProbes += 1
+				if successProbes >= requiredSuccessProbes {
+					return nil
+				}
+			} else {
+				successProbes = 0
 			}
 			time.Sleep(2 * time.Second)
 		}
@@ -656,4 +661,56 @@ func waitForMonitorStatus(member *cloudscale.LoadBalancerPoolMember, status stri
 			status, retrievedPoolMember.MonitorStatus,
 		)
 	}
+}
+
+func testAccCloudscaleLoadBalancerPoolMemberConfig_server(rInt int) string {
+	return fmt.Sprintf(`
+%[2]s
+
+resource "cloudscale_server" "basic" {
+  name           = "terraform-%[1]d"
+  flavor_slug    = "flex-4-1"
+  image_slug     = "%[3]s"
+  volume_size_gb = 10
+  interfaces {
+    type              = "private"
+    addresses {
+      subnet_uuid = cloudscale_subnet.lb-subnet.id   
+      address     = "%[4]s"
+    }
+  }
+  interfaces {
+    type              = "public"
+  }
+  user_data = <<-EOT
+  #cloud-config
+  packages:
+    - apache2
+  write_files:
+    - content: |
+          <html>
+              <head>
+                  <title>Welcome to my website</title>
+              </head>
+              <body>
+                  <h1>Hello, World!</h1>
+              </body>
+          </html>
+      path: /var/www/html/index.html
+  runcmd:
+    - systemctl start apache2
+    - systemctl enable apache2
+  EOT
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+  skip_waiting_for_ssh_host_keys = true
+}
+
+resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
+  name          = "terraform-%[1]d-lb-pool-member"
+  pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
+  protocol_port = 80
+  address       = cloudscale_server.basic.interfaces[0].addresses.0.address
+  subnet_uuid   = cloudscale_subnet.lb-subnet.id
+}
+`, rInt, testAccCloudscaleLoadBalancerSubnet(rInt), DefaultImageSlug, TestAddress)
 }

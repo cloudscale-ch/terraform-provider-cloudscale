@@ -74,7 +74,7 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "flavor_slug", "lb-small"),
 					resource.TestCheckResourceAttr(
-						resourceName, "zone_slug", "lpg1"),
+						resourceName, "zone_slug", "rma1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "status", "running"),
 					resource.TestCheckResourceAttr(
@@ -415,7 +415,7 @@ func testAccCloudscaleLoadBalancerConfig_basic(rInt int) string {
 resource "cloudscale_load_balancer" "lb-acc-test" {
 	  name        = "terraform-%d-lb"
       flavor_slug = "lb-small"
-	  zone_slug   = "lpg1"
+	  zone_slug   = "rma1"
 }
 `, rInt)
 }

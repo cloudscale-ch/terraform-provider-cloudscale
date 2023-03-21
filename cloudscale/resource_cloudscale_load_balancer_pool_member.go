@@ -118,7 +118,8 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"subnet_uuid": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: t.isResource(),
+			Computed: t.isDataSource(),
 			ForceNew: true,
 		},
 		"subnet_cidr": {
@@ -152,13 +153,11 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta
 		ProtocolPort: d.Get("protocol_port").(int),
 		MonitorPort:  d.Get("monitor_port").(int),
 		Address:      d.Get("address").(string),
+		Subnet:       d.Get("subnet_uuid").(string),
 	}
 	if attr, ok := d.GetOkExists("enabled"); ok {
 		val := attr.(bool)
 		opts.Enabled = &val
-	}
-	if attr, ok := d.GetOkExists("subnet_uuid"); ok {
-		opts.Subnet = attr.(string)
 	}
 	opts.Tags = CopyTags(d)
 
