@@ -81,6 +81,7 @@ func getLoadBalancerSchema(t SchemaType) map[string]*schema.Schema {
 				},
 			},
 			Optional: t.isResource(),
+			ForceNew: true,
 			Computed: true,
 		},
 		"zone_slug": {
