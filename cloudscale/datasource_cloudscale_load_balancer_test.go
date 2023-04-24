@@ -95,7 +95,7 @@ func loadBalancerConfig_baseline(count int, rInt int) string {
 resource "cloudscale_load_balancer" "basic" {
   count       = %d
   name        = "terraform-%d-${count.index}"
-  flavor_slug = "lb-small"
+  flavor_slug = "lb-standard"
   zone_slug   = "rma1"
 }`, count, rInt)
 }

@@ -72,7 +72,7 @@ func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "name", lbName),
 					resource.TestCheckResourceAttr(
-						resourceName, "flavor_slug", "lb-small"),
+						resourceName, "flavor_slug", "lb-standard"),
 					resource.TestCheckResourceAttr(
 						resourceName, "zone_slug", "rma1"),
 					resource.TestCheckResourceAttr(
@@ -414,7 +414,7 @@ func testAccCloudscaleLoadBalancerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "lb-acc-test" {
 	  name        = "terraform-%d-lb"
-      flavor_slug = "lb-small"
+      flavor_slug = "lb-standard"
 	  zone_slug   = "rma1"
 }
 `, rInt)
@@ -436,7 +436,7 @@ resource "cloudscale_subnet" "privnet-subnet" {
 
 resource "cloudscale_load_balancer" "lb-acc-test" {
   name        = "terraform-%d-lb"
-  flavor_slug = "lb-small"
+  flavor_slug = "lb-standard"
   zone_slug   = "lpg1"
 
   vip_addresses {
@@ -451,7 +451,7 @@ func testAccCheckCloudscaleLoadBalancerConfigWithZone(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "tagged" {
   name        = "terraform-%d-lb"
-  flavor_slug = "lb-small"
+  flavor_slug = "lb-standard"
   zone_slug   = "lpg1"
 }
 `, rInt)
@@ -461,7 +461,7 @@ func testAccCheckCloudscaleLoadBalancerConfigWithZoneAndTags(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "tagged" {
   name        = "terraform-%d-lb"
-  flavor_slug = "lb-small"
+  flavor_slug = "lb-standard"
   zone_slug   = "lpg1"
   tags = {
     my-foo = "foo"
@@ -503,7 +503,7 @@ resource "cloudscale_server" "fixed" {
 
 resource "cloudscale_load_balancer" "basic" {
   name        = "terraform-%3d"
-  flavor_slug = "lb-small"
+  flavor_slug = "lb-standard"
   zone_slug   = "lpg1"
 }
 

@@ -351,7 +351,7 @@ func testAccCloudscaleLoadBalancerListenerConfig_multiple(rInt int, poolIndex in
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "lb-acc-test" {
   name        = "terraform-%[1]d-lb"
-  flavor_slug = "lb-small"
+  flavor_slug = "lb-standard"
   zone_slug   = "rma1"
 }
 
