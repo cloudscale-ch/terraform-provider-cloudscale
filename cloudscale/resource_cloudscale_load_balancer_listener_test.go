@@ -55,8 +55,6 @@ func TestAccCloudscaleLoadBalancerListener_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "timeout_member_data_ms", "50000"),
 					resource.TestCheckResourceAttr(
-						resourceName, "timeout_tcp_inspect_ms", "0"),
-					resource.TestCheckResourceAttr(
 						resourceName, "allowed_cidrs.#", "0"),
 				),
 			},

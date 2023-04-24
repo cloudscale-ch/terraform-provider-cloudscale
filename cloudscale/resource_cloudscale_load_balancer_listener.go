@@ -80,11 +80,6 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
-		"timeout_tcp_inspect_ms": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			Computed: true,
-		},
 		"allowed_cidrs": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
@@ -120,9 +115,6 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 	}
 	if attr, ok := d.GetOk("timeout_member_data_ms"); ok {
 		opts.TimeoutMemberDataMS = attr.(int)
-	}
-	if attr, ok := d.GetOk("timeout_tcp_inspect_ms"); ok {
-		opts.TimeoutTCPInspectMS = attr.(int)
 	}
 
 	allowedCIDRs := d.Get("allowed_cidrs").([]any)
@@ -164,7 +156,6 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	m["timeout_client_data_ms"] = loadbalancerlistener.TimeoutClientDataMS
 	m["timeout_member_connect_ms"] = loadbalancerlistener.TimeoutMemberConnectMS
 	m["timeout_member_data_ms"] = loadbalancerlistener.TimeoutMemberDataMS
-	m["timeout_tcp_inspect_ms"] = loadbalancerlistener.TimeoutTCPInspectMS
 	m["allowed_cidrs"] = loadbalancerlistener.AllowedCIDRs
 	m["tags"] = loadbalancerlistener.Tags
 	return m
@@ -185,7 +176,7 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 
 	for _, attribute := range []string{
 		"name", "protocol", "protocol_port",
-		"timeout_client_data_ms", "timeout_member_connect_ms", "timeout_member_data_ms", "timeout_tcp_inspect_ms",
+		"timeout_client_data_ms", "timeout_member_connect_ms", "timeout_member_data_ms",
 		"allowed_cidrs",
 		"tags",
 	} {
@@ -206,8 +197,6 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 				opts.TimeoutMemberConnectMS = d.Get(attribute).(int)
 			} else if attribute == "timeout_member_data_ms" {
 				opts.TimeoutMemberDataMS = d.Get(attribute).(int)
-			} else if attribute == "timeout_tcp_inspect_ms" {
-				opts.TimeoutTCPInspectMS = d.Get(attribute).(int)
 			} else if attribute == "allowed_cidrs" {
 				allowedCIDRs := d.Get("allowed_cidrs").([]any)
 				s := make([]string, len(allowedCIDRs))
