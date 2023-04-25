@@ -44,6 +44,11 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 			Optional: t.isResource(),
 			Computed: t.isDataSource(),
 		},
+		"load_balancer": {
+			Type:     schema.TypeString,
+			Optional: t.isResource(),
+			Computed: t.isDataSource(),
+		},
 		"region_slug": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -101,6 +106,9 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
 	if attr, ok := d.GetOk("server"); ok {
 		opts.Server = attr.(string)
 	}
+	if attr, ok := d.GetOk("load_balancer"); ok {
+		opts.LoadBalancer = attr.(string)
+	}
 
 	if attr, ok := d.GetOk("prefix_length"); ok {
 		opts.PrefixLength = attr.(int)
@@ -149,6 +157,9 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	if floatingIP.Server != nil {
 		m["server"] = floatingIP.Server.UUID
 	}
+	if floatingIP.LoadBalancer != nil {
+		m["load_balancer"] = floatingIP.LoadBalancer.UUID
+	}
 	if floatingIP.Region != nil {
 		m["region_slug"] = floatingIP.Region.Slug
 	}
@@ -170,7 +181,7 @@ func updateFloatingIP(rId GenericResourceIdentifier, meta any, updateRequest *cl
 func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.FloatingIPUpdateRequest {
 	requests := make([]*cloudscale.FloatingIPUpdateRequest, 0)
 
-	for _, attribute := range []string{"server", "tags", "reverse_ptr"} {
+	for _, attribute := range []string{"server", "load_balancer", "tags", "reverse_ptr"} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.FloatingIPUpdateRequest{}
@@ -182,6 +193,10 @@ func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.Floatin
 				serverUUID := d.Get("server").(string)
 				log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
 				opts.Server = serverUUID
+			} else if attribute == "load_balancer" {
+				loadBalancerUUID := d.Get("load_balancer").(string)
+				log.Printf("[INFO] Assigning the Floating IP %s to the LB %s", d.Id(), loadBalancerUUID)
+				opts.LoadBalancer = loadBalancerUUID
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
