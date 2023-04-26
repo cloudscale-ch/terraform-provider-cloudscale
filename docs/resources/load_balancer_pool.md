@@ -2,7 +2,7 @@
 page_title: "cloudscale.ch: cloudscale_load_balancer_pool"
 ---
 
-# cloudscale\_load_balancer
+# cloudscale\_load\_balancer
 
 Provides a cloudscale.ch load balancer pool resource. This can be used to create, modify, import, and delete load balancer pools. 
 
@@ -44,7 +44,7 @@ The following arguments are supported when creating new load balancer pool:
 The following arguments are supported when updating load balancer pools:
 
 * `name` - New name of the load balancer pool.
-* `tags` - (Optional) Change tags (see documentation above)
+* `tags` - Change tags (see documentation above)
 
 ## Attributes Reference
 

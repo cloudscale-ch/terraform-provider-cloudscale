@@ -39,7 +39,7 @@ The following arguments are supported when creating new load balancer:
 The following arguments are supported when updating load balancers:
 
 * `name` - New name of the load balancer.
-* `tags` - (Optional) Change tags (see documentation above)
+* `tags` - Change tags (see documentation above)
 
 **Note on `vip_addresses`: It might be necessary to manually `terrafrom destroy` a load balancer in order
 for Terraform to detect the change correctly. A replacement of the load balancer is required in all cases.**
