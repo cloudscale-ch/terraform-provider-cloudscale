@@ -2,7 +2,7 @@
 page_title: "cloudscale.ch: cloudscale_load_balancer_pool"
 ---
 
-# cloudscale\_load\_balancer
+# cloudscale\_load\_balancer\_pool
 
 Provides a cloudscale.ch load balancer pool resource. This can be used to create, modify, import, and delete load balancer pools. 
 
