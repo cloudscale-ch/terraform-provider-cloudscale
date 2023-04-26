@@ -156,9 +156,13 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	m["tags"] = floatingIP.Tags
 	if floatingIP.Server != nil {
 		m["server"] = floatingIP.Server.UUID
+	} else {
+		m["server"] = nil
 	}
 	if floatingIP.LoadBalancer != nil {
 		m["load_balancer"] = floatingIP.LoadBalancer.UUID
+	} else {
+		m["load_balancer"] = nil
 	}
 	if floatingIP.Region != nil {
 		m["region_slug"] = floatingIP.Region.Slug
@@ -189,14 +193,17 @@ func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.Floatin
 
 			if attribute == "reverse_ptr" {
 				opts.ReversePointer = d.Get(attribute).(string)
-			} else if attribute == "server" {
+			} else if attribute == "server" || attribute == "load_balancer" {
 				serverUUID := d.Get("server").(string)
-				log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
-				opts.Server = serverUUID
-			} else if attribute == "load_balancer" {
+				if serverUUID != "" {
+					log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
+					opts.Server = serverUUID
+				}
 				loadBalancerUUID := d.Get("load_balancer").(string)
-				log.Printf("[INFO] Assigning the Floating IP %s to the LB %s", d.Id(), loadBalancerUUID)
-				opts.LoadBalancer = loadBalancerUUID
+				if loadBalancerUUID != "" {
+					log.Printf("[INFO] Assigning the Floating IP %s to the LB %s", d.Id(), loadBalancerUUID)
+					opts.LoadBalancer = loadBalancerUUID
+				}
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}

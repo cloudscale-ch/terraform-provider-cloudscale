@@ -62,8 +62,8 @@ func TestAccCloudscaleFloatingIP_Detached(t *testing.T) {
 						"cloudscale_floating_ip.detached", "region_slug", "lpg"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.detached", "type", "regional"),
-					resource.TestCheckNoResourceAttr(
-						"cloudscale_floating_ip.detached", "server"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.detached", "server", ""),
 				),
 			},
 		},
@@ -88,8 +88,8 @@ func TestAccCloudscaleFloatingIP_GlobalDetached(t *testing.T) {
 						"cloudscale_floating_ip.global", "region_slug"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.global", "type", "global"),
-					resource.TestCheckNoResourceAttr(
-						"cloudscale_floating_ip.global", "server"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.global", "server", ""),
 				),
 			},
 		},
@@ -140,8 +140,8 @@ func TestAccCloudscaleFloatingIP_ServerWithZone(t *testing.T) {
 						"cloudscale_server.minlpg", "zone_slug", "lpg1"),
 					resource.TestCheckResourceAttrSet(
 						"cloudscale_floating_ip.minfloating", "server"),
-					resource.TestCheckNoResourceAttr(
-						"cloudscale_floating_ip.minfloating", "load_balancer"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.minfloating", "load_balancer", ""),
 				),
 			},
 		},
@@ -150,7 +150,8 @@ func TestAccCloudscaleFloatingIP_ServerWithZone(t *testing.T) {
 
 func TestAccCloudscaleFloatingIP_LoadBalancer(t *testing.T) {
 	var floatingIP cloudscale.FloatingIP
-	rInt := acctest.RandInt()
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -158,13 +159,37 @@ func TestAccCloudscaleFloatingIP_LoadBalancer(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudscaleFloatingIPConfig_lb(rInt),
+				Config: testAccCheckCloudscaleFloatingIPConfig_lb_and_server(rInt1, rInt2, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.lbfloating", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"cloudscale_floating_ip.lbfloating", "ip_version", "6"),
-					resource.TestCheckNoResourceAttr(
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.lbfloating", "server", ""),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_floating_ip.lbfloating", "load_balancer"),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleFloatingIPConfig_lb_and_server(rInt1, rInt2, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.lbfloating", &floatingIP),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.lbfloating", "ip_version", "6"),
+					resource.TestCheckResourceAttrSet(
 						"cloudscale_floating_ip.lbfloating", "server"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.lbfloating", "load_balancer", ""),
+				),
+			},
+			{
+				Config: testAccCheckCloudscaleFloatingIPConfig_lb_and_server(rInt1, rInt2, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleFloatingIPExists("cloudscale_floating_ip.lbfloating", &floatingIP),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.lbfloating", "ip_version", "6"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_floating_ip.lbfloating", "server", ""),
 					resource.TestCheckResourceAttrSet(
 						"cloudscale_floating_ip.lbfloating", "load_balancer"),
 				),
@@ -453,17 +478,29 @@ resource "cloudscale_floating_ip" "minfloating" {
 }`, rInt, DefaultImageSlug)
 }
 
-func testAccCheckCloudscaleFloatingIPConfig_lb(rInt int) string {
+func testAccCheckCloudscaleFloatingIPConfig_lb_and_server(rInt1, rInt2 int, assignLB bool) string {
+	assignment := `load_balancer = "${cloudscale_load_balancer.lb1.id}"`
+	if !assignLB {
+		assignment = `server        = "${cloudscale_server.minlpg.id}"`
+	}
 	return fmt.Sprintf(`
 resource "cloudscale_load_balancer" "lb1" {
   name        = "terraform-%d"
   flavor_slug = "lb-standard"
   zone_slug   = "lpg1"
 }
+resource "cloudscale_server" "minlpg" {
+  name = "terraform-%d"
+  flavor_slug = "flex-4-1"
+  image_slug = "%s"
+  volume_size_gb = 10
+  zone_slug = "lpg1"
+  ssh_keys = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+}
 
 resource "cloudscale_floating_ip" "lbfloating" {
-  load_balancer = "${cloudscale_load_balancer.lb1.id}"
+  %s
   ip_version = 6
   region_slug = "lpg"
-}`, rInt)
+}`, rInt1, rInt2, DefaultImageSlug, assignment)
 }
