@@ -22,7 +22,7 @@ resource "cloudscale_load_balancer" "lb1" {
 The following arguments are supported when creating new load balancer:
 
 * `name` - (Required) Name of the new load balancer.
-* `flavor_slug` - (Required) The slug (name) of the flavor to use for the new load balancer. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#flavors).
+* `flavor_slug` - (Required) The slug (name) of the flavor to use for the new load balancer. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#load-balancer-flavors).
     **Note:** It's currently not possible to update the flavor after the load balancer has been created. It is therfore recommended to use load balancer in conjunction with a Floating IP.
 * `zone_slug` - (Required) The slug of the zone in which the new load balancer will be created. Options include `lpg1` and `rma1`.
 * `vip_addresses` - (Optional) A list of VIP address objects. This attributes needs to be specified if the load balancer should be assigned a VIP address in a subnet on a private network. If the  VIP address should be created on the public network, this attribute should be omitted. Each VIP address object has the following attributes:

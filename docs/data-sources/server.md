@@ -50,10 +50,4 @@ In addition to the arguments listed above, the following computed attributes are
         * `version` - The IP version, either `4` or `6`.
         * `subnet_cidr` - The cidr of the subnet the address is part of.
         * `subnet_href` - The cloudscale.ch API URL of the subnet the address is part of.
-* `interfaces` - A list of interface configuration objects (see [example](network.html)). Each interface object has the following attributes:
-    * `type` - The type of the interface. Can be `public` or `private`.
-    * `network_uuid` - The UUID of the private network this interface should be attached to. Must be compatible with `subnet_uuid` if both are specified.
-    * `addresses` - Can be set only for `private` interfaces A list of address objects:
-        * `address` - An IP address that has been assigned to this server.
-        * `subnet_uuid` - The UUID of the subnet this address should be part of. Must be compatible with `network_uuid` if both are specified.
 * `status` - The state of a server.
