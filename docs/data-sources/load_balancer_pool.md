@@ -16,9 +16,9 @@ data "cloudscale_load_balancer_pool" "pool" {
 
 ## Argument Reference
 
-The following arguments can be used to look up a load balancer:
+The following arguments can be used to look up a load balancer pool:
 
-* `id` - (Optional) The UUID of the load balancer.
+* `id` - (Optional) The UUID of the load balancer pool.
 * `load_balancer_uuid` - (Optional) The load balancer of the pool.
 
 ## Attributes Reference
