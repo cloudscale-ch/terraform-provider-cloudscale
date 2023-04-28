@@ -19,6 +19,7 @@ data "cloudscale_load_balancer_listener" "listener" {
 The following arguments can be used to look up a load balancer listener:
 
 * `id` - (Optional) The UUID of the load balancer listener.
+* `name` = (Optional) Name of the load balancer listener.
 * `pool_uuid` - (Optional) The UUID of the pool this listener belongs to.
 
 ## Attributes Reference
@@ -26,7 +27,6 @@ The following arguments can be used to look up a load balancer listener:
 In addition to the arguments listed above, the following computed attributes are exported:
 
 * `href` - The cloudscale.ch API URL of the current resource.
-* `name` = Name of the load balancer listener.
 * `pool_href` = The cloudscale.ch API URL of the listener's load balancer pool.
 * `pool_name` = The load balancer pool name of the listener.
 * `protocol` = The protocol used for receiving traffic. Options include `"tcp"`.

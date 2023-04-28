@@ -35,7 +35,7 @@ The following arguments are supported when creating new load balancer health mon
 * `up_threshold` - (Optional) The number of checks that need to be successful before the `monitor_status` of a pool member changes to `"up"`. Default is `2`.
 * `down_threshold` - (Optional) The number of checks that need to fail before the `monitor_status` of a pool member changes to `"down"`. Default is `3`.
 * `http_expected_codes` - (Optional) The HTTP status codes allowed for a check to be considered successful. Can either be a list of status codes, for example `["200", "202"]`, or a list containing a single range, for example `["200-204"]`. Default is `["200"]`.
-* `http_method` - (Optional) The HTTP method used for the check. Options include `"CONNECT"`, `"DELETE"`, `"GET"`, `"HEAD"`, `"OPTIONS"`, `"PATCH"`, `"POST"`, `"PUT"` and `"TRACE"`. Default is "GET".
+* `http_method` - (Optional) The HTTP method used for the check. Options include `"CONNECT"`, `"DELETE"`, `"GET"`, `"HEAD"`, `"OPTIONS"`, `"PATCH"`, `"POST"`, `"PUT"` and `"TRACE"`. Default is `"GET"`.
 * `http_url_path` - (Optional) The URL used for the check. Default is `"/"`.
 * `http_version` - (Optional) The HTTP version used for the check. Options include `"1.0"` and `"1.1"`. Default is `"1.1"`.
 * `http_host` - (Optional) The server name in the HTTP Host: header used for the check. Requires version to be set to `"1.1"`.
@@ -55,7 +55,7 @@ The following arguments are supported when updating load balancer health monitor
 * `up_threshold` - The number of checks that need to be successful before the `monitor_status` of a pool member changes to `"up"`. Default is `2`.
 * `down_threshold` - The number of checks that need to fail before the `monitor_status` of a pool member changes to `"down"`. Default is `3`.
 * `http_expected_codes` - The HTTP status codes allowed for a check to be considered successful. Can either be a list of status codes, for example `["200", "202"]`, or a list containing a single range, for example `["200-204"]`. Default is `["200"]`.
-* `http_method` - The HTTP method used for the check. Options include `"CONNECT"`, `"DELETE"`, `"GET"`, `"HEAD"`, `"OPTIONS"`, `"PATCH"`, `"POST"`, `"PUT"` and `"TRACE"`. Default is "GET".
+* `http_method` - The HTTP method used for the check. Options include `"CONNECT"`, `"DELETE"`, `"GET"`, `"HEAD"`, `"OPTIONS"`, `"PATCH"`, `"POST"`, `"PUT"` and `"TRACE"`. Default is `"GET"`.
 * `http_url_path` - The URL used for the check. Default is `"/"`.
 * `http_host` - The server name in the HTTP Host: header used for the check. Requires version to be set to `"1.1"`.
 * `tags` - Change tags (see documentation above)
