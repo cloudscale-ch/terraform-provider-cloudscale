@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -444,38 +444,6 @@ func testAccCheckCloudscaleNetworkSubnetCount(n string, network *cloudscale.Netw
 		if actualSubnetCount := len(network.Subnets); actualSubnetCount != expectedCount {
 			return fmt.Errorf("Subnet count does not match, got=%#v, want=%#v.", actualSubnetCount, expectedCount)
 		}
-		return nil
-	}
-}
-
-func testAccCheckCloudscaleNetworkExists(n string, network *cloudscale.Network) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Network ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the network
-		retrieveNetwork, err := client.Networks.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveNetwork.UUID != rs.Primary.ID {
-			return fmt.Errorf("Network not found")
-		}
-
-		*network = *retrieveNetwork
-
 		return nil
 	}
 }

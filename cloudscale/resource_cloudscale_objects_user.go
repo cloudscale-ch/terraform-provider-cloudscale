@@ -3,19 +3,25 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"log"
-	"time"
-
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"log"
+)
+
+const objectsUserHumanName = "Objects User"
+
+var (
+	resourceCloudscaleObjectsUserRead   = getReadOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, readObjectsUser, gatherObjectsUserResourceData)
+	resourceCloudscaleObjectsUserUpdate = getUpdateOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, updateObjectsUser, resourceCloudscaleObjectsUserRead, gatherObjectsUserUpdateRequest)
+	resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, deleteObjectsUser)
 )
 
 func resourceCloudscaleObjectsUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceObjectsUserCreate,
-		Read:   resourceObjectsUserRead,
-		Update: resourceObjectsUserUpdate,
-		Delete: resourceObjectsUserDelete,
+		Create: resourceCloudscaleObjectsUserCreate,
+		Read:   resourceCloudscaleObjectsUserRead,
+		Update: resourceCloudscaleObjectsUserUpdate,
+		Delete: resourceCloudscaleObjectsUserDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -54,7 +60,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 					},
 				},
 			},
-			Computed: true,
+			Computed:  true,
 			Sensitive: true,
 		},
 		"tags": &TagsSchema,
@@ -68,7 +74,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceObjectsUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleObjectsUserCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ObjectsUserRequest{
@@ -85,16 +91,15 @@ func resourceObjectsUserCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Objects user ID %s", d.Id())
 
-	fillObjectsUserResourceData(d, objectsUser)
+	err = resourceCloudscaleObjectsUserRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the objects user (%s): %s", d.Id(), err)
+	}
 	return nil
 }
 
-func fillObjectsUserResourceData(d *schema.ResourceData, objectsUser *cloudscale.ObjectsUser) {
-	fillResourceData(d, gatherObjectsUserResourceData(objectsUser))
-}
-
 func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = objectsUser.ID
 	m["href"] = objectsUser.HREF
 	m["user_id"] = objectsUser.ID
@@ -113,51 +118,36 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	return m
 }
 
-func resourceObjectsUserRead(d *schema.ResourceData, meta interface{}) error {
+func readObjectsUser(rId GenericResourceIdentifier, meta any) (*cloudscale.ObjectsUser, error) {
 	client := meta.(*cloudscale.Client)
-
-	objectsUser, err := client.ObjectsUsers.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving objects user")
-	}
-
-	fillObjectsUserResourceData(d, objectsUser)
-	return nil
+	return client.ObjectsUsers.Get(context.Background(), rId.Id)
 }
 
-func resourceObjectsUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func updateObjectsUser(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.ObjectsUserRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.ObjectsUsers.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherObjectsUserUpdateRequest(d *schema.ResourceData) []*cloudscale.ObjectsUserRequest {
+	requests := make([]*cloudscale.ObjectsUserRequest, 0)
 
 	for _, attribute := range []string{"display_name", "tags"} {
-		// cloudscale.ch objectsUser attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.ObjectsUserRequest{}
+			requests = append(requests, opts)
 			if attribute == "display_name" {
 				opts.DisplayName = d.Get(attribute).(string)
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.ObjectsUsers.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the objects user (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceObjectsUserRead(d, meta)
+	return requests
 }
 
-func resourceObjectsUserDelete(d *schema.ResourceData, meta interface{}) error {
+func deleteObjectsUser(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting objects user: %s", d.Id())
-	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
-	time.Sleep(5 * time.Second)
-	err := client.ObjectsUsers.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting objectsUser")
-	}
-	return nil
+	return client.ObjectsUsers.Delete(context.Background(), id)
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -411,38 +411,6 @@ func testAccCheckCloudscaleAddressOnSubnet(server *cloudscale.Server, subnet *cl
 		if uuid := server.Interfaces[iIndex].Addresses[aIndex].Subnet.UUID; uuid != subnet.UUID {
 			return fmt.Errorf("Address not on expected subnet got=%s, expected=%s", uuid, subnet.UUID)
 		}
-
-		return nil
-	}
-}
-
-func testAccCheckCloudscaleSubnetExists(n string, subnet *cloudscale.Subnet) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Subnet ID is set")
-		}
-
-		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the subnet
-		retrieveSubnet, err := client.Subnets.Get(context.Background(), id)
-
-		if err != nil {
-			return err
-		}
-
-		if retrieveSubnet.UUID != rs.Primary.ID {
-			return fmt.Errorf("Subnet not found")
-		}
-
-		*subnet = *retrieveSubnet
 
 		return nil
 	}

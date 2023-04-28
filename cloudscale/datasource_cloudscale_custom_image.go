@@ -3,7 +3,7 @@ package cloudscale
 import (
 	"context"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -11,20 +11,15 @@ func dataSourceCloudscaleCustomImage() *schema.Resource {
 	recordSchema := getCustomImageSchema(DATA_SOURCE)
 
 	return &schema.Resource{
-		ReadContext: dataSourceResourceRead("custom images", recordSchema, customImagesRead),
-		Schema:      recordSchema,
+		ReadContext: dataSourceResourceRead("custom images", recordSchema, getFetchFunc(
+			listCustomImages,
+			gatherCustomImageResourceData,
+		)),
+		Schema: recordSchema,
 	}
 }
 
-func customImagesRead(meta interface{}) ([]ResourceDataRaw, error) {
+func listCustomImages(d *schema.ResourceData, meta any) ([]cloudscale.CustomImage, error) {
 	client := meta.(*cloudscale.Client)
-	customImageList, err := client.CustomImages.List(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	var rawItems []ResourceDataRaw
-	for _, customImage := range customImageList {
-		rawItems = append(rawItems, gatherCustomImageResourceData(&customImage))
-	}
-	return rawItems, nil
+	return client.CustomImages.List(context.Background())
 }

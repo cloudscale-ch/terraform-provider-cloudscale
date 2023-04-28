@@ -8,8 +8,16 @@ import (
 	"math"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+const customImageHumanName = "custom image"
+
+var (
+	resourceCustomImageRead   = getReadOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, readCustomImage, gatherCustomImageResourceData)
+	resourceCustomImageUpdate = getUpdateOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, updateCustomImage, resourceCustomImageRead, gatherCustomImageUpdateRequest)
+	resourceCustomImageDelete = getDeleteOperation(customImageHumanName, deleteCustomImage)
 )
 
 func resourceCloudscaleCustomImage() *schema.Resource {
@@ -105,7 +113,7 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomImageCreate(d *schema.ResourceData, meta any) error {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -173,7 +181,7 @@ func fillCustomImageResourceData(d *schema.ResourceData, customImageImport *clou
 }
 
 func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = customImage.UUID
 	m["href"] = customImage.HREF
 	m["name"] = customImage.Name
@@ -192,32 +200,25 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	return m
 }
 
-func resourceCustomImageRead(d *schema.ResourceData, meta interface{}) error {
+func readCustomImage(rId GenericResourceIdentifier, meta any) (*cloudscale.CustomImage, error) {
 	client := meta.(*cloudscale.Client)
-
-	customImage, err := client.CustomImages.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving customImage")
-	}
-
-	importUUID, ok := d.GetOk("import_uuid")
-	if !ok {
-		return fmt.Errorf("Error getting import_uuid")
-	}
-	customImageImport, err := client.CustomImageImports.Get(context.Background(), importUUID.(string))
-
-	fillCustomImageResourceData(d, customImageImport, customImage)
-	return nil
+	return client.CustomImages.Get(context.Background(), rId.Id)
 }
 
-func resourceCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
+func updateCustomImage(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.CustomImageRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.CustomImages.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherCustomImageUpdateRequest(d *schema.ResourceData) []*cloudscale.CustomImageRequest {
+	requests := make([]*cloudscale.CustomImageRequest, 0)
 
 	for _, attribute := range []string{"name", "slug", "user_data_handling", "tags"} {
-		// cloudscale.ch customImage attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.CustomImageRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "slug" {
@@ -227,29 +228,18 @@ func resourceCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.CustomImages.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the CustomImage (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceCustomImageRead(d, meta)
+	return requests
 }
 
-func resourceCustomImageDelete(d *schema.ResourceData, meta interface{}) error {
+func deleteCustomImage(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting CustomImage: %s", d.Id())
-	err := client.CustomImages.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting customImage")
-	}
-	return nil
+	return client.CustomImages.Delete(context.Background(), id)
 }
 
-func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta interface{}, pending []string, attribute, target string, timeout time.Duration) (interface{}, error) {
+func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta any, pending []string, attribute, target string, timeout time.Duration) (any, error) {
 	log.Printf(
 		"[INFO] Waiting %s for custom image import (%s) to have %s of %s",
 		timeout, uuid, attribute, target)
@@ -267,12 +257,12 @@ func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta in
 	return stateConf.WaitForState()
 }
 
-func newCustomImageImportRefreshFunc(uuid string, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+func newCustomImageImportRefreshFunc(uuid string, d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		customImageImport, err := client.CustomImageImports.Get(context.Background(), uuid)
 		if err != nil {
-			return nil, "", fmt.Errorf("Error retrieving customImageImport (refresh) %s", err)
+			return nil, "", fmt.Errorf("Error retrieving customImageImport (%s) (refresh) %s", uuid, err)
 		}
 
 		log.Printf("[INFO] Status is %s", customImageImport.Status)

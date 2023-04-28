@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type ResourceDataRaw = map[string]interface{}
+type ResourceDataRaw = map[string]any
 
 func fillResourceData(d *schema.ResourceData, map_ ResourceDataRaw) {
 	for k, v := range map_ {
@@ -20,14 +20,14 @@ func fillResourceData(d *schema.ResourceData, map_ ResourceDataRaw) {
 func dataSourceResourceRead(
 	name string,
 	sourceSchema map[string]*schema.Schema,
-	fetch func(meta interface{}) ([]ResourceDataRaw, error),
+	fetchFunc func(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error),
 ) schema.ReadContextFunc {
-	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-		resources, err := fetch(meta)
+	return func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+		resources, err := fetchFunc(d, meta)
 		if err != nil {
 			return diag.Errorf("Issue with fetching resources: %s", err)
 		}
-		var foundItems []map[string]interface{}
+		var foundItems []map[string]any
 
 		for _, m := range resources {
 			match := true
@@ -54,5 +54,24 @@ func dataSourceResourceRead(
 		fillResourceData(d, item)
 
 		return nil
+	}
+}
+
+func getFetchFunc[TResource any](
+	listFunc func(d *schema.ResourceData, meta any) ([]TResource, error),
+	gatherFunc func(resource *TResource) ResourceDataRaw,
+) func(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+	return func(d *schema.ResourceData, meta any) ([]ResourceDataRaw, error) {
+		list, err := listFunc(d, meta)
+		if err != nil {
+			return nil, err
+		}
+
+		var rawItems []ResourceDataRaw
+		for _, resource := range list {
+
+			rawItems = append(rawItems, gatherFunc(&resource))
+		}
+		return rawItems, nil
 	}
 }

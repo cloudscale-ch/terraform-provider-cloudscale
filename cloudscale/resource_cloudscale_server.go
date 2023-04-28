@@ -4,20 +4,24 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const serverHumanName = "server"
+
+var resourceCloudscaleServerRead = getReadOperation(serverHumanName, getGenericResourceIdentifierFromSchema, readServer, gatherServerResourceData)
+var resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, deleteServer)
+
 func resourceCloudscaleServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceServerCreate,
-		Read:   resourceServerRead,
-		Update: resourceServerUpdate,
-		Delete: resourceServerDelete,
+		Create: resourceCloudscaleServerCreate,
+		Read:   resourceCloudscaleServerRead,
+		Update: resourceCloudscaleServerUpdate,
+		Delete: resourceCloudscaleServerDelete,
 
 		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
@@ -282,7 +286,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleServerCreate(d *schema.ResourceData, meta any) error {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -368,7 +372,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] Server ID %s", d.Id())
 
 	remainingTime := timeout - time.Since(startTime)
-	_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "running", &remainingTime)
+	_, err = waitForStatus([]string{"changing"}, "running", &remainingTime, newServerRefreshFunc(d, "status", meta))
 	if err != nil {
 		return fmt.Errorf("error waiting for server (%s) to become ready: %s", d.Id(), err)
 	}
@@ -389,13 +393,13 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		remainingTime = timeout - time.Since(startTime)
-		_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", &remainingTime)
+		_, err = waitForStatus([]string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
 		if err != nil {
 			return fmt.Errorf("error waiting for server status (%s) (%s) ", server.UUID, err)
 		}
 	}
 
-	err = resourceServerRead(d, meta)
+	err = resourceCloudscaleServerRead(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error reading the server (%s): %s", d.Id(), err)
 	}
@@ -433,7 +437,7 @@ func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) clouds
 
 	addressKey := prefix + ".addresses"
 	if d.HasChange(addressKey) {
-		addresses := d.Get(addressKey).([]interface{})
+		addresses := d.Get(addressKey).([]any)
 		if len(addresses) > 0 {
 			addresses := createAddressesOptions(addresses)
 			result.Addresses = &addresses
@@ -454,10 +458,10 @@ func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) clouds
 	return result
 }
 
-func createAddressesOptions(addresses []interface{}) []cloudscale.AddressRequest {
+func createAddressesOptions(addresses []any) []cloudscale.AddressRequest {
 	result := make([]cloudscale.AddressRequest, len(addresses))
 	for i, address := range addresses {
-		a := address.(map[string]interface{})
+		a := address.(map[string]any)
 		if a["subnet_uuid"] != "" {
 			result[i].Subnet = a["subnet_uuid"].(string)
 		}
@@ -468,26 +472,8 @@ func createAddressesOptions(addresses []interface{}) []cloudscale.AddressRequest
 	return result
 }
 
-func fillServerResourceData(d *schema.ResourceData, server *cloudscale.Server) {
-	fillResourceData(d, gatherServerResourceData(server))
-
-	if publicIPV4 := findIPv4AddrByType(server, "public"); publicIPV4 != "" {
-		d.SetConnInfo(map[string]string{
-			"type": "ssh",
-			"host": publicIPV4,
-		})
-	} else {
-		if publicIPV6 := findIPv6AddrByType(server, "private"); publicIPV6 != "" {
-			d.SetConnInfo(map[string]string{
-				"type": "ssh",
-				"host": publicIPV6,
-			})
-		}
-	}
-}
-
 func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = server.UUID
 	m["href"] = server.HREF
 	m["name"] = server.Name
@@ -498,9 +484,9 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	m["tags"] = server.Tags
 
 	if volumes := len(server.Volumes); volumes > 0 {
-		volumesMaps := make([]map[string]interface{}, 0, volumes)
+		volumesMaps := make([]map[string]any, 0, volumes)
 		for _, volume := range server.Volumes {
-			v := make(map[string]interface{})
+			v := make(map[string]any)
 			v["type"] = volume.Type
 			v["device_path"] = volume.DevicePath
 			v["size_gb"] = volume.SizeGB
@@ -509,9 +495,9 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 		}
 		m["volumes"] = volumesMaps
 	}
-	serverGroupMaps := make([]map[string]interface{}, 0, len(server.ServerGroups))
+	serverGroupMaps := make([]map[string]any, 0, len(server.ServerGroups))
 	for _, serverGroup := range server.ServerGroups {
-		g := make(map[string]interface{})
+		g := make(map[string]any)
 		g["uuid"] = serverGroup.UUID
 		g["name"] = serverGroup.Name
 		g["href"] = serverGroup.HREF
@@ -520,18 +506,18 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	m["server_groups"] = serverGroupMaps
 
 	if addrss := len(server.Interfaces); addrss > 0 {
-		intsMap := make([]map[string]interface{}, 0, addrss)
+		intsMap := make([]map[string]any, 0, addrss)
 		for _, intr := range server.Interfaces {
 
-			intMap := make(map[string]interface{})
+			intMap := make(map[string]any)
 
 			intMap["network_href"] = intr.Network.HREF
 			intMap["network_name"] = intr.Network.Name
 			intMap["network_uuid"] = intr.Network.UUID
 
-			addrssMap := make([]map[string]interface{}, 0, len(intr.Addresses))
+			addrssMap := make([]map[string]any, 0, len(intr.Addresses))
 			for _, addr := range intr.Addresses {
-				i := make(map[string]interface{})
+				i := make(map[string]any)
 				i["address"] = addr.Address
 				i["version"] = addr.Version
 				i["prefix_length"] = addr.PrefixLength
@@ -563,20 +549,12 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	return m
 }
 
-func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
+func readServer(rId GenericResourceIdentifier, meta any) (*cloudscale.Server, error) {
 	client := meta.(*cloudscale.Client)
-
-	id := d.Id()
-
-	server, err := client.Servers.Get(context.Background(), id)
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving server")
-	}
-	fillServerResourceData(d, server)
-	return nil
+	return client.Servers.Get(context.Background(), rId.Id)
 }
 
-func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -605,7 +583,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		server, err := client.Servers.Get(context.Background(), id)
 		if err != nil {
-			return fmt.Errorf("Error retrieving server for update %s", err)
+			return fmt.Errorf("Error retrieving server (%s) for update %s", id, err)
 		}
 		if server.Status != cloudscale.ServerStopped {
 			updateRequest := &cloudscale.ServerUpdateRequest{
@@ -616,7 +594,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Error updating server (%s), %s", server.Status, err)
 			}
 
-			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", nil)
+			_, err = waitForStatus([]string{"changing", "running"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
 			if err != nil {
 				return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
 			}
@@ -628,7 +606,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error scaling the Server (%s) status (%s) ", id, err)
 		}
-		_, err = waitForServerStatus(d, meta, []string{"changing"}, "status", "stopped", nil)
+		_, err = waitForStatus([]string{"changing"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
 
 		// Signal that we want to start the server again
 		if wantedStatus == "running" {
@@ -650,9 +628,9 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if wantedStatus == "stopped" {
-			_, err = waitForServerStatus(d, meta, []string{"changing", "running"}, "status", "stopped", nil)
+			_, err = waitForStatus([]string{"changing", "running"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
 		} else {
-			_, err = waitForServerStatus(d, meta, []string{"changing", "stopped"}, "status", "running", nil)
+			_, err = waitForStatus([]string{"changing", "stopped"}, "running", nil, newServerRefreshFunc(d, "status", meta))
 		}
 
 		if err != nil {
@@ -686,73 +664,42 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceServerRead(d, meta)
+	return resourceCloudscaleServerRead(d, meta)
 }
 
-func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
+func deleteServer(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting Server: %s", d.Id())
-	err := client.Servers.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting server")
-	}
-
-	return nil
+	return client.Servers.Delete(context.Background(), id)
 }
 
-func waitForServerStatus(d *schema.ResourceData, meta interface{}, pending []string, attribute, target string, timeout *time.Duration) (interface{}, error) {
-	if timeout == nil {
-		defaultTimeout := 5 * time.Minute
-		timeout = &(defaultTimeout)
-	}
-
-	log.Printf(
-		"[INFO] Waiting %s for server (%s) to have %s of %s",
-		timeout, d.Id(), attribute, target)
-
-	stateConf := &resource.StateChangeConf{
-		Pending:        pending,
-		Target:         []string{target},
-		Refresh:        newServerRefreshFunc(d, attribute, meta),
-		Timeout:        *timeout,
-		Delay:          10 * time.Second,
-		MinTimeout:     3 * time.Second,
-		NotFoundChecks: math.MaxInt32,
-	}
-
-	return stateConf.WaitForState()
-}
-
-func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		id := d.Id()
 
-		err := resourceServerRead(d, meta)
+		// read the latest data into d
+		err := resourceCloudscaleServerRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
-
-		if attr, ok := d.GetOk(attribute); ok {
-			server, err := client.Servers.Get(context.Background(), id)
-			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving server (refresh) %s", err)
-			}
-
-			if server.Status == "errored" {
-				return nil, "", fmt.Errorf("Server status %s, abort", server.Status)
-			}
-
-			return server, attr.(string), nil
+		// get the instance
+		server, err := client.Servers.Get(context.Background(), id)
+		if err != nil {
+			return nil, "", fmt.Errorf("error retrieving server (%s) (refresh) %s", id, err)
 		}
-		return nil, "", nil
+
+		attr, ok := d.GetOk(attribute)
+		if !ok {
+			return nil, "", nil
+		}
+
+		// return attr
+		return server, attr.(string), nil
 	}
 }
 
-func waitForSSHHostKeys(d *schema.ResourceData, meta interface{}, timeout *time.Duration) error {
+func waitForSSHHostKeys(d *schema.ResourceData, meta any, timeout *time.Duration) error {
 	if d.Get("skip_waiting_for_ssh_host_keys").(bool) {
 		log.Printf("[INFO] Not waiting for server (%s) to have host keys available", d.Id())
 		return nil
@@ -760,7 +707,7 @@ func waitForSSHHostKeys(d *schema.ResourceData, meta interface{}, timeout *time.
 	log.Printf("[INFO] Waiting %s for server (%s) to have host keys available", timeout, d.Id())
 
 	err := resource.Retry(*timeout, func() *resource.RetryError {
-		err := resourceServerRead(d, meta)
+		err := resourceCloudscaleServerRead(d, meta)
 		if err != nil {
 			return &resource.RetryError{
 				Err:       err,
@@ -816,7 +763,7 @@ func findIPv4AddrByType(s *cloudscale.Server, addrType string) string {
 	return ""
 }
 
-func resourceCloudscaleServerImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceCloudscaleServerImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	// this attribute is irrelevant for existing servers
 	d.Set("skip_waiting_for_ssh_host_keys", false)
 	return schema.ImportStatePassthroughContext(ctx, d, meta)

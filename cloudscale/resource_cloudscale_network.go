@@ -5,16 +5,24 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+const networkHumanName = "network"
+
+var (
+	resourceCloudscaleNetworkRead   = getReadOperation(networkHumanName, getGenericResourceIdentifierFromSchema, readNetwork, gatherNetworkResourceData)
+	resourceCloudscaleNetworkUpdate = getUpdateOperation(networkHumanName, getGenericResourceIdentifierFromSchema, updateNetwork, resourceCloudscaleNetworkRead, gatherNetworkUpdateRequest)
+	resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, deleteNetwork)
 )
 
 func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceNetworkCreate,
-		Read:   resourceNetworkRead,
-		Update: resourceNetworkUpdate,
-		Delete: resourceNetworkDelete,
+		Create: resourceCloudscaleNetworkCreate,
+		Read:   resourceCloudscaleNetworkRead,
+		Update: resourceCloudscaleNetworkUpdate,
+		Delete: resourceCloudscaleNetworkDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -83,7 +91,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleNetworkCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.NetworkCreateRequest{
@@ -112,26 +120,24 @@ func resourceNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(network.UUID)
 
 	log.Printf("[INFO] Network ID %s", d.Id())
-
-	fillNetworkResourceData(d, network)
+	err = resourceCloudscaleNetworkRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the network (%s): %s", d.Id(), err)
+	}
 	return nil
 }
 
-func fillNetworkResourceData(d *schema.ResourceData, network *cloudscale.Network) {
-	fillResourceData(d, gatherNetworkResourceData(network))
-}
-
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = network.UUID
 	m["href"] = network.HREF
 	m["name"] = network.Name
 	m["mtu"] = network.MTU
 	m["zone_slug"] = network.Zone.Slug
 
-	subnets := make([]map[string]interface{}, 0, len(network.Subnets))
+	subnets := make([]map[string]any, 0, len(network.Subnets))
 	for _, subnet := range network.Subnets {
-		g := make(map[string]interface{})
+		g := make(map[string]any)
 		g["uuid"] = subnet.UUID
 		g["cidr"] = subnet.CIDR
 		g["href"] = subnet.HREF
@@ -142,26 +148,25 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 	return m
 }
 
-func resourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func readNetwork(rId GenericResourceIdentifier, meta any) (*cloudscale.Network, error) {
 	client := meta.(*cloudscale.Client)
-
-	network, err := client.Networks.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving network")
-	}
-
-	fillNetworkResourceData(d, network)
-	return nil
+	return client.Networks.Get(context.Background(), rId.Id)
 }
 
-func resourceNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+func updateNetwork(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.NetworkUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.Networks.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpdateRequest {
+	requests := make([]*cloudscale.NetworkUpdateRequest, 0)
 
 	for _, attribute := range []string{"name", "mtu", "tags"} {
-		// cloudscale.ch network attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.NetworkUpdateRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "mtu" {
@@ -169,24 +174,13 @@ func resourceNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.Networks.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Network (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceNetworkRead(d, meta)
+	return requests
 }
 
-func resourceNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func deleteNetwork(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting Network: %s", d.Id())
-	err := client.Networks.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting network")
-	}
-	return nil
+	return client.Networks.Delete(context.Background(), id)
 }

@@ -6,16 +6,24 @@ import (
 	"log"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+const subnetHumanName = "subnet"
+
+var (
+	resourceCloudscaleSubnetRead   = getReadOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, readSubnet, gatherSubnetResourceData)
+	resourceCloudscaleSubnetUpdate = getUpdateOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, updateSubnet, resourceCloudscaleSubnetRead, gatherSubnetUpdateRequests)
+	resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, deleteSubnet)
 )
 
 func resourceCloudscaleSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSubnetCreate,
-		Read:   resourceSubnetRead,
-		Update: resourceSubnetUpdate,
-		Delete: resourceSubnetDelete,
+		Create: resourceCloudscaleSubnetCreate,
+		Read:   resourceCloudscaleSubnetRead,
+		Update: resourceCloudscaleSubnetUpdate,
+		Delete: resourceCloudscaleSubnetDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -73,7 +81,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleSubnetCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.SubnetCreateRequest{
@@ -87,7 +95,7 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		opts.GatewayAddress = attr.(string)
 	}
 
-	dnsServers := d.Get("dns_servers").([]interface{})
+	dnsServers := d.Get("dns_servers").([]any)
 	s := make([]string, len(dnsServers))
 	for i := range dnsServers {
 		s[i] = dnsServers[i].(string)
@@ -106,16 +114,16 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Subnet ID %s", d.Id())
 
-	fillSubnetResourceData(d, subnet)
+	err = resourceCloudscaleSubnetRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the subnet (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 
-func fillSubnetResourceData(d *schema.ResourceData, subnet *cloudscale.Subnet) {
-	fillResourceData(d, gatherSubnetResourceData(subnet))
-}
-
 func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = subnet.UUID
 	m["href"] = subnet.HREF
 	m["cidr"] = subnet.CIDR
@@ -128,32 +136,30 @@ func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
 	return m
 }
 
-func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
+func readSubnet(rId GenericResourceIdentifier, meta any) (*cloudscale.Subnet, error) {
 	client := meta.(*cloudscale.Client)
-
-	subnet, err := client.Subnets.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving subnet")
-	}
-
-	fillSubnetResourceData(d, subnet)
-	return nil
+	return client.Subnets.Get(context.Background(), rId.Id)
 }
 
-func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
+func updateSubnet(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.SubnetUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.Subnets.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpdateRequest {
+	requests := make([]*cloudscale.SubnetUpdateRequest, 0)
 
 	for _, attribute := range []string{"gateway_address", "dns_servers", "tags"} {
-		// cloudscale.ch subnet attributes can only be changed one at a time.
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.SubnetUpdateRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "gateway_address" {
 				opts.GatewayAddress = d.Get(attribute).(string)
 			} else if attribute == "dns_servers" {
-				dnsServers := d.Get("dns_servers").([]interface{})
+				dnsServers := d.Get("dns_servers").([]any)
 				s := make([]string, len(dnsServers))
-
 				for i := range dnsServers {
 					s[i] = dnsServers[i].(string)
 				}
@@ -161,26 +167,15 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.Subnets.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Subnet (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceSubnetRead(d, meta)
+	return requests
 }
 
-func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
+func deleteSubnet(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting Subnet: %s", d.Id())
 	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
 	time.Sleep(5 * time.Second)
-	err := client.Subnets.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting subnet")
-	}
-	return nil
+	return client.Subnets.Delete(context.Background(), id)
 }

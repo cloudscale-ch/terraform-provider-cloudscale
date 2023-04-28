@@ -5,8 +5,16 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+const floatingIPHumanName = "Floating IP"
+
+var (
+	resourceFloatingIPRead   = getReadOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, readFloatingIP, gatherFloatingIPResourceData)
+	resourceFloatingIPUpdate = getUpdateOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, updateFloatingIP, resourceFloatingIPRead, gatherFloatingIPUpdateRequest)
+	resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, deleteFloatingIP)
 )
 
 func resourceCloudscaleFloatingIP() *schema.Resource {
@@ -32,6 +40,11 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"server": {
+			Type:     schema.TypeString,
+			Optional: t.isResource(),
+			Computed: t.isDataSource(),
+		},
+		"load_balancer": {
 			Type:     schema.TypeString,
 			Optional: t.isResource(),
 			Computed: t.isDataSource(),
@@ -83,7 +96,7 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.FloatingIPCreateRequest{
@@ -92,6 +105,9 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if attr, ok := d.GetOk("server"); ok {
 		opts.Server = attr.(string)
+	}
+	if attr, ok := d.GetOk("load_balancer"); ok {
+		opts.LoadBalancer = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("prefix_length"); ok {
@@ -120,16 +136,15 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(floatingIP.IP())
 
-	fillFloatingIPResourceData(d, floatingIP)
+	err = resourceFloatingIPRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the floating IP (%s): %s", d.Id(), err)
+	}
 	return nil
 }
 
-func fillFloatingIPResourceData(d *schema.ResourceData, floatingIP *cloudscale.FloatingIP) {
-	fillResourceData(d, gatherFloatingIPResourceData(floatingIP))
-}
-
 func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = floatingIP.IP()
 	m["href"] = floatingIP.HREF
 	m["ip_version"] = floatingIP.IPVersion
@@ -141,6 +156,13 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	m["tags"] = floatingIP.Tags
 	if floatingIP.Server != nil {
 		m["server"] = floatingIP.Server.UUID
+	} else {
+		m["server"] = nil
+	}
+	if floatingIP.LoadBalancer != nil {
+		m["load_balancer"] = floatingIP.LoadBalancer.UUID
+	} else {
+		m["load_balancer"] = nil
 	}
 	if floatingIP.Region != nil {
 		m["region_slug"] = floatingIP.Region.Slug
@@ -149,56 +171,49 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	return m
 }
 
-func resourceFloatingIPRead(d *schema.ResourceData, meta interface{}) error {
+func readFloatingIP(rId GenericResourceIdentifier, meta any) (*cloudscale.FloatingIP, error) {
 	client := meta.(*cloudscale.Client)
-
-	id := d.Id()
-
-	floatingIP, err := client.FloatingIPs.Get(context.Background(), id)
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving FloatingIP")
-	}
-
-	fillFloatingIPResourceData(d, floatingIP)
-
-	return nil
+	return client.FloatingIPs.Get(context.Background(), rId.Id)
 
 }
-func resourceFloatingIPUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*cloudscale.Client)
-	id := d.Id()
 
-	for _, attribute := range []string{"server", "tags", "reverse_ptr"} {
-		// cloudscale.ch Floating UP attributes can only be changed one at a time.
+func updateFloatingIP(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.FloatingIPUpdateRequest) error {
+	client := meta.(*cloudscale.Client)
+	return client.FloatingIPs.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.FloatingIPUpdateRequest {
+	requests := make([]*cloudscale.FloatingIPUpdateRequest, 0)
+
+	for _, attribute := range []string{"server", "load_balancer", "tags", "reverse_ptr"} {
 		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.FloatingIPUpdateRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "reverse_ptr" {
 				opts.ReversePointer = d.Get(attribute).(string)
-			} else if attribute == "server" {
+			} else if attribute == "server" || attribute == "load_balancer" {
 				serverUUID := d.Get("server").(string)
-				log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
-				opts.Server = serverUUID
+				if serverUUID != "" {
+					log.Printf("[INFO] Assigning the Floating IP %s to the Server %s", d.Id(), serverUUID)
+					opts.Server = serverUUID
+				}
+				loadBalancerUUID := d.Get("load_balancer").(string)
+				if loadBalancerUUID != "" {
+					log.Printf("[INFO] Assigning the Floating IP %s to the LB %s", d.Id(), loadBalancerUUID)
+					opts.LoadBalancer = loadBalancerUUID
+				}
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.FloatingIPs.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the FloatingIPs (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceFloatingIPRead(d, meta)
+	return requests
 }
-func resourceFloatingIPDelete(d *schema.ResourceData, meta interface{}) error {
+
+func deleteFloatingIP(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting FloatingIP: %s", d.Id())
-	err := client.FloatingIPs.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting floating IP")
-	}
-
-	return nil
+	return client.FloatingIPs.Delete(context.Background(), id)
 }

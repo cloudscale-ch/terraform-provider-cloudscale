@@ -7,4 +7,4 @@ sweep:
 # Run acceptance tests
 .PHONY: testacc
 testacc:
-	TF_ACC=1 go test ./... -v -count=1 -parallel 1 $(TESTARGS) -timeout 120m
+	TF_ACC=1 go test ./... -v -count=1 -parallel 2 $(TESTARGS) -timeout 120m

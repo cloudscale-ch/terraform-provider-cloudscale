@@ -5,16 +5,24 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+const volumeHumanName = "volume"
+
+var (
+	resourceCloudscaleVolumeRead   = getReadOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, readVolume, gatherVolumeResourceData)
+	resourceCloudscaleVolumeUpdate = getUpdateOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, updateVolume, resourceCloudscaleVolumeRead, gatherVolumeUpdateRequests)
+	resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, deleteVolume)
 )
 
 func resourceCloudscaleVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVolumeCreate,
-		Read:   resourceVolumeRead,
-		Update: resourceVolumeUpdate,
-		Delete: resourceVolumeDelete,
+		Create: resourceCloudscaleVolumeCreate,
+		Read:   resourceCloudscaleVolumeRead,
+		Update: resourceCloudscaleVolumeUpdate,
+		Delete: resourceCloudscaleVolumeDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -67,7 +75,7 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.VolumeRequest{
@@ -76,7 +84,7 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 		Type:   d.Get("type").(string),
 	}
 
-	serverUUIDs := d.Get("server_uuids").([]interface{})
+	serverUUIDs := d.Get("server_uuids").([]any)
 	s := make([]string, len(serverUUIDs))
 
 	for i := range serverUUIDs {
@@ -101,16 +109,15 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Volume ID %s", d.Id())
 
-	fillVolumeResourceData(d, volume)
+	err = resourceCloudscaleVolumeRead(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error reading the volume (%s): %s", d.Id(), err)
+	}
 	return nil
 }
 
-func fillVolumeResourceData(d *schema.ResourceData, volume *cloudscale.Volume) {
-	fillResourceData(d, gatherVolumeResourceData(volume))
-}
-
 func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	m["id"] = volume.UUID
 	m["href"] = volume.HREF
 	m["name"] = volume.Name
@@ -122,31 +129,27 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	return m
 }
 
-func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func readVolume(rId GenericResourceIdentifier, meta any) (*cloudscale.Volume, error) {
 	client := meta.(*cloudscale.Client)
-
-	volume, err := client.Volumes.Get(context.Background(), d.Id())
-	if err != nil {
-		return CheckDeleted(d, err, "Error retrieving volume")
-	}
-
-	fillVolumeResourceData(d, volume)
-	return nil
+	return client.Volumes.Get(context.Background(), rId.Id)
 }
 
-func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+func updateVolume(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeRequest) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
+	return client.Volumes.Update(context.Background(), rId.Id, updateRequest)
+}
+
+func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeRequest {
+	requests := make([]*cloudscale.VolumeRequest, 0)
 
 	for _, attribute := range []string{"name", "size_gb", "server_uuids", "tags"} {
-		// cloudscale.ch volume attributes can only be changed one at a time.
-		// This means that it's not possible to scale in the same call as
-		// attaching the volume to a different server.
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.VolumeRequest{}
+			requests = append(requests, opts)
+
 			if attribute == "server_uuids" {
-				serverUUIDs := d.Get("server_uuids").([]interface{})
+				serverUUIDs := d.Get("server_uuids").([]any)
 				s := make([]string, len(serverUUIDs))
 
 				for i := range serverUUIDs {
@@ -160,24 +163,13 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
-			err := client.Volumes.Update(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("Error updating the Volume (%s) status (%s) ", id, err)
-			}
 		}
 	}
-	return resourceVolumeRead(d, meta)
+	return requests
 }
 
-func resourceVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func deleteVolume(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	log.Printf("[INFO] Deleting Volume: %s", d.Id())
-	err := client.Volumes.Delete(context.Background(), id)
-
-	if err != nil {
-		return CheckDeleted(d, err, "Error deleting volume")
-	}
-	return nil
+	return client.Volumes.Delete(context.Background(), id)
 }

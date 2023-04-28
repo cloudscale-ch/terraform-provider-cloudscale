@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v2"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -54,6 +54,7 @@ func testSweepCustomImages(region string) error {
 
 func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 	var customImage cloudscale.CustomImage
+	var customImageImport cloudscale.CustomImageImport
 
 	rInt := acctest.RandInt()
 	md5sum := getExpectedChecksum("md5", t)
@@ -68,9 +69,12 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
-					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "href"),
-					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "id"),
-					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "import_href"),
+					testAccCheckCloudscaleCustomImageImportExistsForImage(&customImage, &customImageImport),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "href", &customImage.HREF),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "id", &customImage.UUID),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "import_href", &customImageImport.HREF),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "import_uuid", &customImageImport.UUID),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "import_status", &customImageImport.Status),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_status", "success"),
 					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "import_uuid"),
@@ -241,13 +245,16 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.debian", &customImage),
 					testAccCheckCloudscaleServerExists("cloudscale_server.debian-server", &server),
-					testAccCheckCloudscaleServerUsagesImage("cloudscale_server.debian-server", "cloudscale_custom_image.debian"),
+					resource.TestCheckResourceAttrPtr("cloudscale_server.debian-server",
+						"image_uuid", &customImage.UUID),
+					resource.TestCheckResourceAttrPair(
+						"cloudscale_server.debian-server", "image_uuid",
+						"cloudscale_custom_image.debian", "id",
+					),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.debian-server", "status", "running"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.debian-server", "image_slug", "custom:terra-test-slug"),
-					resource.TestCheckResourceAttrSet(
-						"cloudscale_server.debian-server", "image_uuid"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.debian-server", "ssh_fingerprints.#", "6"),
 				),
@@ -256,85 +263,21 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 	})
 }
 
-/*
-func TestAccCloudscaleCustomImage_import_basic(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, acctest.RandInt()),
-			},
-			{
-				ResourceName:      "cloudscale_custom_image.basic",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{"import_source_format", "import_url"},
-			},
-			{
-				ResourceName:      "cloudscale_custom_image.basic",
-				ImportState:       true,
-				ImportStateVerify: false,
-				ImportStateId:     "does-not-exist",
-				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
-			},
-		},
-	})
-}
-*/
-
-func testAccCheckCloudscaleCustomImageExists(n string, customImage *cloudscale.CustomImage) resource.TestCheckFunc {
+func testAccCheckCloudscaleCustomImageImportExistsForImage(image *cloudscale.CustomImage, imageImport *cloudscale.CustomImageImport) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No CustomImage ID is set")
-		}
-
 		client := testAccProvider.Meta().(*cloudscale.Client)
-
-		id := rs.Primary.ID
-
-		// Try to find the customImage
-		retrieveCustomImage, err := client.CustomImages.Get(context.Background(), id)
-
+		imports, err := client.CustomImageImports.List(context.Background())
 		if err != nil {
 			return err
 		}
 
-		if retrieveCustomImage.UUID != rs.Primary.ID {
-			return fmt.Errorf("CustomImage not found")
+		for _, retrievedImport := range imports {
+			if retrievedImport.CustomImage.UUID == image.UUID {
+				*imageImport = retrievedImport
+				return nil
+			}
 		}
-
-		*customImage = *retrieveCustomImage
-
-		return nil
-	}
-}
-
-func testAccCheckCloudscaleServerUsagesImage(nServer string, nCustomImage string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resourceServer, ok := s.RootModule().Resources[nServer]
-		if !ok {
-			return fmt.Errorf("Not found: %s", nServer)
-		}
-
-		resourceCustomImage, ok := s.RootModule().Resources[nCustomImage]
-		if !ok {
-			return fmt.Errorf("Not found: %s", nCustomImage)
-		}
-
-		customImageUUID := resourceCustomImage.Primary.ID
-		serverImageUUID := resourceServer.Primary.Attributes["image_uuid"]
-		if customImageUUID != serverImageUUID {
-			return fmt.Errorf("%v != %v", customImageUUID, serverImageUUID)
-		}
-
-		return nil
+		return fmt.Errorf("no import found for image %s", image.UUID)
 	}
 }
 
