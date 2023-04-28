@@ -1,4 +1,5 @@
 ## Unreleased
+ * Support for cloudscale.ch [Loads Balancers](https://www.cloudscale.ch/en/api/v1#load-balancers).
 
 ## 4.1.0
  * Add firmware_type to custom_image.
