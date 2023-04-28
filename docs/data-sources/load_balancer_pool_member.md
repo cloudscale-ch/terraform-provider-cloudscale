@@ -26,7 +26,7 @@ The following arguments can be used to look up a load balancer pool member:
 
 In addition to the arguments listed above, the following computed attributes are exported:
 
-* `href` - The cloudscale.ch API URL of the current load balancer.
+* `href` - The cloudscale.ch API URL of the current resource.
 * `enabled` - Pool member will not receive traffic if `false`.
 * `pool_name` - The load balancer name of the pool.
 * `pool_href` - The cloudscale.ch API URL of the pool's load balancer.

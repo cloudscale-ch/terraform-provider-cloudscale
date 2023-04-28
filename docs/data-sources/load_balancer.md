@@ -25,7 +25,7 @@ The following arguments can be used to look up a load balancer:
 
 In addition to the arguments listed above, the following computed attributes are exported:
 
-* `href` - The cloudscale.ch API URL of the current load balancer.
+* `href` - The cloudscale.ch API URL of the current resource.
 * `flavor_slug` - The slug (name) of the flavor to use for the new load balancer. Possible values can be found in our [API documentation](https://www.cloudscale.ch/en/api/v1#load-balancer-flavors).
 * `name` - Name of the new load balancer.
 * `status` - The current status of the load balancer.
