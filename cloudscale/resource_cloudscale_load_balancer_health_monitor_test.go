@@ -673,14 +673,14 @@ resource "cloudscale_server" "basic" {
   image_slug     = "%[3]s"
   volume_size_gb = 10
   interfaces {
+    type              = "public"
+  }
+  interfaces {
     type              = "private"
     addresses {
       subnet_uuid = cloudscale_subnet.lb-subnet.id   
       address     = "%[4]s"
     }
-  }
-  interfaces {
-    type              = "public"
   }
   user_data = <<-EOT
   #cloud-config
@@ -709,7 +709,7 @@ resource "cloudscale_load_balancer_pool_member" "lb-pool-member-acc-test" {
   name          = "terraform-%[1]d-lb-pool-member"
   pool_uuid     = cloudscale_load_balancer_pool.lb-pool-acc-test.id
   protocol_port = 80
-  address       = cloudscale_server.basic.interfaces[0].addresses.0.address
+  address       = cloudscale_server.basic.interfaces[1].addresses.0.address
   subnet_uuid   = cloudscale_subnet.lb-subnet.id
 }
 `, rInt, testAccCloudscaleLoadBalancerSubnet(rInt), DefaultImageSlug, TestAddress)
