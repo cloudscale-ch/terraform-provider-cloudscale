@@ -19,7 +19,7 @@ data "cloudscale_load_balancer_listener" "listener" {
 The following arguments can be used to look up a load balancer listener:
 
 * `id` - (Optional) The UUID of the load balancer listener.
-* `name` = (Optional) Name of the load balancer listener.
+* `name` - (Optional) Name of the load balancer listener.
 * `pool_uuid` - (Optional) The UUID of the pool this listener belongs to.
 
 ## Attributes Reference
