@@ -12,7 +12,6 @@ Provides a cloudscale.ch custom image resource. This can be used to create, modi
 # Create a custom image
 resource "cloudscale_custom_image" "your_image" {
   import_url           = "https://mirror.example.com/your-distro-12.12-openstack-amd64.raw"
-  import_source_format = "raw"
   name                 = "Your Distro 12.12"
   slug                 = "your-distro-12.12"
   user_data_handling   = "extend-cloud-config"
@@ -50,7 +49,7 @@ resource "cloudscale_server" "your_server" {
 The following arguments are supported when creating/changing custom images:
 
 * `import_url` - (Required) The URL used to download the image.
-* `import_source_format` - (Required) The file format of the image referenced in the `import_url`. Options include `raw`.
+* `import_source_format` - (Optional, Ignored) Deprecated: this field no longer needs to be specified and will be ignored. The image format is detected automatically.
 * `name` - (Required) The human-readable name of the custom image.
 * `slug` - (Optional) A string identifying the custom image for use within the API.
 * `user_data_handling` - (Required) How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.

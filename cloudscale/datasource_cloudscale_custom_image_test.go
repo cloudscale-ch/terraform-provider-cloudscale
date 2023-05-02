@@ -145,7 +145,6 @@ func customImageConfig_baseline(count int, rInt int) string {
 resource "cloudscale_custom_image" "basic" {
   count        = "%v"
   import_url         = "%s"
-  import_source_format      = "raw"
   name               = "terraform-%d-${count.index}"
   slug               = "terra-${count.index}"
   user_data_handling = "pass-through"
