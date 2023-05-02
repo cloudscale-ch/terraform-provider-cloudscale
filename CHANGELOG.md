@@ -1,4 +1,4 @@
-## Unreleased
+## 4.2.0
  * Support for cloudscale.ch [Loads Balancers](https://www.cloudscale.ch/en/api/v1#load-balancers).
  * Ignore `import_source_format` as it has been deprecated in the cloudscale.ch API.
    You can remove the attribute from your Terraform file if you wish. The suggested
