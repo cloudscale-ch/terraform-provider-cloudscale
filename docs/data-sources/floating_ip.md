@@ -37,4 +37,5 @@ In addition to the arguments listed above, the following computed attributes are
 * `href` - The cloudscale.ch API URL of the current resource.
 * `next_hop` - The IP address of the server that your Floating IP is currently assigned to.
 * `server` - The UUID of the server that your Floating IP is currently assigned to.
+* `load_balancer` - The UUID of the load balancer that your Floating IP is currently assigned to.
 * `prefix_length` - The prefix length of a Floating IP (e.g. /128 or /56, as an integer).
