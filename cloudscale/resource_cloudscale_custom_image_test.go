@@ -83,8 +83,6 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "slug", "terra-test-slug"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_custom_image.basic", "import_source_format", "raw"),
-					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "extend-cloud-config"),
@@ -129,8 +127,6 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "slug", "terra-test-slug"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_custom_image.basic", "import_source_format", "raw"),
-					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "extend-cloud-config"),
@@ -158,8 +154,6 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 						"cloudscale_custom_image.basic", "name", fmt.Sprintf("terraform-%d-renamed", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "slug", "terra-test-slug-changed"),
-					resource.TestCheckResourceAttr(
-						"cloudscale_custom_image.basic", "import_source_format", "raw"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
 					resource.TestCheckResourceAttr(
@@ -312,7 +306,6 @@ func customImageConfig_config(name string, imageDownloadURL string, rInt int) st
 	return fmt.Sprintf(`
 resource "cloudscale_custom_image" "%s" {
   import_url         = "%s"
-  import_source_format      = "raw"
   name               = "terraform-%d"
   slug               = "terra-test-slug"
   user_data_handling = "extend-cloud-config"
@@ -325,7 +318,6 @@ func customImageConfig_tags(name string, imageDownloadURL string, rInt int) stri
 	return fmt.Sprintf(`
 resource "cloudscale_custom_image" "%s" {
   import_url         = "%s"
-  import_source_format      = "raw"
   name               = "terraform-%d"
   slug               = "terra-test-slug"
   user_data_handling = "extend-cloud-config"
@@ -341,7 +333,6 @@ func customImageConfig_changed(name string, imageDownloadURL string, rInt int) s
 	return fmt.Sprintf(`
 resource "cloudscale_custom_image" "%s" {
   import_url         = "%s"
-  import_source_format      = "raw"
   name               = "terraform-%d-renamed"
   slug               = "terra-test-slug-changed"
   user_data_handling = "pass-through"
