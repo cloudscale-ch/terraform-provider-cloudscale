@@ -535,7 +535,7 @@ func multipleSubnetConfig(rInt1 int, rInt2 int, networkIndex int, subnetIndex in
 resource "cloudscale_server" "web-worker01" {
  name = "terraform-%d"
  flavor_slug = "flex-8-4"
- image_slug = "debian-9"
+ image_slug = "%s"
  volume_size_gb = 50
  interfaces {
    type = "private"
@@ -563,5 +563,5 @@ resource "cloudscale_server" "web-worker01" {
    }`, subnetIndex, subnetIndex)
 	}
 
-	return subnetConfig_baseline(2, rInt1) + fmt.Sprintf(template, rInt2, networkTemplate, addressTemplate)
+	return subnetConfig_baseline(2, rInt1) + fmt.Sprintf(template, rInt2, DefaultImageSlug, networkTemplate, addressTemplate)
 }

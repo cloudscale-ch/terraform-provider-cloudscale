@@ -18,7 +18,7 @@ resource "cloudscale_server" "fixed" {
   name            = "fix"
   zone_slug       = "lpg1"
   flavor_slug     = "flex-4-1"
-  image_slug      = "debian-9"
+  image_slug      = "debian-11"
   interfaces      {
     type          = "public"
   }
