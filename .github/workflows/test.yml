@@ -13,6 +13,8 @@ on:
   # change.
   schedule:
     - cron: '44 4 * * *'
+  # Allow manual execution through the UI by collaborators
+  workflow_dispatch:
 jobs:
   # ensure the code builds...
   build:
