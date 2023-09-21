@@ -1,3 +1,6 @@
+## 4.2.1
+ * Update go dependencies.
+
 ## 4.2.0
  * Support for cloudscale.ch [Loads Balancers](https://www.cloudscale.ch/en/api/v1#load-balancers).
  * Ignore `import_source_format` as it has been deprecated in the cloudscale.ch API.
