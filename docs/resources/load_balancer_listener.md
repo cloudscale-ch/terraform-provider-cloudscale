@@ -37,7 +37,7 @@ resource "cloudscale_load_balancer_listener" "lb1-listener" {
 The following arguments are supported when creating new load balancer listener:
 
 * `name` - (Required) Name of the new load balancer listener.
-* `pool_uuid` - (Required) The pool of the listener.
+* `pool_uuid` - (Optional/Required depending on protocol) The pool of the listener.
 * `protocol` - (Required) The protocol used for receiving traffic. Options include `"tcp"`.
 * `protocol_port` - (Required) The port on which traffic is received.
 * `timeout_client_data_ms` - (Optional) Client inactivity timeout in milliseconds.

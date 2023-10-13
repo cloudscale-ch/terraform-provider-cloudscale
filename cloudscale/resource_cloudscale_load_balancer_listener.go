@@ -43,8 +43,8 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"pool_uuid": {
 			Type:     schema.TypeString,
-			Required: t.isResource(),
-			Optional: t.isDataSource(),
+			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
 		"pool_name": {
@@ -102,9 +102,12 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 
 	opts := &cloudscale.LoadBalancerListenerRequest{
 		Name:         d.Get("name").(string),
-		Pool:         d.Get("pool_uuid").(string),
 		Protocol:     d.Get("protocol").(string),
 		ProtocolPort: d.Get("protocol_port").(int),
+	}
+
+	if attr, ok := d.GetOk("pool_uuid"); ok {
+		opts.Pool = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("timeout_client_data_ms"); ok {
@@ -148,9 +151,15 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	m["id"] = loadbalancerlistener.UUID
 	m["href"] = loadbalancerlistener.HREF
 	m["name"] = loadbalancerlistener.Name
-	m["pool_uuid"] = loadbalancerlistener.Pool.UUID
-	m["pool_name"] = loadbalancerlistener.Pool.Name
-	m["pool_href"] = loadbalancerlistener.Pool.HREF
+	if loadbalancerlistener.Pool != nil {
+		m["pool_uuid"] = loadbalancerlistener.Pool.UUID
+		m["pool_name"] = loadbalancerlistener.Pool.Name
+		m["pool_href"] = loadbalancerlistener.Pool.HREF
+	} else {
+		m["pool_uuid"] = nil
+		m["pool_name"] = nil
+		m["pool_href"] = nil
+	}
 	m["protocol"] = loadbalancerlistener.Protocol
 	m["protocol_port"] = loadbalancerlistener.ProtocolPort
 	m["timeout_client_data_ms"] = loadbalancerlistener.TimeoutClientDataMS
