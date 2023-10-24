@@ -1,3 +1,6 @@
+## 4.2.2
+* Update go dependencies.
+
 ## 4.2.1
  * Update go dependencies.
 
