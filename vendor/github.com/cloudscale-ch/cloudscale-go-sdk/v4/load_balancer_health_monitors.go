@@ -13,6 +13,7 @@ type LoadBalancerHealthMonitor struct {
 	HREF          string                         `json:"href,omitempty"`
 	UUID          string                         `json:"uuid,omitempty"`
 	Pool          LoadBalancerPoolStub           `json:"pool,omitempty"`
+	LoadBalancer  LoadBalancerStub               `json:"load_balancer,omitempty"`
 	DelayS        int                            `json:"delay_s,omitempty"`
 	TimeoutS      int                            `json:"timeout_s,omitempty"`
 	UpThreshold   int                            `json:"up_threshold,omitempty"`

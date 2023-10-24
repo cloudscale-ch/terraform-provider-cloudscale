@@ -2,7 +2,7 @@ TEST?=$$(go list ./... |grep -v 'vendor')
 VERSION ?= $(shell cat VERSION)
 
 test:
-	go test $(TEST) $(TESTARGS) -timeout 30s
+	go test -v $(TEST) $(TESTARGS) -timeout 30s
 
 integration:
 	go clean -testcache  # Force retesting of code
