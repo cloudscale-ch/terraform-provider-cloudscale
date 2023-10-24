@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v3"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v4"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )

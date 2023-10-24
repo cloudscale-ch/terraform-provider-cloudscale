@@ -52,6 +52,7 @@ To create a new release, please do the following:
  * Merge all feature branches into a release branch
  * Checkout the release branch
  * Run `make NEW_VERSION=v1.x.x bump-version`
+   * For a new major release, follow [these instructions](https://go.dev/doc/modules/major-version)
  * Commit the changes
  * Merge the release branch into master
  * Create a [new release](https://github.com/cloudscale-ch/cloudscale-go-sdk/releases/new) on GitHub.

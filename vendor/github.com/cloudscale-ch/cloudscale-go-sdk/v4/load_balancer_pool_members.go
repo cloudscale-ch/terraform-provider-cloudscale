@@ -18,6 +18,7 @@ type LoadBalancerPoolMember struct {
 	Enabled       bool                 `json:"enabled,omitempty"`
 	CreatedAt     time.Time            `json:"created_at,omitempty"`
 	Pool          LoadBalancerPoolStub `json:"pool,omitempty"`
+	LoadBalancer  LoadBalancerStub     `json:"load_balancer,omitempty"`
 	ProtocolPort  int                  `json:"protocol_port,omitempty"`
 	MonitorPort   int                  `json:"monitor_port,omitempty"`
 	Address       string               `json:"address,omitempty"`
