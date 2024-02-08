@@ -1,3 +1,6 @@
+## 4.2.3
+* Update go dependencies.
+
 ## 4.2.2
 * Update go dependencies.
 
@@ -21,7 +24,7 @@
  * Update to latest terraform-plugin-sdk to ensure compatibility with Terraform v1.1.x (#58)
  * Update to latest cloudscale-go-sdk (#58)
  * Update to latest terraform-plugin-sdk (#62)
- * :warning: **Breaking Change**: To be consistent with cloudscale.ch's other tools, the 
+ * :warning: **Breaking Change**: To be consistent with cloudscale.ch's other tools, the
     environment variable `CLOUDSCALE_TOKEN` has been renamed to `CLOUDSCALE_API_TOKEN`.
     Please adapt your environment accordingly. If you are configuring the token through
     some other means than an environment variable, you are not affected by this change.
@@ -47,7 +50,7 @@
 * Upgrade terraform-plugin-sdk to v2 (#43)
 * Add Support for Custom Images (#44)
 * Add Options for SSH Host Keys (#45)
-* :warning: **Breaking Change**: Terraform versions older than 0.12 are no longer supported. 
+* :warning: **Breaking Change**: Terraform versions older than 0.12 are no longer supported.
 
 ## 2.3.0 (October 19, 2020)
 * Allow creating Global Floating IPs (#34, #36)
