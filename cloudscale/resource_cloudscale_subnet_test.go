@@ -188,6 +188,7 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 
 	rInt1 := acctest.RandInt()
 	rInt2 := acctest.RandInt()
+	uniqueInt := 2
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -195,7 +196,7 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: multipleSubnetConfig(rInt1, rInt2, 0, 0),
+				Config: multipleSubnetConfig(rInt1, rInt2, 0, 0, uniqueInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.0", &networks[0]),
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.1", &networks[1]),
@@ -210,12 +211,12 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.type", "private"),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-0", rInt1)),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.#", "1"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "192.168.0.124"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "192.168.0.0/24"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "10.2.0.124"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "10.2.0.0/24"),
 				),
 			},
 			{
-				Config: multipleSubnetConfig(rInt1, rInt2, 1, 1),
+				Config: multipleSubnetConfig(rInt1, rInt2, 1, 1, uniqueInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.0", &networks[0]),
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.1", &networks[1]),
@@ -230,12 +231,12 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.type", "private"),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-1", rInt1)),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.#", "1"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "192.168.1.124"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "192.168.1.0/24"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "10.2.1.124"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "10.2.1.0/24"),
 				),
 			},
 			{
-				Config: multipleSubnetConfig(rInt1, rInt2, 0, -100),
+				Config: multipleSubnetConfig(rInt1, rInt2, 0, -100, uniqueInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.0", &networks[0]),
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.1", &networks[1]),
@@ -251,11 +252,11 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-0", rInt1)),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.#", "1"),
 					resource.TestCheckResourceAttrSet("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "192.168.0.0/24"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "10.2.0.0/24"),
 				),
 			},
 			{
-				Config: multipleSubnetConfig(rInt1, rInt2, 0, 0),
+				Config: multipleSubnetConfig(rInt1, rInt2, 0, 0, uniqueInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.0", &networks[0]),
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.1", &networks[1]),
@@ -270,12 +271,12 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.type", "private"),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-0", rInt1)),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.#", "1"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "192.168.0.124"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "192.168.0.0/24"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "10.2.0.124"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "10.2.0.0/24"),
 				),
 			},
 			{
-				Config: multipleSubnetConfig(rInt1, rInt2, -100, 1),
+				Config: multipleSubnetConfig(rInt1, rInt2, -100, 1, uniqueInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.0", &networks[0]),
 					testAccCheckCloudscaleNetworkExists("cloudscale_network.multi-net.1", &networks[1]),
@@ -290,8 +291,8 @@ func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.type", "private"),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.network_name", fmt.Sprintf("terraform-%d-1", rInt1)),
 					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.#", "1"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "192.168.1.124"),
-					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "192.168.1.0/24"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.address", "10.2.1.124"),
+					resource.TestCheckResourceAttr("cloudscale_server.web-worker01", "interfaces.0.addresses.0.subnet_cidr", "10.2.1.0/24"),
 				),
 			},
 		},
@@ -515,7 +516,7 @@ resource "cloudscale_server" "basic" {
 	return fmt.Sprintf(template, rInt, DefaultImageSlug, fixedAddressLine)
 }
 
-func subnetConfig_baseline(count int, rInt int) string {
+func subnetConfig_baseline(count int, rInt int, uniqueSubnetIdentifier int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_network" "multi-net" {
   count = %d
@@ -525,12 +526,12 @@ resource "cloudscale_network" "multi-net" {
 
 resource "cloudscale_subnet" "multi-subnet" {
   count = 2
-  cidr = "192.168.${count.index}.0/24"
+  cidr = "10.%d.${count.index}.0/24"
   network_uuid = cloudscale_network.multi-net[count.index].id
-}`, count, rInt)
+}`, count, rInt, uniqueSubnetIdentifier)
 }
 
-func multipleSubnetConfig(rInt1 int, rInt2 int, networkIndex int, subnetIndex int) string {
+func multipleSubnetConfig(rInt1 int, rInt2 int, networkIndex int, subnetIndex int, uniqueSubnetIdentifier int) string {
 	template := `
 resource "cloudscale_server" "web-worker01" {
  name = "terraform-%d"
@@ -558,10 +559,10 @@ resource "cloudscale_server" "web-worker01" {
 	if subnetIndex >= 0 {
 		addressTemplate = fmt.Sprintf(`
    addresses {
-     address       = "192.168.%d.124"
+     address       = "10.%d.%d.124"
      subnet_uuid   = cloudscale_subnet.multi-subnet[%d].id
-   }`, subnetIndex, subnetIndex)
+   }`, uniqueSubnetIdentifier, subnetIndex, subnetIndex)
 	}
 
-	return subnetConfig_baseline(2, rInt1) + fmt.Sprintf(template, rInt2, DefaultImageSlug, networkTemplate, addressTemplate)
+	return subnetConfig_baseline(2, rInt1, uniqueSubnetIdentifier) + fmt.Sprintf(template, rInt2, DefaultImageSlug, networkTemplate, addressTemplate)
 }

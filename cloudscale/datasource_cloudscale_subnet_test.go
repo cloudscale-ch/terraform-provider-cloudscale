@@ -13,9 +13,10 @@ import (
 func TestAccCloudscaleSubnet_DS_Basic(t *testing.T) {
 	var subnet cloudscale.Subnet
 	rInt := acctest.RandInt()
-	cidr1 := "192.168.0.0/24"
-	cidr2 := "192.168.1.0/24"
-	config := subnetConfig_baseline(2, rInt)
+	uniqueInt := 1
+	cidr1 := fmt.Sprintf("10.%d.0.0/24", uniqueInt)
+	cidr2 := fmt.Sprintf("10.%d.1.0/24", uniqueInt)
+	config := subnetConfig_baseline(2, rInt, uniqueInt)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
