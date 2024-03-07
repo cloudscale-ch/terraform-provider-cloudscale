@@ -223,6 +223,23 @@ func TestAccCloudscaleSubnet_ServerWithPublicAndPrivate(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleSubnet_ValidationError(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      subnetconfigInvalidDnsCombination(rInt),
+				ExpectError: regexp.MustCompile(`Error: Conflicting configuration arguments.*`),
+				Check:       resource.ComposeTestCheckFunc(),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleSubnet_ServerAndMultipleSubnets(t *testing.T) {
 	count := 2
 	networks := make([]cloudscale.Network, count, count)
@@ -538,6 +555,18 @@ resource "cloudscale_subnet" "basic" {
   cidr            = "10.11.12.0/24"
   network_uuid    = cloudscale_network.basic.id
   gateway_address = "10.11.12.10"
+  disable_dns_servers = true
+}
+`)
+}
+
+func subnetconfigInvalidDnsCombination(rInt int) string {
+	return networkconfigMinimal(rInt, false) + "\n" + fmt.Sprintf(`
+resource "cloudscale_subnet" "basic" {
+  cidr            = "10.11.12.0/24"
+  network_uuid    = cloudscale_network.basic.id
+  gateway_address = "10.11.12.10"
+  dns_servers     = ["1.2.3.4", "5.6.7.8", "9.10.11.12"]
   disable_dns_servers = true
 }
 `)

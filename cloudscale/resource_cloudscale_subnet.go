@@ -71,8 +71,9 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 			Computed: true,
 		},
 		"disable_dns_servers": {
-			Type:     schema.TypeBool,
-			Optional: true,
+			Type:          schema.TypeBool,
+			Optional:      true,
+			ConflictsWith: []string{"dns_servers"},
 		},
 		"tags": &TagsSchema,
 	}
