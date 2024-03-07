@@ -70,6 +70,10 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"disable_dns_servers": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
 		"tags": &TagsSchema,
 	}
 	if t.isDataSource() {
@@ -95,12 +99,22 @@ func resourceCloudscaleSubnetCreate(d *schema.ResourceData, meta any) error {
 		opts.GatewayAddress = attr.(string)
 	}
 
-	dnsServers := d.Get("dns_servers").([]any)
-	s := make([]string, len(dnsServers))
-	for i := range dnsServers {
-		s[i] = dnsServers[i].(string)
+	disableDnsServers := d.Get("disable_dns_servers").(bool)
+	if disableDnsServers {
+		opts.DNSServers = &[]string{}
+	} else {
+		if dnsServersRaw, ok := d.GetOk("dns_servers"); ok {
+			dnsServers := dnsServersRaw.([]interface{})
+			dnsServersStr := make([]string, len(dnsServers))
+			for i := range dnsServers {
+				dnsServersStr[i] = dnsServers[i].(string)
+			}
+			opts.DNSServers = &dnsServersStr
+		} else {
+			opts.DNSServers = &[]string{"CLOUDSCALE_DEFAULTS"}
+		}
 	}
-	opts.DNSServers = s
+
 	opts.Tags = CopyTags(d)
 
 	log.Printf("[DEBUG] Subnet create configuration: %#v", opts)
@@ -149,7 +163,7 @@ func updateSubnet(rId GenericResourceIdentifier, meta any, updateRequest *clouds
 func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpdateRequest {
 	requests := make([]*cloudscale.SubnetUpdateRequest, 0)
 
-	for _, attribute := range []string{"gateway_address", "dns_servers", "tags"} {
+	for _, attribute := range []string{"gateway_address", "dns_servers", "tags", "disable_dns_servers"} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
 			opts := &cloudscale.SubnetUpdateRequest{}
@@ -157,13 +171,22 @@ func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpda
 
 			if attribute == "gateway_address" {
 				opts.GatewayAddress = d.Get(attribute).(string)
-			} else if attribute == "dns_servers" {
-				dnsServers := d.Get("dns_servers").([]any)
-				s := make([]string, len(dnsServers))
-				for i := range dnsServers {
-					s[i] = dnsServers[i].(string)
+			} else if attribute == "dns_servers" || attribute == "disable_dns_servers" {
+				disableDnsServers := d.Get("disable_dns_servers").(bool)
+				if disableDnsServers {
+					opts.DNSServers = &[]string{}
+				} else {
+					if dnsServersRaw, ok := d.GetOk("dns_servers"); ok {
+						dnsServers := dnsServersRaw.([]interface{})
+						dnsServersStr := make([]string, len(dnsServers))
+						for i := range dnsServers {
+							dnsServersStr[i] = dnsServers[i].(string)
+						}
+						opts.DNSServers = &dnsServersStr
+					} else {
+						opts.DNSServers = &[]string{"CLOUDSCALE_DEFAULTS"}
+					}
 				}
-				opts.DNSServers = s
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}

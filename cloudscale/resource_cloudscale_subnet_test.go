@@ -80,6 +80,35 @@ func TestAccCloudscaleSubnet_AllAttrs(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleSubnet_NoDNS_Create(t *testing.T) {
+	var subnet cloudscale.Subnet
+	var network cloudscale.Network
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: subnetconfigNoDns(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
+					testAccCheckCloudscaleSubnetOnNetwork(&subnet, &network),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "cidr", "10.11.12.0/24"),
+					resource.TestCheckResourceAttrSet("cloudscale_subnet.basic", "network_href"),
+					resource.TestCheckResourceAttrSet("cloudscale_subnet.basic", "network_uuid"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "network_name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "gateway_address", "10.11.12.10"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudscaleSubnet_Update(t *testing.T) {
 	var subnet cloudscale.Subnet
 	var network cloudscale.Network
@@ -122,6 +151,20 @@ func TestAccCloudscaleSubnet_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.0", "1.2.3.4"),
 					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.1", "5.6.7.8"),
 					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.2", "9.10.11.12"),
+				),
+			},
+			{
+				Config: subnetconfigNoDns(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleNetworkExists("cloudscale_network.basic", &network),
+					testAccCheckCloudscaleSubnetExists("cloudscale_subnet.basic", &subnet),
+					testAccCheckCloudscaleSubnetOnNetwork(&subnet, &network),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "cidr", "10.11.12.0/24"),
+					resource.TestCheckResourceAttrSet("cloudscale_subnet.basic", "network_href"),
+					resource.TestCheckResourceAttrSet("cloudscale_subnet.basic", "network_uuid"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "network_name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "gateway_address", "10.11.12.10"),
+					resource.TestCheckResourceAttr("cloudscale_subnet.basic", "dns_servers.#", "0"),
 				),
 			},
 		},
@@ -317,9 +360,10 @@ func TestAccCloudscaleSubnet_import_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "cloudscale_subnet.basic",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "cloudscale_subnet.basic",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"disable_dns_servers"},
 			},
 			{
 				ResourceName:      "cloudscale_subnet.basic",
@@ -484,6 +528,17 @@ resource "cloudscale_subnet" "basic" {
   network_uuid 	  = cloudscale_network.basic.id
   gateway_address = "10.11.12.10"
   dns_servers     = ["1.2.3.4", "5.6.7.8", "9.10.11.12"]
+}
+`)
+}
+
+func subnetconfigNoDns(rInt int) string {
+	return networkconfigMinimal(rInt, false) + "\n" + fmt.Sprintf(`
+resource "cloudscale_subnet" "basic" {
+  cidr            = "10.11.12.0/24"
+  network_uuid    = cloudscale_network.basic.id
+  gateway_address = "10.11.12.10"
+  disable_dns_servers = true
 }
 `)
 }
