@@ -236,6 +236,11 @@ func TestAccCloudscaleSubnet_ValidationError(t *testing.T) {
 				ExpectError: regexp.MustCompile(`Error: Conflicting configuration arguments.*`),
 				Check:       resource.ComposeTestCheckFunc(),
 			},
+			{
+				Config:      subnetconfigInvalidEmptyDnsCombination(rInt),
+				ExpectError: regexp.MustCompile(`Error: Conflicting configuration arguments.*`),
+				Check:       resource.ComposeTestCheckFunc(),
+			},
 		},
 	})
 }
@@ -567,6 +572,18 @@ resource "cloudscale_subnet" "basic" {
   network_uuid    = cloudscale_network.basic.id
   gateway_address = "10.11.12.10"
   dns_servers     = ["1.2.3.4", "5.6.7.8", "9.10.11.12"]
+  disable_dns_servers = true
+}
+`)
+}
+
+func subnetconfigInvalidEmptyDnsCombination(rInt int) string {
+	return networkconfigMinimal(rInt, false) + "\n" + fmt.Sprintf(`
+resource "cloudscale_subnet" "basic" {
+  cidr            = "10.11.12.0/24"
+  network_uuid    = cloudscale_network.basic.id
+  gateway_address = "10.11.12.10"
+  dns_servers     = []
   disable_dns_servers = true
 }
 `)
