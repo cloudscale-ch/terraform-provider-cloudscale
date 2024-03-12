@@ -112,7 +112,7 @@ func resourceCloudscaleSubnetCreate(d *schema.ResourceData, meta any) error {
 			}
 			opts.DNSServers = &dnsServersStr
 		} else {
-			opts.DNSServers = &[]string{"CLOUDSCALE_DEFAULTS"}
+			opts.DNSServers = &cloudscale.UseCloudscaleDefaults
 		}
 	}
 
@@ -185,7 +185,7 @@ func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpda
 						}
 						opts.DNSServers = &dnsServersStr
 					} else {
-						opts.DNSServers = &[]string{"CLOUDSCALE_DEFAULTS"}
+						opts.DNSServers = &cloudscale.UseCloudscaleDefaults
 					}
 				}
 			} else if attribute == "tags" {
