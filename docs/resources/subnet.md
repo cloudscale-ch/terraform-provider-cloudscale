@@ -53,7 +53,7 @@ The following arguments are supported when creating/changing subnets:
 * `cidr` - (Required) The address range in CIDR notation. Must be at least /24.
 * `network_uuid` - (Required) The network of the subnet.
 * `gateway_address` - (Optional) The gateway address of the subnet.
-* `dns_servers` - (Optional) A list of DNS resolver IP addresses, that act as DNS servers. If not defined, default DNS servers are used.
+* `dns_servers` - (Optional) A list of DNS resolver IP addresses, that act as DNS servers. If not defined, default DNS servers are used. Do not explicitly set to an empty list (`dns_servers = []`), use `disable_dns_servers` instead.
 * `disable_dns_servers` - (Optional) If set to true, no DNS servers are set. Can not be used together with `dns_servers`.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
   ```
