@@ -1,3 +1,7 @@
+## 4.3.0
+* Add `disable_dns_servers` to subnet.
+* Update go dependencies.
+
 ## 4.2.3
 * Update go dependencies.
 
