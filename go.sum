@@ -23,8 +23,8 @@ github.com/apparentlymart/go-textseg/v13 v13.0.0/go.mod h1:ZK2fH7c4NqDTLtiYLvIkE
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
-github.com/cloudscale-ch/cloudscale-go-sdk/v4 v4.0.0 h1:sB3uRgv3UVAdnpGM2ZxR6H5XyCbLHLRmaLheq8drRt4=
-github.com/cloudscale-ch/cloudscale-go-sdk/v4 v4.0.0/go.mod h1:FfL+Dw1kbt/iutAP/vGqJV+1nu6azcKkYexjYIswDVw=
+github.com/cloudscale-ch/cloudscale-go-sdk/v5 v5.0.0 h1:PXeYDTsdVLgj38tG3SSfnVitHyaNh1ns4gnQoEiqLfQ=
+github.com/cloudscale-ch/cloudscale-go-sdk/v5 v5.0.0/go.mod h1:FWcNOS2zMifUA8noE/xjsiQTWLvW0SKtuL1Vy7M6RM8=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

@@ -9,7 +9,9 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/v13/textseg
 # github.com/cloudscale-ch/cloudscale-go-sdk/v4 v4.0.0
 ## explicit; go 1.18
-github.com/cloudscale-ch/cloudscale-go-sdk/v4
+# github.com/cloudscale-ch/cloudscale-go-sdk/v5 v5.0.0
+## explicit; go 1.18
+github.com/cloudscale-ch/cloudscale-go-sdk/v5
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
