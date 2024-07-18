@@ -15,8 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var smallImageDownloadURL string = "https://at-images.objects.lpg.cloudscale.ch/alpine"
+var baseDownLoadURL = "https://at-images.objects.lpg.cloudscale.ch/alpine"
+var smallImageDownloadURL string = baseDownLoadURL + ".raw"
+var smallImageQCOW2DownloadURL string = baseDownLoadURL + ".qcow2"
 var bootImageDownloadURL string = "https://acc-test-images.objects.lpg.cloudscale.ch/debian-10-openstack-amd64.raw"
+
+var raw = "raw"
+var qcow2 = "qcow2"
 
 func init() {
 	resource.AddTestSweepers("cloudscale_custom_image", &resource.Sweeper{
@@ -66,7 +71,7 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt),
+				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt, &raw),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
 					testAccCheckCloudscaleCustomImageImportExistsForImage(&customImage, &customImageImport),
@@ -83,6 +88,8 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "slug", "terra-test-slug"),
 					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "import_source_format", "raw"),
+					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "extend-cloud-config"),
@@ -90,6 +97,50 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 						"cloudscale_custom_image.basic", "firmware_type", "bios"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "zone_slugs.#", "2"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "checksums.md5", md5sum),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "checksums.sha256", sha256sum),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleCustomImage_ImportQCow2(t *testing.T) {
+	var customImage cloudscale.CustomImage
+	var customImageImport cloudscale.CustomImageImport
+
+	rInt := acctest.RandInt()
+	md5sum := getExpectedChecksum("md5", t)
+	sha256sum := getExpectedChecksum("sha256", t)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: customImageConfig_config("basic", smallImageQCOW2DownloadURL, rInt, &qcow2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
+					testAccCheckCloudscaleCustomImageImportExistsForImage(&customImage, &customImageImport),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "href", &customImage.HREF),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "id", &customImage.UUID),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "import_href", &customImageImport.HREF),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "import_uuid", &customImageImport.UUID),
+					resource.TestCheckResourceAttrPtr("cloudscale_custom_image.basic", "import_status", &customImageImport.Status),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "import_status", "success"),
+					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "import_uuid"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "import_source_format", "qcow2"),
+					// It is important to check verify the checksums, otherwise cannot be sure that qcow2
+					// was correctly imported
+					resource.TestCheckResourceAttr(
+						"cloudscale_custom_image.basic", "import_url", smallImageQCOW2DownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "checksums.md5", md5sum),
 					resource.TestCheckResourceAttr(
@@ -113,7 +164,7 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt),
+				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
 					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "href"),
@@ -126,6 +177,8 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 						"cloudscale_custom_image.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "slug", "terra-test-slug"),
+					resource.TestCheckNoResourceAttr(
+						"cloudscale_custom_image.basic", "import_source_format"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
 					resource.TestCheckResourceAttr(
@@ -141,7 +194,7 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 				),
 			},
 			{
-				Config: customImageConfig_changed("basic", smallImageDownloadURL, rInt),
+				Config: customImageConfig_changed("basic", smallImageDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
 					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "href"),
@@ -154,6 +207,8 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 						"cloudscale_custom_image.basic", "name", fmt.Sprintf("terraform-%d-renamed", rInt)),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "slug", "terra-test-slug-changed"),
+					resource.TestCheckNoResourceAttr(
+						"cloudscale_custom_image.basic", "import_source_format"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
 					resource.TestCheckResourceAttr(
@@ -179,7 +234,7 @@ func TestAccCloudscaleCustomImage_tags(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt),
+				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "tags.%", "2"),
@@ -191,7 +246,7 @@ func TestAccCloudscaleCustomImage_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt),
+				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "tags.%", "0"),
@@ -199,7 +254,7 @@ func TestAccCloudscaleCustomImage_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt),
+				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "tags.%", "2"),
@@ -226,7 +281,7 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: customImageConfig_config("debian", bootImageDownloadURL, rInt1),
+				Config: customImageConfig_config("debian", bootImageDownloadURL, rInt1, nil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.debian", &customImage),
 					resource.TestCheckResourceAttr(
@@ -234,7 +289,7 @@ func TestAccCloudscaleCustomImage_Boot(t *testing.T) {
 				),
 			},
 			{
-				Config: customImageConfig_config("debian", bootImageDownloadURL, rInt1) +
+				Config: customImageConfig_config("debian", bootImageDownloadURL, rInt1, nil) +
 					"\n" + serverConfig_customImage("debian-server", "debian", rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.debian", &customImage),
@@ -302,22 +357,34 @@ func testAccCheckCloudscaleCustomImageDestroy(s *terraform.State) error {
 	return nil
 }
 
-func customImageConfig_config(name string, imageDownloadURL string, rInt int) string {
+func customImageConfig_config(name string, imageDownloadURL string, rInt int, importSourceFormat *string) string {
+	importSourceFormatLine := ""
+	if importSourceFormat != nil {
+		importSourceFormatLine = fmt.Sprintf("import_source_format      = \"%s\"", *importSourceFormat)
+	}
+
 	return fmt.Sprintf(`
 resource "cloudscale_custom_image" "%s" {
   import_url         = "%s"
+  %s 
   name               = "terraform-%d"
   slug               = "terra-test-slug"
   user_data_handling = "extend-cloud-config"
   firmware_type      = "bios"
   zone_slugs         = ["lpg1", "rma1"]
-}`, name, imageDownloadURL, rInt)
+}`, name, imageDownloadURL, importSourceFormatLine, rInt)
 }
 
-func customImageConfig_tags(name string, imageDownloadURL string, rInt int) string {
+func customImageConfig_tags(name string, imageDownloadURL string, rInt int, importSourceFormat *string) string {
+	importSourceFormatLine := ""
+	if importSourceFormat != nil {
+		importSourceFormatLine = fmt.Sprintf("import_source_format      = \"%s\"", *importSourceFormat)
+	}
+
 	return fmt.Sprintf(`
 resource "cloudscale_custom_image" "%s" {
   import_url         = "%s"
+  %s 
   name               = "terraform-%d"
   slug               = "terra-test-slug"
   user_data_handling = "extend-cloud-config"
@@ -326,18 +393,24 @@ resource "cloudscale_custom_image" "%s" {
     my-foo = "foo"
     my-bar = "bar"
   }
-}`, name, imageDownloadURL, rInt)
+}`, name, imageDownloadURL, importSourceFormatLine, rInt)
 }
 
-func customImageConfig_changed(name string, imageDownloadURL string, rInt int) string {
+func customImageConfig_changed(name string, imageDownloadURL string, rInt int, importSourceFormat *string) string {
+	importSourceFormatLine := ""
+	if importSourceFormat != nil {
+		importSourceFormatLine = fmt.Sprintf("import_source_format      = \"%s\"", *importSourceFormat)
+	}
+
 	return fmt.Sprintf(`
 resource "cloudscale_custom_image" "%s" {
   import_url         = "%s"
+  %s 
   name               = "terraform-%d-renamed"
   slug               = "terra-test-slug-changed"
   user_data_handling = "pass-through"
   zone_slugs         = ["lpg1", "rma1"]
-}`, name, imageDownloadURL, rInt)
+}`, name, imageDownloadURL, importSourceFormatLine, rInt)
 }
 
 func serverConfig_customImage(name string, imageName string, rInt int) string {
@@ -352,7 +425,7 @@ resource "cloudscale_server" "%s" {
 }
 
 func getExpectedChecksum(algo string, t *testing.T) string {
-	checksumURL := fmt.Sprintf("%s.%s", smallImageDownloadURL, algo)
+	checksumURL := fmt.Sprintf("%s.%s", baseDownLoadURL, algo)
 	resp, err := http.Get(checksumURL)
 	if err != nil {
 		t.Fatal(err)
