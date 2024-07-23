@@ -75,10 +75,13 @@ provider_installation {
 }
 ```
 
-To cros-compile a local build, run:
+To cross-compile a local build, run:
 
 ```
-goreleaser release --snapshot --rm-dist
+# goreleaser v1.x
+docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v1.26.2 release --snapshot --rm-dist --skip-sign
+# goreleaser v2.x
+docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.1.0 release --snapshot --clean --skip=publish,sign
 ```
 
 Releasing the Provider
