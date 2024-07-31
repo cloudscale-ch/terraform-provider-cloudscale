@@ -95,7 +95,7 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 		m["import_source_format"] = &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
-			ForceNew: false,
+			ForceNew: true,
 		}
 		m["import_uuid"] = &schema.Schema{
 			Type:     schema.TypeString,
@@ -124,8 +124,7 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta any) error {
 		Name:             d.Get("name").(string),
 		Slug:             d.Get("slug").(string),
 		UserDataHandling: d.Get("user_data_handling").(string),
-		// import_source_format is intentionally ignored, as it is also ignored by the upstream api
-		Zones: nil,
+		Zones:            nil,
 	}
 	opts.Tags = CopyTags(d)
 	zoneSlugs := d.Get("zone_slugs").(*schema.Set).List()
@@ -137,6 +136,9 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta any) error {
 
 	if attr, ok := d.GetOk("firmware_type"); ok {
 		opts.FirmwareType = attr.(string)
+	}
+	if attr, ok := d.GetOk("import_source_format"); ok {
+		opts.SourceFormat = attr.(string)
 	}
 
 	log.Printf("[DEBUG] CustomImage create configuration: %#v", opts)
