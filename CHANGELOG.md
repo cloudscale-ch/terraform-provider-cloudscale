@@ -1,3 +1,9 @@
+## 4.4.0
+* Use `import_source_format` again. This must be specified to import custom images in formats other than `raw`. 
+  See also [our blog](https://www.cloudscale.ch/en/news/2024/07/31/securing-qcow2-image-imports). 
+  There is no need to change this for existing imported images.
+* Update go dependencies.
+
 ## 4.3.0
 * Add `disable_dns_servers` to subnet.
 * Update go dependencies.
