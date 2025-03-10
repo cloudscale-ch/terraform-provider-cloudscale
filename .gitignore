@@ -1,2 +1,3 @@
 dist/
 vendor
+terraform-provider-cloudscale
