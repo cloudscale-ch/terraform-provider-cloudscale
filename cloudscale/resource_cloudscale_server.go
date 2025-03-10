@@ -26,6 +26,7 @@ func resourceCloudscaleServer() *schema.Resource {
 		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceCloudscaleServerImport,
@@ -555,6 +556,10 @@ func readServer(rId GenericResourceIdentifier, meta any) (*cloudscale.Server, er
 }
 
 func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
+	timeout := d.Timeout(schema.TimeoutUpdate)
+	startTime := time.Now()
+	remainingTime := timeout - time.Since(startTime)
+
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 
@@ -594,7 +599,8 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 				return fmt.Errorf("Error updating server (%s), %s", server.Status, err)
 			}
 
-			_, err = waitForStatus([]string{"changing", "running"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
+			remainingTime = timeout - time.Since(startTime)
+			_, err = waitForStatus([]string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
 			if err != nil {
 				return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
 			}
@@ -606,7 +612,8 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 		if err != nil {
 			return fmt.Errorf("Error scaling the Server (%s) status (%s) ", id, err)
 		}
-		_, err = waitForStatus([]string{"changing"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
+		remainingTime = timeout - time.Since(startTime)
+		_, err = waitForStatus([]string{"changing"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
 
 		// Signal that we want to start the server again
 		if wantedStatus == "running" {
@@ -627,10 +634,11 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 			return fmt.Errorf("Status (%s) not supported", wantedStatus)
 		}
 
+		remainingTime = timeout - time.Since(startTime)
 		if wantedStatus == "stopped" {
-			_, err = waitForStatus([]string{"changing", "running"}, "stopped", nil, newServerRefreshFunc(d, "status", meta))
+			_, err = waitForStatus([]string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
 		} else {
-			_, err = waitForStatus([]string{"changing", "stopped"}, "running", nil, newServerRefreshFunc(d, "status", meta))
+			_, err = waitForStatus([]string{"changing", "stopped"}, "running", &remainingTime, newServerRefreshFunc(d, "status", meta))
 		}
 
 		if err != nil {
