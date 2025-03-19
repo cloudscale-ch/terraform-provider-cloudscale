@@ -40,7 +40,7 @@ $ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
 In order to upgrade the `cloudscale-go-sdk`.
 
 ```sh
-go get -u github.com/cloudscale-ch/cloudscale-go-sdk
+go get -u github.com/cloudscale-ch/cloudscale-go-sdk/v5
 go mod tidy
 ```
 

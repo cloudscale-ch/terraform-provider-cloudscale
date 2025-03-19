@@ -1,17 +1,20 @@
 module github.com/terraform-providers/terraform-provider-cloudscale
 
-go 1.18
+go 1.23.0
+
+toolchain go1.23.4
 
 require (
-	github.com/cloudscale-ch/cloudscale-go-sdk/v5 v5.0.1
+	github.com/cloudscale-ch/cloudscale-go-sdk/v5 v5.1.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.16.0
-	golang.org/x/oauth2 v0.7.0
+	golang.org/x/oauth2 v0.28.0
 )
 
 require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
