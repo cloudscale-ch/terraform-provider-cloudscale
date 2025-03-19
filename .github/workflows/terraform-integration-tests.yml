@@ -35,7 +35,7 @@ jobs:
 
     - name: Build
       run: |
-        go build -mod=vendor -v .
+        go build -v .
 
   # run acceptance tests in a matrix with Terraform core versions
   test:
@@ -82,4 +82,4 @@ jobs:
       if: env.CLOUDSCALE_API_TOKEN != null
 
       run: |
-        go test -mod=vendor ./... -v $TESTARGS -timeout 120m
+        go test ./... -v $TESTARGS -timeout 120m
