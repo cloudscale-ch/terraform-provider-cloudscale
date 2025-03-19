@@ -31,7 +31,7 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 $ make testacc
 ```
 
-In order to run a subset of the tests:
+To run a subset of the tests:
 
 ``` sh
 $ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
@@ -45,18 +45,27 @@ go mod tidy
 ```
 
 
-Use the following commands to switch to a local version of the go-sdk and back:
+Use the following commands to switch to a local version of the go-sdk:
 ```sh
 go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=../cloudscale-go-sdk/"
 go mod tidy
 git commit -m "drop: Use local version of cloudscale-go-sdk"
 ```
+
+Or use the following command to pin to a specific commit from GitHub:
+```sh
+go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=github.com/cloudscale-ch/cloudscale-go-sdk/v4@<commit-hash>"
+go mod tidy
+git commit -m "drop: Pin specific commit of cloudscale-go-sdk"
+```
+
+And finally, to switch back: 
 ```sh
 go mod edit -dropreplace "github.com/cloudscale-ch/cloudscale-go-sdk/v4"
 go mod tidy
 ```
 
-To test unreleased driver versions locally add the following to your `~/.terraformrc`
+To test unreleased driver versions, locally add the following to your `~/.terraformrc`
 
 ```hcl
 provider_installation {
