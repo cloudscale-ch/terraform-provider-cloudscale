@@ -59,15 +59,7 @@ provider_installation {
 
 *Remember to replace `[your-username]` with your actual username.*
 
-### 3. Generate or Update Documentation
-
-Update the documentation by running:
-
-```sh
-go generate
-```
-
-### 4. Running Acceptance Tests
+### 3. Running Acceptance Tests
 
 Acceptance tests create real resources and might incur costs. They also use a specific version of Terraform (see [Terraform CLI Installation Behaviors](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)).
 
@@ -83,7 +75,7 @@ Acceptance tests create real resources and might incur costs. They also use a sp
   TESTARGS="-run TestAccCloudscaleSubnet" make testacc
   ```
 
-### 5. Upgrading the cloudscale-go-sdk
+### 4. Upgrading the cloudscale-go-sdk
 
 - **Upgrade to the latest version:**
 
@@ -92,7 +84,7 @@ Acceptance tests create real resources and might incur costs. They also use a sp
   go mod tidy
   ```
 
-### 6. Working with Different Versions of the cloudscale-go-sdk
+### 5. Working with Different Versions of the cloudscale-go-sdk
 
 If you want to work with a local version or a specific version of the cloudscale-go-sdk during development, use the
 following commands:
