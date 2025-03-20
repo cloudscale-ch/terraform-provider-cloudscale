@@ -97,10 +97,11 @@ Releasing the Provider
 ---------------------------
 
  1. Ensure the `CHANGELOG.md` is up-to-date.
- 2.  Create a new release [on GitHub](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new).
+ 2. Ensure the `.github/workflows/terraform-integration-tests.yml` tests the 3 most recent Terraform versions.
+ 3. Create a new release [on GitHub](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new).
     Both the tag and release title must follow this pattern: `v<<SEMVER>>`.
     Examples: `v42.43.44` or `v1.33.7-rc.1`.
- 3. It might take a moment until the release appears in the [Terraform registry](https://registry.terraform.io/providers/cloudscale-ch/cloudscale/latest).
+ 4. It might take a moment until the release appears in the [Terraform registry](https://registry.terraform.io/providers/cloudscale-ch/cloudscale/latest).
     You can manually resync the provider when you are logged in to the registry. 
 
 
