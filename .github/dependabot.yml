@@ -7,7 +7,7 @@ updates:
       interval: "daily"
 
   # Check for direct Go Module updates
-  - package-ecosystem: "go:modules"
+  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "daily"
