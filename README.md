@@ -16,7 +16,7 @@ Developing the Provider
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
 
-To compile the provider, run `go install -mod vendor`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 To generate or update documentation, run `go generate`.
 
@@ -31,7 +31,7 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 $ make testacc
 ```
 
-In order to run a subset of the tests:
+To run a subset of the tests:
 
 ``` sh
 $ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
@@ -40,23 +40,32 @@ $ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
 In order to upgrade the `cloudscale-go-sdk`.
 
 ```sh
-go get -u github.com/cloudscale-ch/cloudscale-go-sdk
-go mod vendor
+go get -u github.com/cloudscale-ch/cloudscale-go-sdk/v5
+go mod tidy
 ```
 
 
-Use the following commands to switch to a local version of the go-sdk and back:
+Use the following commands to switch to a local version of the go-sdk:
 ```sh
 go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=../cloudscale-go-sdk/"
-go mod vendor
+go mod tidy
 git commit -m "drop: Use local version of cloudscale-go-sdk"
 ```
+
+Or use the following command to pin to a specific commit from GitHub:
 ```sh
-go mod edit -dropreplace "github.com/cloudscale-ch/cloudscale-go-sdk/v4"
-go mod vendor
+go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=github.com/cloudscale-ch/cloudscale-go-sdk/v4@<commit-hash>"
+go mod tidy
+git commit -m "drop: Pin specific commit of cloudscale-go-sdk"
 ```
 
-To test unreleased driver versions locally add the following to your `~/.terraformrc`
+And finally, to switch back: 
+```sh
+go mod edit -dropreplace "github.com/cloudscale-ch/cloudscale-go-sdk/v4"
+go mod tidy
+```
+
+To test unreleased driver versions, locally add the following to your `~/.terraformrc`
 
 ```hcl
 provider_installation {
