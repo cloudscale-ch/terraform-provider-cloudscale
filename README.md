@@ -4,68 +4,102 @@
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
-## Requirements
+## Using the Provider
 
-- [Terraform](https://www.terraform.io/downloads.html) 0.12 or higher
-- [Go](https://golang.org/doc/install) to build the provider plugin
+For detailed usage instructions and examples, please refer to the official documentation available
+at [Terraform Registry: cloudscale-ch/cloudscale](https://registry.terraform.io/providers/cloudscale-ch/cloudscale/latest).
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
+Before you begin, make sure you have [Go](http://golang.org) installed on your machine.
 
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+### 1. Compile the Provider
 
-To generate or update documentation, run `go generate`.
-
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Notes:*
-
-- Acceptance tests create real resources, and often cost money to run.
-- [See here](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)
-  to understand which version of Terraform is used in your tests.
+Run the following command to compile the provider. The binary will be placed in your `$GOPATH/bin` directory.
 
 ```sh
-$ make testacc
+go install
 ```
 
-To run a subset of the tests:
+To create builds for different platforms, you can use [goreleaser](https://goreleaser.com/):
+
+- **For goreleaser v1.x:**
+
+  ```sh
+  docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v1.26.2 release --snapshot --rm-dist --skip-sign
+  ```
+
+- **For goreleaser v2.x:**
+
+  ```sh
+  docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.1.0 release --snapshot --clean --skip=publish,sign
+  ```
+
+### 2. Generate or Update Documentation
+
+Update the documentation by running:
 
 ```sh
-$ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
+go generate
 ```
 
-In order to upgrade the `cloudscale-go-sdk`.
+### 3. Running Acceptance Tests
 
-```sh
-go get -u github.com/cloudscale-ch/cloudscale-go-sdk/v5
-go mod tidy
-```
+Acceptance tests create real resources and might incur costs. They also use a specific version of Terraform (see [Terraform CLI Installation Behaviors](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)).
 
-Use the following commands to switch to a local version of the go-sdk:
+- **Run all tests:**
 
-```sh
-go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=../cloudscale-go-sdk/"
-go mod tidy
-git commit -m "drop: Use local version of cloudscale-go-sdk"
-```
+  ```sh
+  make testacc
+  ```
 
-Or use the following command to pin to a specific commit from GitHub:
+- **Run a subset of the tests (e.g., tests for subnet):**
 
-```sh
-go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=github.com/cloudscale-ch/cloudscale-go-sdk/v4@<commit-hash>"
-go mod tidy
-git commit -m "drop: Pin specific commit of cloudscale-go-sdk"
-```
+  ```sh
+  TESTARGS="-run TestAccCloudscaleSubnet" make testacc
+  ```
 
-And finally, to switch back:
+### 4. Upgrading the cloudscale-go-sdk
 
-```sh
-go mod edit -dropreplace "github.com/cloudscale-ch/cloudscale-go-sdk/v4"
-go mod tidy
-```
+- **Upgrade to the latest version:**
 
-To test unreleased driver versions, locally add the following to your `~/.terraformrc`
+  ```sh
+  go get -u github.com/cloudscale-ch/cloudscale-go-sdk/v5
+  go mod tidy
+  ```
+
+### 5. Working with Different Versions of the cloudscale-go-sdk
+
+If you want to work with a local version or a specific version of the cloudscale-go-sdk during development, use the
+following commands:
+
+- **Replace with a local version:**
+
+  ```sh
+  go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=../cloudscale-go-sdk/"
+  go mod tidy
+  git commit -m "drop: Use local version of cloudscale-go-sdk"
+  ```
+
+- **Pin to a specific commit:**
+
+  ```sh
+  go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=github.com/cloudscale-ch/cloudscale-go-sdk/v4@<commit-hash>"
+  go mod tidy
+  git commit -m "drop: Pin specific commit of cloudscale-go-sdk"
+  ```
+
+- **Switch back to the upstream version:**
+
+  ```sh
+  go mod edit -dropreplace "github.com/cloudscale-ch/cloudscale-go-sdk/v4"
+  go mod tidy
+  ```
+
+### 6. Testing Unreleased Driver Versions
+
+To test unreleased driver versions, add the following to your `~/.terraformrc` file.
+This configuration directs Terraform to use your local `go/bin` directory for the cloudscale provider:
 
 ```hcl
 provider_installation {
@@ -74,7 +108,7 @@ provider_installation {
   # verifications for this provider and forces Terraform to look for the
   # null provider plugin in the given directory.
   dev_overrides {
-    "cloudscale-ch/cloudscale" = "/Users/alain/go/bin"
+    "cloudscale-ch/cloudscale" = "/Users/[your-username]/go/bin"
   }
 
   # For all other providers, install them directly from their origin provider
@@ -84,14 +118,8 @@ provider_installation {
 }
 ```
 
-To cross-compile a local build, run:
+*Remember to replace `[your-username]` with your actual username.*
 
-```
-# goreleaser v1.x
-docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v1.26.2 release --snapshot --rm-dist --skip-sign
-# goreleaser v2.x
-docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.1.0 release --snapshot --clean --skip=publish,sign
-```
 
 ## Releasing the Provider
 
