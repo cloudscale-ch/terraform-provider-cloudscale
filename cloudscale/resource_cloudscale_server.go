@@ -188,8 +188,8 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Optional: t.isResource(),
-			Computed: true,
+			Default:  "running",
+			Optional: true,
 		},
 		"tags": &TagsSchema,
 		"server_groups": {
