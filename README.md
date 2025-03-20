@@ -13,7 +13,7 @@ at [Terraform Registry: cloudscale-ch/cloudscale](https://registry.terraform.io/
 
 Before you begin, make sure you have [Go](http://golang.org) installed on your machine.
 
-### 1. Compile the Provider
+### Compile the Provider
 
 Run the following command to compile the provider. The binary will be placed in your `$GOPATH/bin` directory.
 
@@ -35,7 +35,7 @@ To create builds for different platforms, you can use [goreleaser](https://gorel
   docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.1.0 release --snapshot --clean --skip=publish,sign
   ```
 
-### 2. Testing Locally Compiled Driver
+### Testing Locally Compiled Driver
 
 To test a locally compiled driver, add the following to your `~/.terraformrc` file.
 This configuration directs Terraform to use your local `go/bin` directory for the cloudscale provider:
@@ -60,7 +60,7 @@ provider_installation {
 
 *Remember to replace `[your-username]` with your actual username.*
 
-### 3. Running Acceptance Tests
+### Running Acceptance Tests
 
 Acceptance tests create real resources and might incur costs. They also use a specific version of Terraform (see [Terraform CLI Installation Behaviors](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)).
 
@@ -76,7 +76,7 @@ Acceptance tests create real resources and might incur costs. They also use a sp
   TESTARGS="-run TestAccCloudscaleSubnet" make testacc
   ```
 
-### 4. Upgrading the cloudscale-go-sdk
+### Upgrading the cloudscale-go-sdk
 
 - **Upgrade to the latest version:**
 
@@ -85,7 +85,7 @@ Acceptance tests create real resources and might incur costs. They also use a sp
   go mod tidy
   ```
 
-### 5. Working with Different Versions of the cloudscale-go-sdk
+### Working with Different Versions of the cloudscale-go-sdk
 
 If you want to work with a local version or a specific version of the cloudscale-go-sdk during development, use the
 following commands:
