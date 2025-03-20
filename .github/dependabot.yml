@@ -5,3 +5,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  # Check for direct Go Module updates
+  - package-ecosystem: "go:modules"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "direct"
