@@ -35,12 +35,13 @@ To create builds for different platforms, you can use [goreleaser](https://gorel
   docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.1.0 release --snapshot --clean --skip=publish,sign
   ```
 
-### 2. Testing Unreleased Driver Versions
+### 2. Testing Locally Compiled Driver
 
-To test unreleased driver versions, add the following to your `~/.terraformrc` file.
+To test a locally compiled driver, add the following to your `~/.terraformrc` file.
 This configuration directs Terraform to use your local `go/bin` directory for the cloudscale provider:
 
 ```hcl
+# Contents of ~/.terraformrc
 provider_installation {
   # Use go/bin as an overridden package directory
   # for the cloudscale-ch/cloudscale provider. This disables the version and checksum
