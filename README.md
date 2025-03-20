@@ -1,18 +1,15 @@
-cloudscale.ch Terraform Provider
-==================
+# cloudscale.ch Terraform Provider
 
 - Website: https://www.terraform.io
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
-Requirements
-------------
+## Requirements
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.12 or higher
--	[Go](https://golang.org/doc/install) to build the provider plugin
+- [Terraform](https://www.terraform.io/downloads.html) 0.12 or higher
+- [Go](https://golang.org/doc/install) to build the provider plugin
 
-Developing the Provider
----------------------------
+## Developing the Provider
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
 
@@ -22,10 +19,11 @@ To generate or update documentation, run `go generate`.
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
 
-*Notes:* 
- * Acceptance tests create real resources, and often cost money to run.
- * [See here](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)
-   to understand which version of Terraform is used in your tests.
+*Notes:*
+
+- Acceptance tests create real resources, and often cost money to run.
+- [See here](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)
+  to understand which version of Terraform is used in your tests.
 
 ```sh
 $ make testacc
@@ -33,7 +31,7 @@ $ make testacc
 
 To run a subset of the tests:
 
-``` sh
+```sh
 $ TESTARGS="-run TestAccCloudscaleSubnet" make testacc
 ```
 
@@ -44,8 +42,8 @@ go get -u github.com/cloudscale-ch/cloudscale-go-sdk/v5
 go mod tidy
 ```
 
-
 Use the following commands to switch to a local version of the go-sdk:
+
 ```sh
 go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=../cloudscale-go-sdk/"
 go mod tidy
@@ -53,13 +51,15 @@ git commit -m "drop: Use local version of cloudscale-go-sdk"
 ```
 
 Or use the following command to pin to a specific commit from GitHub:
+
 ```sh
 go mod edit -replace "github.com/cloudscale-ch/cloudscale-go-sdk/v4=github.com/cloudscale-ch/cloudscale-go-sdk/v4@<commit-hash>"
 go mod tidy
 git commit -m "drop: Pin specific commit of cloudscale-go-sdk"
 ```
 
-And finally, to switch back: 
+And finally, to switch back:
+
 ```sh
 go mod edit -dropreplace "github.com/cloudscale-ch/cloudscale-go-sdk/v4"
 go mod tidy
@@ -93,19 +93,16 @@ docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v1.26.2 re
 docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.1.0 release --snapshot --clean --skip=publish,sign
 ```
 
-Releasing the Provider
----------------------------
+## Releasing the Provider
 
- 1. Ensure the `CHANGELOG.md` is up-to-date.
- 2. Ensure the `.github/workflows/terraform-integration-tests.yml` tests the 3 most recent Terraform versions.
- 3. Create a new release [on GitHub](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new).
-    Both the tag and release title must follow this pattern: `v<<SEMVER>>`.
-    Examples: `v42.43.44` or `v1.33.7-rc.1`.
- 4. It might take a moment until the release appears in the [Terraform registry](https://registry.terraform.io/providers/cloudscale-ch/cloudscale/latest).
-    You can manually resync the provider when you are logged in to the registry. 
+1. Ensure the `CHANGELOG.md` is up-to-date.
+2. Ensure the `.github/workflows/terraform-integration-tests.yml` tests the 3 most recent Terraform versions.
+3. Create a new release [on GitHub](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new).
+   Both the tag and release title must follow this pattern: `v<<SEMVER>>`.
+   Examples: `v42.43.44` or `v1.33.7-rc.1`.
+4. It might take a moment until the release appears in the [Terraform registry](https://registry.terraform.io/providers/cloudscale-ch/cloudscale/latest).
+   You can manually resync the provider when you are logged in to the registry.
 
-
-Developing the Documentation Website
-------------------------------------
+## Developing the Documentation Website
 
 Use the Terraform [doc preview tool](https://registry.terraform.io/tools/doc-preview) to test markdown rendering.
