@@ -188,7 +188,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Default:  "running",
+			Default:  cloudscale.ServerRunning,
 			Optional: true,
 		},
 		"tags": &TagsSchema,
