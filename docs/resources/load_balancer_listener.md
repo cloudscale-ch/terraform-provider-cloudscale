@@ -45,7 +45,7 @@ The following arguments are supported when creating new load balancer listener:
 * `timeout_member_data_ms` - (Optional) Pool member inactivity timeout in milliseconds.
 * `allowed_cidrs` - (Optional) Restrict the allowed source IPs for this listener. `[]` means that any source IP is allowed. If the list is non-empty, traffic from source IPs not included is denied.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
-  ```
+  ```hcl
   tags = {
     foo = "bar"
   }

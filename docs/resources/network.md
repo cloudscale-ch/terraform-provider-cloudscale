@@ -45,7 +45,7 @@ The following arguments are supported when creating/changing networks:
 * `mtu` - (Optional) You can specify the MTU size for the network, defaults to 9000.
 * `auto_create_ipv4_subnet` - (Optional) Automatically create an IPv4 Subnet on the network. Can be `true` (default) or `false`.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
-  ```
+  ```hcl
   tags = {
     foo = "bar"
   }

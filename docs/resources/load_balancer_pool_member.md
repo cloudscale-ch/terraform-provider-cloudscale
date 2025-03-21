@@ -82,7 +82,7 @@ The following arguments are supported when creating new load balancer pool:
 * `address` - (Required) The IP address to which traffic is sent.
 * `subnet_uuid` - (Required) The subnet UUID of the address must be specified here.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
-  ```
+  ```hcl
   tags = {
     foo = "bar"
   }

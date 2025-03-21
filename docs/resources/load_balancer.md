@@ -29,7 +29,7 @@ The following arguments are supported when creating new load balancer:
     * `subnet_uuid` - (Optional) The UUID of the subnet this VIP address should be part of.
     * `address` - (Optional) An VIP address that has been assigned to this load balancer.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
-  ```
+  ```hcl
   tags = {
     foo = "bar"
   }

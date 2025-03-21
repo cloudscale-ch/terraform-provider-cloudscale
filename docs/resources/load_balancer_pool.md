@@ -34,7 +34,7 @@ The following arguments are supported when creating new load balancer pool:
 * `protocol` - (Required) The protocol used for traffic between the load balancer and the pool members. Options include: `"tcp"`, `"proxy"` and `"proxyv2"`.
 * `load_balancer_uuid` - (Required) The load balancer of the pool.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
-  ```
+  ```hcl
   tags = {
     foo = "bar"
   }

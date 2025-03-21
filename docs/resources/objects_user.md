@@ -25,7 +25,7 @@ The following arguments are supported when adding Objects Users:
 
 * `display_name` - (Required) The display name of the Objects User.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
-  ```
+  ```hcl
   tags = {
     foo = "bar"
   }

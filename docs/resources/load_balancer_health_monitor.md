@@ -41,7 +41,7 @@ The following arguments are supported when creating new load balancer health mon
 * `http_host` - (Optional) The server name in the HTTP Host: header used for the check. Requires version to be set to `"1.1"`.
 
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
-  ```
+  ```hcl
   tags = {
     foo = "bar"
   }
