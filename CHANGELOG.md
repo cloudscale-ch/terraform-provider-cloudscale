@@ -1,3 +1,21 @@
+## 5.0.0
+* :warning: **Breaking Change**: The default value for the `status` attribute 
+  of `cloudscale_server` is now `"running"` when no value is provided 
+  (i.e., missing in your .tf file). If your servers are intended to be in
+  a state other than `"running"`, please explicitly set the appropriate state
+  before upgrading to this version.
+* :warning: **Breaking Change**: The default timeout for server changes is 
+  now `1h` instead of `5m`. This change is necessary because changing the 
+  flavor of a GPU server with a scratch disk can take a significant 
+  amount of time if data is moved to a new host during the process. 
+  If you prefer to use the old timeout, you can now add the following 
+  block to your `cloudscale_server` configuration:
+  ```hcl
+  timeouts {
+    update = "5m"
+  }
+* Update go dependencies.
+
 ## 4.4.0
 * Use `import_source_format` again. This must be specified to import custom images in formats other than `raw`. 
   See also [our blog](https://www.cloudscale.ch/en/news/2024/07/31/securing-qcow2-image-imports). 

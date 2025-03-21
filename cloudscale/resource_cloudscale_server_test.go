@@ -162,6 +162,8 @@ func TestAccCloudscaleServer_UpdateStatus(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
+						"cloudscale_server.basic", "status", "running"),
+					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "image_slug", DefaultImageSlug),

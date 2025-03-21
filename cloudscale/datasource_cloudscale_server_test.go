@@ -36,6 +36,8 @@ func TestAccCloudscaleServer_DS_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_server.foo", "name", name1),
 					resource.TestCheckResourceAttr(
+						"data.cloudscale_server.foo", "status", "running"),
+					resource.TestCheckResourceAttr(
 						"data.cloudscale_server.foo", "flavor_slug", "flex-4-1"),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_server.foo", "image_slug", DefaultImageSlug),
