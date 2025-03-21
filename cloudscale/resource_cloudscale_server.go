@@ -26,7 +26,7 @@ func resourceCloudscaleServer() *schema.Resource {
 		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(1 * time.Hour),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceCloudscaleServerImport,
