@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/cloudscale-ch/cloudscale-go-sdk/v5 v5.1.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
-	golang.org/x/oauth2 v0.28.0
+	golang.org/x/oauth2 v0.29.0
 )
 
 require (
