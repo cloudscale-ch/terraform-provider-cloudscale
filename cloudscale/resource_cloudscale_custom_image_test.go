@@ -18,7 +18,7 @@ import (
 var baseDownLoadURL = "https://at-images.objects.lpg.cloudscale.ch/alpine"
 var smallImageDownloadURL string = baseDownLoadURL + ".raw"
 var smallImageQCOW2DownloadURL string = baseDownLoadURL + ".qcow2"
-var bootImageDownloadURL string = "https://acc-test-images.objects.lpg.cloudscale.ch/debian-10-openstack-amd64.raw"
+var bootImageDownloadURL string = "https://acc-test-images.objects.lpg.cloudscale.ch/debian-13-openstack-amd64.raw"
 
 var raw = "raw"
 var qcow2 = "qcow2"
