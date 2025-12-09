@@ -15,9 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var baseDownLoadURL = "https://at-images.objects.lpg.cloudscale.ch/alpine"
-var smallImageDownloadURL string = baseDownLoadURL + ".raw"
-var smallImageQCOW2DownloadURL string = baseDownLoadURL + ".qcow2"
+var smallImageRAWDownloadURL string = "https://at-images.objects.lpg.cloudscale.ch/prod/alpine.raw"
+var smallImageQCOW2DownloadURL string = "https://at-images.objects.lpg.cloudscale.ch/prod/alpine.qcow2"
 var bootImageDownloadURL string = "https://acc-test-images.objects.lpg.cloudscale.ch/debian-13-openstack-amd64.raw"
 
 var raw = "raw"
@@ -62,8 +61,8 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 	var customImageImport cloudscale.CustomImageImport
 
 	rInt := acctest.RandInt()
-	md5sum := getExpectedChecksum("md5", t)
-	sha256sum := getExpectedChecksum("sha256", t)
+	md5sum := getExpectedChecksum(smallImageRAWDownloadURL, "md5", t)
+	sha256sum := getExpectedChecksum(smallImageRAWDownloadURL, "sha256", t)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,7 +70,7 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt, &raw),
+				Config: customImageConfig_config("basic", smallImageRAWDownloadURL, rInt, &raw),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
 					testAccCheckCloudscaleCustomImageImportExistsForImage(&customImage, &customImageImport),
@@ -90,7 +89,7 @@ func TestAccCloudscaleCustomImage_Import(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "import_source_format", "raw"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
+						"cloudscale_custom_image.basic", "import_url", smallImageRAWDownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "extend-cloud-config"),
 					resource.TestCheckResourceAttr(
@@ -112,8 +111,8 @@ func TestAccCloudscaleCustomImage_ImportQCow2(t *testing.T) {
 	var customImageImport cloudscale.CustomImageImport
 
 	rInt := acctest.RandInt()
-	md5sum := getExpectedChecksum("md5", t)
-	sha256sum := getExpectedChecksum("sha256", t)
+	md5sum := getExpectedChecksum(smallImageQCOW2DownloadURL, "md5", t)
+	sha256sum := getExpectedChecksum(smallImageQCOW2DownloadURL, "sha256", t)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -155,8 +154,8 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 	var customImage cloudscale.CustomImage
 
 	rInt := acctest.RandInt()
-	md5sum := getExpectedChecksum("md5", t)
-	sha256sum := getExpectedChecksum("sha256", t)
+	md5sum := getExpectedChecksum(smallImageRAWDownloadURL, "md5", t)
+	sha256sum := getExpectedChecksum(smallImageRAWDownloadURL, "sha256", t)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -164,7 +163,7 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt, nil),
+				Config: customImageConfig_config("basic", smallImageRAWDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
 					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "href"),
@@ -180,7 +179,7 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 					resource.TestCheckNoResourceAttr(
 						"cloudscale_custom_image.basic", "import_source_format"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
+						"cloudscale_custom_image.basic", "import_url", smallImageRAWDownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "extend-cloud-config"),
 					resource.TestCheckResourceAttr(
@@ -194,7 +193,7 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 				),
 			},
 			{
-				Config: customImageConfig_changed("basic", smallImageDownloadURL, rInt, nil),
+				Config: customImageConfig_changed("basic", smallImageRAWDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleCustomImageExists("cloudscale_custom_image.basic", &customImage),
 					resource.TestCheckResourceAttrSet("cloudscale_custom_image.basic", "href"),
@@ -210,7 +209,7 @@ func TestAccCloudscaleCustomImage_Update(t *testing.T) {
 					resource.TestCheckNoResourceAttr(
 						"cloudscale_custom_image.basic", "import_source_format"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_custom_image.basic", "import_url", smallImageDownloadURL),
+						"cloudscale_custom_image.basic", "import_url", smallImageRAWDownloadURL),
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "user_data_handling", "pass-through"),
 					resource.TestCheckResourceAttr(
@@ -234,7 +233,7 @@ func TestAccCloudscaleCustomImage_tags(t *testing.T) {
 		CheckDestroy: testAccCheckCloudscaleCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt, nil),
+				Config: customImageConfig_tags("basic", smallImageRAWDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "tags.%", "2"),
@@ -246,7 +245,7 @@ func TestAccCloudscaleCustomImage_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: customImageConfig_config("basic", smallImageDownloadURL, rInt, nil),
+				Config: customImageConfig_config("basic", smallImageRAWDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "tags.%", "0"),
@@ -254,7 +253,7 @@ func TestAccCloudscaleCustomImage_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: customImageConfig_tags("basic", smallImageDownloadURL, rInt, nil),
+				Config: customImageConfig_tags("basic", smallImageRAWDownloadURL, rInt, nil),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"cloudscale_custom_image.basic", "tags.%", "2"),
@@ -424,8 +423,8 @@ resource "cloudscale_server" "%s" {
 }`, name, imageName, rInt)
 }
 
-func getExpectedChecksum(algo string, t *testing.T) string {
-	checksumURL := fmt.Sprintf("%s.%s", baseDownLoadURL, algo)
+func getExpectedChecksum(url string, algo string, t *testing.T) string {
+	checksumURL := fmt.Sprintf("%s.%s", url, algo)
 	resp, err := http.Get(checksumURL)
 	if err != nil {
 		t.Fatal(err)
@@ -439,5 +438,5 @@ func getExpectedChecksum(algo string, t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	return string(body)
+	return strings.TrimSpace(string(body))
 }
