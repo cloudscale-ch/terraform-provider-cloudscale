@@ -149,5 +149,5 @@ resource "cloudscale_custom_image" "basic" {
   slug               = "terra-${count.index}"
   user_data_handling = "pass-through"
   zone_slugs         = ["lpg1", "rma1"]
-}`, count, smallImageDownloadURL, rInt)
+}`, count, smallImageRAWDownloadURL, rInt)
 }
