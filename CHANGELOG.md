@@ -1,3 +1,8 @@
+## 5.0.1
+* Update go dependencies.
+* Update CI/CD dependencies.
+
+
 ## 5.0.0
 * :warning: **Breaking Change**: The default value for the `status` attribute 
   of `cloudscale_server` is now `"running"` when no value is provided 
