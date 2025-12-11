@@ -3,9 +3,10 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 )
 
 const listenerHumanName = "load balancer listener"
@@ -125,7 +126,7 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 	for i := range allowedCIDRs {
 		s[i] = allowedCIDRs[i].(string)
 	}
-	opts.AllowedCIDRs = s
+	opts.AllowedCIDRs = &s
 
 	opts.Tags = CopyTags(d)
 
@@ -212,7 +213,7 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 				for i := range allowedCIDRs {
 					s[i] = allowedCIDRs[i].(string)
 				}
-				opts.AllowedCIDRs = s
+				opts.AllowedCIDRs = &s
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
