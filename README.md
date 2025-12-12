@@ -21,19 +21,12 @@ Run the following command to compile the provider. The binary will be placed in 
 go install
 ```
 
-To create builds for different platforms, you can use [goreleaser](https://goreleaser.com/):
+To create builds for different platforms, you can use [goreleaser](https://goreleaser.com/), for example
+using Docker:
 
-- **For goreleaser v1.x:**
-
-  ```sh
-  docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v1.26.2 release --snapshot --rm-dist --skip-sign
-  ```
-
-- **For goreleaser v2.x:**
-
-  ```sh
-  docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.1.0 release --snapshot --clean --skip=publish,sign
-  ```
+```sh
+docker run -it --rm -v $PWD:/app --workdir=/app goreleaser/goreleaser:v2.13.1 release --snapshot --skip=publish --skip=sign --clean
+```
 
 ### Testing Locally Compiled Driver
 
