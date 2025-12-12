@@ -33,7 +33,7 @@ jobs:
           cache: false
       # 1. Run snapshot build on everything except tags (verifies build without publishing/signing)
       -
-        name: Run GoReleaser
+        name: Run GoReleaser (snapshot build)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -53,7 +53,7 @@ jobs:
 
       # 3. Publish Release only on Tagged Releases
       -
-        name: Run GoReleaser
+        name: Run GoReleaser (release build)
         if: startsWith(github.ref, 'refs/tags/')
         uses: goreleaser/goreleaser-action@v6
         with:
