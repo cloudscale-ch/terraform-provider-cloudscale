@@ -1,7 +1,7 @@
 ## 5.0.1
 * Update go dependencies.
 * Update CI/CD dependencies.
-* Do no longer build on 32-bit ARM build target
+* Do no longer build for Windows 32-bit ARM build target.
 
 
 ## 5.0.0
