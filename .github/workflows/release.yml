@@ -38,7 +38,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           # 'latest', 'nightly', or a semver
-          version: '~> v1'
+          version: '~> v2'
           args: release --snapshot --skip=publish --skip=sign --clean
 
       # 2. Import GPG key only for Tagged Releases
@@ -58,7 +58,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           # 'latest', 'nightly', or a semver
-          version: '~> v1'
+          version: '~> v2'
           args: release --rm-dist
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
