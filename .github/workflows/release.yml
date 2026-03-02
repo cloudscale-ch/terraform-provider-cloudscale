@@ -44,7 +44,7 @@ jobs:
       # 2. Import GPG key only for Tagged Releases
       -
         name: Import GPG key
-        uses:  crazy-max/ghaction-import-gpg@v6
+        uses:  crazy-max/ghaction-import-gpg@v7
         if: startsWith(github.ref, 'refs/tags/')
         id: import_gpg
         with:
