@@ -44,7 +44,7 @@ func TestAccCloudscaleServer_DS_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_server.foo", "interfaces.0.type", "public"),
 					resource.TestCheckResourceAttr(
-						"data.cloudscale_server.foo", "ssh_host_keys.#", "4"),
+						"data.cloudscale_server.foo", "ssh_host_keys.#", "3"),
 					testAccCheckServerIp("data.cloudscale_server.foo"),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_server.foo", "zone_slug", "rma1"),
