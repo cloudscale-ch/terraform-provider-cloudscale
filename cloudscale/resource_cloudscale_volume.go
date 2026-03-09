@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v6"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -78,7 +78,7 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
-	opts := &cloudscale.VolumeRequest{
+	opts := &cloudscale.VolumeCreateRequest{
 		Name:   d.Get("name").(string),
 		SizeGB: d.Get("size_gb").(int),
 		Type:   d.Get("type").(string),
@@ -134,18 +134,18 @@ func readVolume(rId GenericResourceIdentifier, meta any) (*cloudscale.Volume, er
 	return client.Volumes.Get(context.Background(), rId.Id)
 }
 
-func updateVolume(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeRequest) error {
+func updateVolume(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
 	return client.Volumes.Update(context.Background(), rId.Id, updateRequest)
 }
 
-func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeRequest {
-	requests := make([]*cloudscale.VolumeRequest, 0)
+func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeUpdateRequest {
+	requests := make([]*cloudscale.VolumeUpdateRequest, 0)
 
 	for _, attribute := range []string{"name", "size_gb", "server_uuids", "tags"} {
 		if d.HasChange(attribute) {
 			log.Printf("[INFO] Attribute %s changed", attribute)
-			opts := &cloudscale.VolumeRequest{}
+			opts := &cloudscale.VolumeUpdateRequest{}
 			requests = append(requests, opts)
 
 			if attribute == "server_uuids" {
