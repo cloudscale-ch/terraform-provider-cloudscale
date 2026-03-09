@@ -1,6 +1,6 @@
 module github.com/terraform-providers/terraform-provider-cloudscale
 
-go 1.24.0
+go 1.26.1
 
 require (
 	github.com/cloudscale-ch/cloudscale-go-sdk/v7 v7.0.0
