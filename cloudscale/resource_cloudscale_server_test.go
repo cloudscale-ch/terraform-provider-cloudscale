@@ -9,13 +9,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v6"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-const DefaultImageSlug = "debian-11"
+const DefaultImageSlug = "debian-13"
 
 func init() {
 	resource.AddTestSweepers("cloudscale_server", &resource.Sweeper{
@@ -74,7 +74,7 @@ func TestAccCloudscaleServer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "interfaces.0.type", "public"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "ssh_host_keys.#", "4"),
+						"cloudscale_server.basic", "ssh_host_keys.#", "3"),
 					testAccCheckServerIp("cloudscale_server.basic"),
 				),
 			},
@@ -106,7 +106,7 @@ func TestAccCloudscaleServer_Basic_stopped(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"cloudscale_server.basic", "status", "stopped"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_server.basic", "ssh_host_keys.#", "4"),
+						"cloudscale_server.basic", "ssh_host_keys.#", "3"),
 				),
 			},
 		},

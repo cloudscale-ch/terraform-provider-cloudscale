@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v6"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -573,7 +573,7 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 	if d.HasChange("volume_size_gb") {
 		// The root volume is the first volume.
 		volumeUUID := d.Get("volumes.0.uuid").(string)
-		opts := &cloudscale.VolumeRequest{SizeGB: d.Get("volume_size_gb").(int)}
+		opts := &cloudscale.VolumeUpdateRequest{SizeGB: d.Get("volume_size_gb").(int)}
 		err := client.Volumes.Update(context.Background(), volumeUUID, opts)
 		if err != nil {
 			return fmt.Errorf("Error scaling the Volume (%s) status (%s) ", volumeUUID, err)

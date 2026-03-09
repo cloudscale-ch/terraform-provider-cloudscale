@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v6"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -489,7 +489,7 @@ resource "cloudscale_server" "fixed" {
   name            = "terraform-%2d"
   zone_slug       = "lpg1"
   flavor_slug     = "flex-4-1"
-  image_slug      = "debian-10"
+  image_slug      = "debian-13"
   interfaces      {
     type          = "private"
     addresses {
