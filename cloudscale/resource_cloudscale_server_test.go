@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-const DefaultImageSlug = "debian-11"
+const DefaultImageSlug = "debian-13"
 
 func init() {
 	resource.AddTestSweepers("cloudscale_server", &resource.Sweeper{

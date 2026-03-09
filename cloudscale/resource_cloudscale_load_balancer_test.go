@@ -489,7 +489,7 @@ resource "cloudscale_server" "fixed" {
   name            = "terraform-%2d"
   zone_slug       = "lpg1"
   flavor_slug     = "flex-4-1"
-  image_slug      = "debian-10"
+  image_slug      = "debian-13"
   interfaces      {
     type          = "private"
     addresses {
