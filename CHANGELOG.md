@@ -1,3 +1,8 @@
+## 5.0.2
+* Update go dependencies.
+* Update CI/CD dependencies.
+* Update Debian Image used in docs and tests.
+
 ## 5.0.1
 * Update go dependencies.
 * Update CI/CD dependencies.
