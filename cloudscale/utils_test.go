@@ -2,6 +2,9 @@ package cloudscale
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
