@@ -29,6 +29,7 @@ func Provider() *schema.Provider {
 			"cloudscale_load_balancer_pool_member":    dataSourceCloudscaleLoadBalancerPoolMember(),
 			"cloudscale_load_balancer_listener":       dataSourceCloudscaleLoadBalancerListener(),
 			"cloudscale_load_balancer_health_monitor": dataSourceCloudscaleLoadBalancerHealthMonitor(),
+			"cloudscale_volume_snapshot":              dataSourceCloudscaleVolumeSnapshot(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -45,6 +46,7 @@ func Provider() *schema.Provider {
 			"cloudscale_load_balancer_pool_member":    resourceCloudscaleLoadBalancerPoolMembers(),
 			"cloudscale_load_balancer_listener":       resourceCloudscaleLoadBalancerListener(),
 			"cloudscale_load_balancer_health_monitor": resourceCloudscaleLoadBalancerHealthMonitor(),
+			"cloudscale_volume_snapshot":              resourceCloudscaleVolumeSnapshot(),
 		},
 		ConfigureFunc: providerConfigureClient,
 	}
