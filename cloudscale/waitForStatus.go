@@ -1,9 +1,11 @@
 package cloudscale
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"fmt"
 	"math"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func waitForStatus(
@@ -28,4 +30,25 @@ func waitForStatus(
 	}
 
 	return stateConf.WaitForState()
+}
+
+// waitForDeleted polls existsFunc until the resource is gone.
+// existsFunc must return (true, nil) while the resource exists,
+// (false, nil) once it is gone, or (_, err) on unexpected errors.
+func waitForDeleted(timeout time.Duration, existsFunc func() (bool, error)) error {
+	deadline := time.Now().Add(timeout)
+	time.Sleep(10 * time.Second)
+	for {
+		exists, err := existsFunc()
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return nil
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("timeout: resource still exists after %s", timeout)
+		}
+		time.Sleep(10 * time.Second)
+	}
 }

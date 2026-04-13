@@ -20,6 +20,7 @@ var (
 	testAccCheckCloudscaleServerGroupExists               = getTestAccCheckCloudscaleResourceExistsFunc(serverGroupHumanName, getId, readServerGroup)
 	testAccCheckCloudscaleSubnetExists                    = getTestAccCheckCloudscaleResourceExistsFunc(subnetHumanName, getId, readSubnet)
 	testAccCheckCloudscaleVolumeExists                    = getTestAccCheckCloudscaleResourceExistsFunc(volumeHumanName, getId, readVolume)
+	testAccCheckCloudscaleVolumeSnapshotExists            = getTestAccCheckCloudscaleResourceExistsFunc(volumeSnapshotHumanName, getId, readVolumeSnapshot)
 )
 
 func getId(rs *terraform.ResourceState) GenericResourceIdentifier {
