@@ -54,6 +54,8 @@ func TestAccCloudscaleVolume_DetachedWithZone(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
+	resourceName := "cloudscale_volume.basic"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -62,15 +64,15 @@ func TestAccCloudscaleVolume_DetachedWithZone(t *testing.T) {
 			{
 				Config: volumeConfig_detached_with_zone(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					testAccCheckCloudscaleVolumeExists(resourceName, &volume),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+						resourceName, "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "type", "bulk"),
+						resourceName, "type", "bulk"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "size_gb", "100"),
+						resourceName, "size_gb", "100"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "zone_slug", "lpg1"),
+						resourceName, "zone_slug", "lpg1"),
 				),
 			},
 		},
@@ -82,6 +84,8 @@ func TestAccCloudscaleVolume_Change(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
+	resourceName := "cloudscale_volume.basic"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -90,31 +94,31 @@ func TestAccCloudscaleVolume_Change(t *testing.T) {
 			{
 				Config: volumeConfig_detached(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					testAccCheckCloudscaleVolumeExists(resourceName, &volume),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+						resourceName, "name", fmt.Sprintf("terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "type", "ssd"),
+						resourceName, "type", "ssd"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "size_gb", "50"),
+						resourceName, "size_gb", "50"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "server_uuids.#", "0"),
+						resourceName, "server_uuids.#", "0"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "zone_slug", "rma1"),
+						resourceName, "zone_slug", "rma1"),
 				),
 			},
 			{
 				Config: volumeConfig_multiple_changes(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					testAccCheckCloudscaleVolumeExists(resourceName, &volume),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "name", fmt.Sprintf("terraform-%d-renamed", rInt)),
+						resourceName, "name", fmt.Sprintf("terraform-%d-renamed", rInt)),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "type", "ssd"),
+						resourceName, "type", "ssd"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "size_gb", "100"),
+						resourceName, "size_gb", "100"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "server_uuids.#", "0"),
+						resourceName, "server_uuids.#", "0"),
 				),
 			},
 		},
@@ -130,6 +134,8 @@ func TestAccCloudscaleVolume_Detach(t *testing.T) {
 
 	serverConfig := testAccCheckCloudscaleServerConfig_basic(rInt1)
 
+	resourceName := "cloudscale_volume.basic"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -139,18 +145,18 @@ func TestAccCloudscaleVolume_Detach(t *testing.T) {
 				Config: serverConfig + "\n" + volumeConfig_attached(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					testAccCheckCloudscaleVolumeExists(resourceName, &volume),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "server_uuids.#", "1"),
+						resourceName, "server_uuids.#", "1"),
 					assertVolumeAttached(&server, &volume),
 				),
 			},
 			{
 				Config: serverConfig + "\n" + volumeConfig_detached(rInt2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					testAccCheckCloudscaleVolumeExists(resourceName, &volume),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "server_uuids.#", "0"),
+						resourceName, "server_uuids.#", "0"),
 				),
 			},
 		},
@@ -167,6 +173,8 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 
 	serverConfig := testAccCheckCloudscaleServerConfig_basic(rInt1)
 
+	resourceName := "cloudscale_volume.basic"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -176,9 +184,9 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 				Config: serverConfig + "\n" + volumeConfig_attached(rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server1),
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					testAccCheckCloudscaleVolumeExists(resourceName, &volume),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "server_uuids.#", "1"),
+						resourceName, "server_uuids.#", "1"),
 					assertVolumeAttached(&server1, &volume),
 				),
 			},
@@ -186,7 +194,7 @@ func TestAccCloudscaleVolume_Reattach(t *testing.T) {
 				Config: serverConfig + "\n" + volumeConfig_reattached_volume(rInt3, rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleServerExists("cloudscale_server.reattach_server", &server2),
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &volume),
+					testAccCheckCloudscaleVolumeExists(resourceName, &volume),
 					assertVolumeAttached(&server2, &volume),
 				),
 			},
@@ -199,6 +207,8 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
+	resourceName := "cloudscale_volume.basic"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -207,18 +217,18 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 			{
 				Config: volumeConfig_detached(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &afterImport),
+					testAccCheckCloudscaleVolumeExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+						resourceName, "name", fmt.Sprintf("terraform-%d", rInt)),
 				),
 			},
 			{
-				ResourceName:      "cloudscale_volume.basic",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				ResourceName:      "cloudscale_volume.basic",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: false,
 				ImportStateId:     "does-not-exist",
@@ -227,9 +237,9 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 			{
 				Config: volumeConfig_detached(42),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudscaleVolumeExists("cloudscale_volume.basic", &afterUpdate),
+					testAccCheckCloudscaleVolumeExists(resourceName, &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "name", "terraform-42"),
+						resourceName, "name", "terraform-42"),
 					testAccCheckCloudscaleVolumeIsSame(t, &afterImport, &afterUpdate),
 				),
 			},
@@ -240,6 +250,8 @@ func TestAccCloudscaleVolume_import_basic(t *testing.T) {
 func TestAccCloudscaleVolume_tags(t *testing.T) {
 	rInt := acctest.RandInt()
 
+	resourceName := "cloudscale_volume.basic"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -249,32 +261,32 @@ func TestAccCloudscaleVolume_tags(t *testing.T) {
 				Config: volumeConfig_detached_withTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "tags.%", "2"),
+						resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "tags.my-foo", "foo"),
+						resourceName, "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "tags.my-bar", "bar"),
-					testTagsMatch("cloudscale_volume.basic"),
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
 				),
 			},
 			{
 				Config: volumeConfig_detached(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "tags.%", "0"),
-					testTagsMatch("cloudscale_volume.basic"),
+						resourceName, "tags.%", "0"),
+					testTagsMatch(resourceName),
 				),
 			},
 			{
 				Config: volumeConfig_detached_withTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "tags.%", "2"),
+						resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "tags.my-foo", "foo"),
+						resourceName, "tags.my-foo", "foo"),
 					resource.TestCheckResourceAttr(
-						"cloudscale_volume.basic", "tags.my-bar", "bar"),
-					testTagsMatch("cloudscale_volume.basic"),
+						resourceName, "tags.my-bar", "bar"),
+					testTagsMatch(resourceName),
 				),
 			},
 		},
@@ -397,4 +409,207 @@ resource "cloudscale_volume" "basic" {
   zone_slug    = "lpg1"
   type         = "bulk"
 }`, rInt)
+}
+
+func TestAccCloudscaleVolume_FromSnapshot(t *testing.T) {
+	var sourceVolume cloudscale.Volume
+	var snapshot cloudscale.VolumeSnapshot
+	var restoredVolume, afterImport cloudscale.Volume
+
+	rInt := acctest.RandInt()
+
+	resourceName := "cloudscale_volume.from_snap"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: volumeConfig_from_snapshot(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.source", &sourceVolume),
+					testAccCheckCloudscaleVolumeSnapshotExists("cloudscale_volume_snapshot.snap", &snapshot),
+					testAccCheckCloudscaleVolumeExists(resourceName, &restoredVolume),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "id", &restoredVolume.UUID),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "href", &restoredVolume.HREF),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", fmt.Sprintf("terraform-%d-from-snap", rInt)),
+					resource.TestCheckResourceAttr(
+						resourceName, "size_gb", "50"),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "ssd"),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "zone_slug",
+						"cloudscale_volume.source", "zone_slug"),
+					resource.TestCheckResourceAttr(
+						resourceName, "server_uuids.#", "0"),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "volume_snapshot_uuid",
+						"cloudscale_volume_snapshot.snap", "id"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"volume_snapshot_uuid"},
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "does-not-exist",
+				ExpectError:       regexp.MustCompile(`Cannot import non-existent remote object`),
+			},
+			{
+				Config: volumeConfig_from_snapshot(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", fmt.Sprintf("terraform-%d-from-snap", rInt)),
+					testAccCheckCloudscaleVolumeIsSame(t, &restoredVolume, &afterImport),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleVolume_FromSnapshotWithResize(t *testing.T) {
+	var sourceVolume cloudscale.Volume
+	var snapshot cloudscale.VolumeSnapshot
+	var restoredVolume cloudscale.Volume
+
+	rInt := acctest.RandInt()
+
+	resourceName := "cloudscale_volume.from_snap"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: volumeConfig_from_snapshot_resized(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.source", &sourceVolume),
+					testAccCheckCloudscaleVolumeSnapshotExists("cloudscale_volume_snapshot.snap", &snapshot),
+					testAccCheckCloudscaleVolumeExists(resourceName, &restoredVolume),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "id", &restoredVolume.UUID),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "href", &restoredVolume.HREF),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", fmt.Sprintf("terraform-%d-from-snap-resized", rInt)),
+					resource.TestCheckResourceAttr(
+						resourceName, "size_gb", "100"),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "ssd"),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "zone_slug",
+						"cloudscale_volume.source", "zone_slug"),
+					resource.TestCheckResourceAttr(
+						resourceName, "server_uuids.#", "0"),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "volume_snapshot_uuid",
+						"cloudscale_volume_snapshot.snap", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleVolume_FromSnapshotWithAttach(t *testing.T) {
+	var server cloudscale.Server
+	var sourceVolume cloudscale.Volume
+	var snapshot cloudscale.VolumeSnapshot
+	var restoredVolume cloudscale.Volume
+
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+
+	resourceName := "cloudscale_volume.from_snap"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: volumeConfig_from_snapshot_attached(rInt1, rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("cloudscale_server.basic", &server),
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.source", &sourceVolume),
+					testAccCheckCloudscaleVolumeSnapshotExists("cloudscale_volume_snapshot.snap", &snapshot),
+					testAccCheckCloudscaleVolumeExists(resourceName, &restoredVolume),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "id", &restoredVolume.UUID),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "href", &restoredVolume.HREF),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", fmt.Sprintf("terraform-%d-from-snap-attached", rInt2)),
+					resource.TestCheckResourceAttr(
+						resourceName, "size_gb", "50"),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "ssd"),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "zone_slug",
+						"cloudscale_volume.source", "zone_slug"),
+					resource.TestCheckResourceAttr(
+						resourceName, "server_uuids.#", "1"),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "volume_snapshot_uuid",
+						"cloudscale_volume_snapshot.snap", "id"),
+					assertVolumeAttached(&server, &restoredVolume),
+				),
+			},
+		},
+	})
+}
+
+func volumeConfig_from_snapshot(rInt int) string {
+	return testAccCloudscaleVolumeSnapshotConfig_base(rInt) + fmt.Sprintf(`
+resource "cloudscale_volume_snapshot" "snap" {
+  name               = "terraform-%d-snap"
+  source_volume_uuid = cloudscale_volume.source.id
+}
+
+resource "cloudscale_volume" "from_snap" {
+  name                 = "terraform-%d-from-snap"
+  volume_snapshot_uuid = cloudscale_volume_snapshot.snap.id
+}
+`, rInt, rInt)
+}
+
+func volumeConfig_from_snapshot_resized(rInt int) string {
+	return testAccCloudscaleVolumeSnapshotConfig_base(rInt) + fmt.Sprintf(`
+resource "cloudscale_volume_snapshot" "snap" {
+  name               = "terraform-%d-snap"
+  source_volume_uuid = cloudscale_volume.source.id
+}
+
+resource "cloudscale_volume" "from_snap" {
+  name                 = "terraform-%d-from-snap-resized"
+  volume_snapshot_uuid = cloudscale_volume_snapshot.snap.id
+  size_gb              = 100
+}
+`, rInt, rInt)
+}
+
+func volumeConfig_from_snapshot_attached(serverRInt, volRInt int) string {
+	return testAccCheckCloudscaleServerConfig_basic(serverRInt) + "\n" +
+		testAccCloudscaleVolumeSnapshotConfig_base(volRInt) + fmt.Sprintf(`
+resource "cloudscale_volume_snapshot" "snap" {
+  name               = "terraform-%d-snap"
+  source_volume_uuid = cloudscale_volume.source.id
+}
+
+resource "cloudscale_volume" "from_snap" {
+  name                 = "terraform-%d-from-snap-attached"
+  volume_snapshot_uuid = cloudscale_volume_snapshot.snap.id
+  server_uuids         = [cloudscale_server.basic.id]
+}
+`, volRInt, volRInt)
 }
