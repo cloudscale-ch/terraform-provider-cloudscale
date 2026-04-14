@@ -293,6 +293,7 @@ func TestAccCloudscaleVolume_tags(t *testing.T) {
 	})
 }
 
+
 func testAccCheckCloudscaleVolumeIsSame(t *testing.T,
 	before, after *cloudscale.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -473,6 +474,23 @@ func TestAccCloudscaleVolume_FromSnapshot(t *testing.T) {
 					testAccCheckCloudscaleVolumeIsSame(t, &restoredVolume, &afterImport),
 				),
 			},
+			{
+				Config: volumeConfig_from_snapshot_standalone(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeNotExists(&sourceVolume),
+					testAccCheckCloudscaleVolumeSnapshotNotExists(&snapshot),
+					testAccCheckCloudscaleVolumeExists(resourceName, &afterImport),
+					resource.TestCheckResourceAttr(
+						resourceName, "name", fmt.Sprintf("terraform-%d-from-snap", rInt)),
+					resource.TestCheckResourceAttr(
+						resourceName, "size_gb", "50"),
+					resource.TestCheckResourceAttr(
+						resourceName, "type", "ssd"),
+					resource.TestCheckResourceAttr(
+						resourceName, "server_uuids.#", "0"),
+					testAccCheckCloudscaleVolumeIsSame(t, &restoredVolume, &afterImport),
+				),
+			},
 		},
 	})
 }
@@ -581,6 +599,15 @@ resource "cloudscale_volume" "from_snap" {
   volume_snapshot_uuid = cloudscale_volume_snapshot.snap.id
 }
 `, rInt, rInt)
+}
+
+func volumeConfig_from_snapshot_standalone(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_volume" "from_snap" {
+  name    = "terraform-%d-from-snap"
+  size_gb = 50
+  type    = "ssd"
+}`, rInt)
 }
 
 func volumeConfig_from_snapshot_resized(rInt int) string {

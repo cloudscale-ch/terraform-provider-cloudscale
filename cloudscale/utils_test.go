@@ -2,6 +2,9 @@ package cloudscale
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v8"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -21,6 +24,17 @@ var (
 	testAccCheckCloudscaleSubnetExists                    = getTestAccCheckCloudscaleResourceExistsFunc(subnetHumanName, getId, readSubnet)
 	testAccCheckCloudscaleVolumeExists                    = getTestAccCheckCloudscaleResourceExistsFunc(volumeHumanName, getId, readVolume)
 	testAccCheckCloudscaleVolumeSnapshotExists            = getTestAccCheckCloudscaleResourceExistsFunc(volumeSnapshotHumanName, getId, readVolumeSnapshot)
+
+	testAccCheckCloudscaleVolumeNotExists = getTestAccCheckCloudscaleResourceNotExistsFunc(
+		volumeHumanName,
+		func(v *cloudscale.Volume) GenericResourceIdentifier { return GenericResourceIdentifier{Id: v.UUID} },
+		readVolume,
+	)
+	testAccCheckCloudscaleVolumeSnapshotNotExists = getTestAccCheckCloudscaleResourceNotExistsFunc(
+		volumeSnapshotHumanName,
+		func(vs *cloudscale.VolumeSnapshot) GenericResourceIdentifier { return GenericResourceIdentifier{Id: vs.UUID} },
+		readVolumeSnapshot,
+	)
 )
 
 func getId(rs *terraform.ResourceState) GenericResourceIdentifier {
@@ -63,6 +77,27 @@ func getTestAccCheckCloudscaleResourceExistsFunc[TResource any, TResourceID any]
 
 			*resource = *retrievedResource
 
+			return nil
+		}
+	}
+}
+
+func getTestAccCheckCloudscaleResourceNotExistsFunc[TResource any, TResourceID any](
+	resourceType string,
+	resourceIdFunc func(resource *TResource) TResourceID,
+	readFunc func(rId TResourceID, meta any) (*TResource, error),
+) func(resource *TResource) resource.TestCheckFunc {
+	return func(resource *TResource) resource.TestCheckFunc {
+		return func(s *terraform.State) error {
+			resourceId := resourceIdFunc(resource)
+			_, err := readFunc(resourceId, testAccProvider.Meta())
+			if err == nil {
+				return fmt.Errorf("%s still exists", resourceType)
+			}
+			errorResponse, ok := err.(*cloudscale.ErrorResponse)
+			if !ok || errorResponse.StatusCode != http.StatusNotFound {
+				return fmt.Errorf("error verifying %s was destroyed: %s", resourceType, err)
+			}
 			return nil
 		}
 	}
