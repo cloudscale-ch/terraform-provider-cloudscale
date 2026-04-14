@@ -22,6 +22,8 @@ The following arguments can be used to look up a volume:
 * `name` - (Optional) The Name of the volume.
 * `zone_slug` - (Optional) The slug of the zone in which the new volume will be created. Options include `lpg1` and `rma1`.
 * `type` - (Optional) For SSD/NVMe volumes "ssd" (default); or "bulk" for our HDD cluster with NVMe caching.
+* `size_gb` - (Optional) The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
+* `tags` - (Optional) Tags allow you to assign custom metadata to resources. Tags are always strings (both keys and values).
 
 ## Attributes Reference
 
@@ -29,4 +31,4 @@ In addition to the arguments listed above, the following computed attributes are
 
 * `href` - The cloudscale.ch API URL of the current resource.
 * `size_gb` - The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
-* `server_uuids` - (Optional) A list of server UUIDs.
+* `server_uuids` - A list of server UUIDs.
