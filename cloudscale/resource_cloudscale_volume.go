@@ -82,6 +82,15 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 			Optional:      true,
 			ForceNew:      true,
 			ConflictsWith: []string{"type", "zone_slug"},
+			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+				// volume_snapshot_uuid is write-only: the API accepts it at
+				// creation but never returns it, and gatherVolumeResourceData
+				// does not set it in state. Without this suppress, removing
+				// the attribute from config (e.g. after deleting the source
+				// snapshot) would trigger ForceNew and destroy the volume
+				// that was created from that snapshot.
+				return old != "" && new == ""
+			},
 		}
 	}
 	if t.isDataSource() {
