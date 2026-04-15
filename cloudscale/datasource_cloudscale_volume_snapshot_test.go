@@ -39,7 +39,7 @@ func TestAccCloudscaleVolumeSnapshot_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudscaleVolumeSnapshotConfig_name_and_source_volume(name1, "${cloudscale_volume.source[0].id}"),
+				Config: config + testAccCheckCloudscaleVolumeSnapshotConfig_name_and_source_volume(name1, "${cloudscale_volume.source.id}"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_volume_snapshot.foo", "name", name1),
@@ -53,14 +53,14 @@ func TestAccCloudscaleVolumeSnapshot_DS_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: config + testAccCheckCloudscaleVolumeSnapshotConfig_name_and_source_volume(name2, "${cloudscale_volume.source[1].id}"),
+				Config: config + testAccCheckCloudscaleVolumeSnapshotConfig_name_and_source_volume(name2, "${cloudscale_volume.source.id}"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_volume_snapshot.foo", "name", name2),
 				),
 			},
 			{
-				Config:      config + testAccCheckCloudscaleVolumeSnapshotConfig_name_and_source_volume(name1, "${cloudscale_volume.source[1].id}"),
+				Config:      config + testAccCheckCloudscaleVolumeSnapshotConfig_name_and_source_volume("nonexistent-name", "${cloudscale_volume.source.id}"),
 				ExpectError: regexp.MustCompile(`Found zero volume snapshots`),
 			},
 			{
@@ -85,11 +85,9 @@ func TestAccCloudscaleVolumeSnapshot_DS_Basic(t *testing.T) {
 }
 
 func volumeSnapshotConfig_baseline(count int, rInt int) string {
-	// Each snapshot needs its own source volume — the API rejects concurrent snapshots of the same volume.
 	return fmt.Sprintf(`
 resource "cloudscale_volume" "source" {
-  count   = %d
-  name    = "terraform-%d-${count.index}-vol"
+  name    = "terraform-%d-vol"
   size_gb = 50
   type    = "ssd"
 }
@@ -97,8 +95,8 @@ resource "cloudscale_volume" "source" {
 resource "cloudscale_volume_snapshot" "basic" {
   count              = %d
   name               = "terraform-%d-${count.index}"
-  source_volume_uuid = cloudscale_volume.source[count.index].id
-}`, count, rInt, count, rInt)
+  source_volume_uuid = cloudscale_volume.source.id
+}`, rInt, count, rInt)
 }
 
 func testAccCheckCloudscaleVolumeSnapshotConfig_name(name string) string {
