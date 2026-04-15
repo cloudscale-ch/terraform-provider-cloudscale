@@ -281,6 +281,79 @@ func testAccCheckVolumeSnapshotIsSame(t *testing.T,
 	}
 }
 
+func TestAccCloudscaleVolumeSnapshot_MultipleOnSameVolume(t *testing.T) {
+	var sourceVolume cloudscale.Volume
+	var snap1, snap2 cloudscale.VolumeSnapshot
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleVolumeSnapshotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudscaleVolumeSnapshotConfig_multiple(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleVolumeExists("cloudscale_volume.source", &sourceVolume),
+					testAccCheckCloudscaleVolumeSnapshotExists("cloudscale_volume_snapshot.snap1", &snap1),
+					testAccCheckCloudscaleVolumeSnapshotExists("cloudscale_volume_snapshot.snap2", &snap2),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap1", "id", &snap1.UUID),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap2", "id", &snap2.UUID),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap1", "href", &snap1.HREF),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap2", "href", &snap2.HREF),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap1", "name", fmt.Sprintf("terraform-%d-snap1", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap2", "name", fmt.Sprintf("terraform-%d-snap2", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap1", "status", "available"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap2", "status", "available"),
+					resource.TestCheckResourceAttrPair(
+						"cloudscale_volume_snapshot.snap1", "source_volume_uuid",
+						"cloudscale_volume.source", "id"),
+					resource.TestCheckResourceAttrPair(
+						"cloudscale_volume_snapshot.snap2", "source_volume_uuid",
+						"cloudscale_volume.source", "id"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap1", "size_gb", "50"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap2", "size_gb", "50"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap1", "tags.%", "0"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_volume_snapshot.snap2", "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCloudscaleVolumeSnapshotConfig_multiple(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_volume" "source" {
+  name    = "terraform-%d-vol"
+  size_gb = 50
+  type    = "ssd"
+}
+
+resource "cloudscale_volume_snapshot" "snap1" {
+  name               = "terraform-%d-snap1"
+  source_volume_uuid = cloudscale_volume.source.id
+}
+
+resource "cloudscale_volume_snapshot" "snap2" {
+  name               = "terraform-%d-snap2"
+  source_volume_uuid = cloudscale_volume.source.id
+}
+`, rInt, rInt, rInt)
+}
+
 func testAccCloudscaleVolumeSnapshotConfig_base(rInt int) string {
 	return fmt.Sprintf(`
 resource "cloudscale_volume" "source" {
