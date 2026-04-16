@@ -26,14 +26,39 @@ resource "cloudscale_volume" "web-worker01-volume" {
 }
 ```
 
+### Create a Volume from a Snapshot
+
+```hcl
+# Source volume
+resource "cloudscale_volume" "data" {
+  name    = "data-volume"
+  size_gb = 50
+  type    = "ssd"
+}
+
+# Snapshot of the source volume
+resource "cloudscale_volume_snapshot" "data-snap" {
+  name               = "data-snap"
+  source_volume_uuid = cloudscale_volume.data.id
+}
+
+# Create a new volume from the snapshot, resized to 200 GB
+resource "cloudscale_volume" "restored" {
+  name                 = "restored-data"
+  volume_snapshot_uuid = cloudscale_volume_snapshot.data-snap.id
+  size_gb              = 200
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported when creating/changing volumes:
 
 * `name` - (Required) Name of the new volume.
-* `size_gb` - (Required) The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
-* `zone_slug` - (Optional) The slug of the zone in which the new volume will be created. Options include `lpg1` and `rma1`.
-* `type` - (Optional) For SSD/NVMe volumes specify "ssd" (default) or use "bulk" for our HDD cluster with NVMe caching. This is the only attribute that cannot be altered.
+* `size_gb` - (Required, if `volume_snapshot_uuid` not set) The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk". When creating from a snapshot, this is optional and can be used to resize the volume after creation.
+* `volume_snapshot_uuid` - (Optional, conflicts with `type`, `zone_slug`) The UUID of a volume snapshot to create the volume from. The new volume will contain the data stored in the snapshot. When set, `type` and `zone_slug` are inherited from the snapshot and cannot be specified.
+* `zone_slug` - (Optional, conflicts with `volume_snapshot_uuid`) The slug of the zone in which the new volume will be created. Options include `lpg1` and `rma1`.
+* `type` - (Optional, conflicts with `volume_snapshot_uuid`) For SSD/NVMe volumes specify "ssd" (default) or use "bulk" for our HDD cluster with NVMe caching. This is the only attribute that cannot be altered.
 * `server_uuids` - (Optional) A list of server UUIDs. Default to an empty list. Currently a volume can only be attached to one server UUID.
 * `tags` - (Optional) Tags allow you to assign custom metadata to resources:
   ```hcl

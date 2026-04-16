@@ -2,8 +2,9 @@ package cloudscale
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func getReadOperation[TResource any, TResourceID any](
