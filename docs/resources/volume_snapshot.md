@@ -23,6 +23,31 @@ resource "cloudscale_volume_snapshot" "data-snap" {
 }
 ```
 
+### Snapshot the Root Volume of a Server
+
+The root volume of a server is always available as `volumes[0]`. By keeping
+`skip_waiting_for_ssh_host_keys` at its default (`false`), Terraform blocks
+until the server has fully booted and exposed SSH host keys on the API 
+before completing the server resource.
+
+```hcl
+# Create a new server and wait until it has fully booted (SSH host keys available)
+resource "cloudscale_server" "web-worker01" {
+  name                           = "web-worker01"
+  flavor_slug                    = "flex-8-4"
+  image_slug                     = "debian-13"
+  volume_size_gb                 = 10
+  skip_waiting_for_ssh_host_keys = false
+  ssh_keys                       = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL2jzgla23DfRVLQr3KT20QQYovqCCN3clHrjm2ZuQFW user@example.com"]
+}
+
+# Snapshot the root volume after host key generation
+resource "cloudscale_volume_snapshot" "web-worker01-root-crash-consistent" {
+  name               = "web-worker01-root-crash-consistent"
+  source_volume_uuid = cloudscale_server.web-worker01.volumes[0].uuid
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported when creating a new volume snapshot:
