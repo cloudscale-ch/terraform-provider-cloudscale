@@ -8,7 +8,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v8"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -224,7 +224,7 @@ func gatherCustomImageUpdateRequest(d *schema.ResourceData) []*cloudscale.Custom
 			} else if attribute == "slug" {
 				opts.Slug = d.Get(attribute).(string)
 			} else if attribute == "user_data_handling" {
-				opts.UserDataHandling = d.Get(attribute).(string)
+				opts.UserDataHandling = cloudscale.UserDataHandling(d.Get(attribute).(string))
 			} else if attribute == "tags" {
 				opts.Tags = CopyTags(d)
 			}
