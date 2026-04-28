@@ -686,18 +686,14 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) re
 	return func() (any, string, error) {
 		id := d.Id()
 
-		// read the latest data into d
-		err := resourceCloudscaleServerRead(d, meta)
-		if err != nil {
-			return nil, "", err
-		}
 		// get the instance
 		server, err := client.Servers.Get(context.Background(), id)
 		if err != nil {
 			return nil, "", fmt.Errorf("error retrieving server (%s) (refresh) %s", id, err)
 		}
 
-		attr, ok := d.GetOk(attribute)
+		data := gatherServerResourceData(server)
+		attr, ok := data[attribute]
 		if !ok {
 			return nil, "", nil
 		}

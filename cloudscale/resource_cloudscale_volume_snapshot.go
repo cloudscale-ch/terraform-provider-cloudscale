@@ -125,18 +125,14 @@ func newVolumeSnapshotRefreshFunc(d *schema.ResourceData, attribute string, meta
 	return func() (any, string, error) {
 		id := d.Id()
 
-		// read the latest data into d
-		err := resourceCloudscaleVolumeSnapshotRead(d, meta)
-		if err != nil {
-			return nil, "", err
-		}
 		// get the instance
 		snap, err := client.VolumeSnapshots.Get(context.Background(), id)
 		if err != nil {
 			return nil, "", fmt.Errorf("error retrieving volume snapshot (%s) (refresh) %s", id, err)
 		}
 
-		attr, ok := d.GetOk(attribute)
+		data := gatherVolumeSnapshotResourceData(snap)
+		attr, ok := data[attribute]
 		if !ok {
 			return nil, "", nil
 		}
