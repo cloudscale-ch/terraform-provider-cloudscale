@@ -146,10 +146,13 @@ func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 
 	if fromSnapshot {
 		if v, ok := d.GetOk("size_gb"); ok {
-			log.Printf("[INFO] Resizing volume %s to %d GB after creation from snapshot", volume.UUID, v.(int))
-			updateReq := &cloudscale.VolumeUpdateRequest{SizeGB: v.(int)}
-			if err := client.Volumes.Update(context.Background(), volume.UUID, updateReq); err != nil {
-				return fmt.Errorf("Error resizing volume (%s) after creation from snapshot: %s", volume.UUID, err)
+			sizeGB := v.(int)
+			if sizeGB != volume.SizeGB {
+				log.Printf("[INFO] Resizing volume %s to %d GB after creation from snapshot", volume.UUID, sizeGB)
+				updateReq := &cloudscale.VolumeUpdateRequest{SizeGB: sizeGB}
+				if err := client.Volumes.Update(context.Background(), volume.UUID, updateReq); err != nil {
+					return fmt.Errorf("Error resizing volume (%s) after creation from snapshot: %s", volume.UUID, err)
+				}
 			}
 		}
 
