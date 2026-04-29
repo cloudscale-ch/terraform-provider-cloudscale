@@ -41,6 +41,10 @@ func getVolumeSnapshotSchema(t SchemaType) map[string]*schema.Schema {
 			Required: t.isResource(),
 			Optional: t.isDataSource(),
 		},
+		"href": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"source_volume_uuid": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
@@ -48,7 +52,11 @@ func getVolumeSnapshotSchema(t SchemaType) map[string]*schema.Schema {
 			Optional: t.isDataSource(),
 			Computed: t.isDataSource(),
 		},
-		"href": {
+		"source_volume_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"source_volume_href": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -148,6 +156,8 @@ func gatherVolumeSnapshotResourceData(snap *cloudscale.VolumeSnapshot) ResourceD
 	m["href"] = snap.HREF
 	m["name"] = snap.Name
 	m["source_volume_uuid"] = snap.SourceVolume.UUID
+	m["source_volume_name"] = snap.SourceVolume.Name
+	m["source_volume_href"] = snap.SourceVolume.HREF
 	m["size_gb"] = snap.SizeGB
 	m["status"] = snap.Status
 	m["tags"] = snap.Tags

@@ -29,5 +29,7 @@ In addition to the arguments listed above, the following computed attributes are
 
 * `href` - The cloudscale.ch API URL of the current resource.
 * `source_volume_uuid` - The UUID of the source volume.
+* `source_volume_name` - The name of the source volume.
+* `source_volume_href` - The cloudscale.ch API URL of the source volume.
 * `size_gb` - The size of the snapshot in GB.
 * `status` - The current status of the volume snapshot.
