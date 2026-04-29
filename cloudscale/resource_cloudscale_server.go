@@ -75,10 +75,6 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
-					"device_path": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
 					"uuid": {
 						Type:     schema.TypeString,
 						Computed: true,
@@ -489,7 +485,6 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 		for _, volume := range server.Volumes {
 			v := make(map[string]any)
 			v["type"] = volume.Type
-			v["device_path"] = volume.DevicePath
 			v["size_gb"] = volume.SizeGB
 			v["uuid"] = volume.UUID
 			volumesMaps = append(volumesMaps, v)
