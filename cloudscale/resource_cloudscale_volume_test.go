@@ -2,6 +2,7 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,17 +37,17 @@ func testSweepVolumes(region string) error {
 		return err
 	}
 
-	foundError := error(nil)
+	var errs []error
 	for _, s := range volumes {
 		if strings.HasPrefix(s.Name, "terraform-") {
 			log.Printf("Destroying Volume %s", s.Name)
 
 			if err := client.Volumes.Delete(context.Background(), s.UUID); err != nil {
-				foundError = err
+				errs = append(errs, err)
 			}
 		}
 	}
-	return foundError
+	return errors.Join(errs...)
 }
 
 func TestAccCloudscaleVolume_DetachedWithZone(t *testing.T) {

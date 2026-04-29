@@ -2,6 +2,7 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -34,14 +35,14 @@ func testSweepFloatingIps(region string) error {
 		return err
 	}
 
-	foundError := error(nil)
+	var errs []error
 	for _, ip := range ips {
 		if err := client.FloatingIPs.Delete(context.Background(), ip.IP()); err != nil {
-			foundError = err
+			errs = append(errs, err)
 		}
 	}
 
-	return foundError
+	return errors.Join(errs...)
 }
 
 func TestAccCloudscaleFloatingIP_Detached(t *testing.T) {

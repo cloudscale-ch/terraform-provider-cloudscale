@@ -36,17 +36,17 @@ func testSweepVolumeSnapshots(region string) error {
 		return err
 	}
 
-	foundError := error(nil)
+	var errs []error
 	for _, s := range snapshots {
 		if strings.HasPrefix(s.Name, "terraform-") {
 			log.Printf("Destroying volume snapshot %s", s.Name)
 
 			if err := client.VolumeSnapshots.Delete(context.Background(), s.UUID); err != nil {
-				foundError = err
+				errs = append(errs, err)
 			}
 		}
 	}
-	return foundError
+	return errors.Join(errs...)
 }
 
 func TestAccCloudscaleVolumeSnapshot_Basic(t *testing.T) {
