@@ -79,6 +79,10 @@ func TestAccCloudscaleVolumeSnapshot_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(
 						resourceName, "source_volume_uuid",
 						"cloudscale_volume.source", "id"),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_name", &sourceVolume.Name),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_href", &sourceVolume.HREF),
 					resource.TestCheckResourceAttr(
 						resourceName, "size_gb", "50"),
 					resource.TestCheckResourceAttr(
@@ -121,6 +125,10 @@ func TestAccCloudscaleVolumeSnapshot_UpdateName(t *testing.T) {
 					resource.TestCheckResourceAttrPair(
 						resourceName, "source_volume_uuid",
 						"cloudscale_volume.source", "id"),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_name", &sourceVolume.Name),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_href", &sourceVolume.HREF),
 					resource.TestCheckResourceAttr(
 						resourceName, "size_gb", "50"),
 				),
@@ -168,6 +176,10 @@ func TestAccCloudscaleVolumeSnapshot_import_basic(t *testing.T) {
 					testAccCheckCloudscaleVolumeSnapshotExists(resourceName, &afterImport),
 					resource.TestCheckResourceAttr(
 						resourceName, "name", snapName),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_name", &afterImport.SourceVolume.Name),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_href", &afterImport.SourceVolume.HREF),
 				),
 			},
 			{
@@ -208,6 +220,10 @@ func TestAccCloudscaleVolumeSnapshot_tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudscaleVolumeExists("cloudscale_volume.source", &sourceVolume),
 					testAccCheckCloudscaleVolumeSnapshotExists(resourceName, &snapshot),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_name", &sourceVolume.Name),
+					resource.TestCheckResourceAttrPtr(
+						resourceName, "source_volume_href", &sourceVolume.HREF),
 					resource.TestCheckResourceAttr(
 						resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(
@@ -321,6 +337,14 @@ func TestAccCloudscaleVolumeSnapshot_MultipleOnSameVolume(t *testing.T) {
 					resource.TestCheckResourceAttrPair(
 						"cloudscale_volume_snapshot.snap2", "source_volume_uuid",
 						"cloudscale_volume.source", "id"),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap1", "source_volume_name", &sourceVolume.Name),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap1", "source_volume_href", &sourceVolume.HREF),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap2", "source_volume_name", &sourceVolume.Name),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_volume_snapshot.snap2", "source_volume_href", &sourceVolume.HREF),
 					resource.TestCheckResourceAttr(
 						"cloudscale_volume_snapshot.snap1", "size_gb", "50"),
 					resource.TestCheckResourceAttr(

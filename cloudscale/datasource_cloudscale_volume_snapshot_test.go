@@ -36,6 +36,10 @@ func TestAccCloudscaleVolumeSnapshot_DS_Basic(t *testing.T) {
 						"data.cloudscale_volume_snapshot.foo", "id", &snap.UUID),
 					resource.TestCheckResourceAttr(
 						"data.cloudscale_volume_snapshot.foo", "name", name1),
+					resource.TestCheckResourceAttrPtr(
+						"data.cloudscale_volume_snapshot.foo", "source_volume_name", &snap.SourceVolume.Name),
+					resource.TestCheckResourceAttrPtr(
+						"data.cloudscale_volume_snapshot.foo", "source_volume_href", &snap.SourceVolume.HREF),
 				),
 			},
 			{
