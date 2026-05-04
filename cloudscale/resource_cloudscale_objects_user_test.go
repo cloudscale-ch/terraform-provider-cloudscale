@@ -2,6 +2,7 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -36,17 +37,17 @@ func testSweepObjectsUsers(region string) error {
 		return err
 	}
 
-	foundError := error(nil)
+	var errs []error
 	for _, u := range ObjectsUsers {
 		if strings.HasPrefix(u.DisplayName, "terraform-") {
 			log.Printf("Destroying ObjectsUser %#v", u.DisplayName)
 
 			if err := client.ObjectsUsers.Delete(context.Background(), u.ID); err != nil {
-				foundError = err
+				errs = append(errs, err)
 			}
 		}
 	}
-	return foundError
+	return errors.Join(errs...)
 }
 
 func TestAccCloudscaleObjectsUser_Minimal(t *testing.T) {

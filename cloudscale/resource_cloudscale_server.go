@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -72,10 +72,6 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-					"device_path": {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
@@ -489,7 +485,6 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 		for _, volume := range server.Volumes {
 			v := make(map[string]any)
 			v["type"] = volume.Type
-			v["device_path"] = volume.DevicePath
 			v["size_gb"] = volume.SizeGB
 			v["uuid"] = volume.UUID
 			volumesMaps = append(volumesMaps, v)
@@ -686,18 +681,14 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) re
 	return func() (any, string, error) {
 		id := d.Id()
 
-		// read the latest data into d
-		err := resourceCloudscaleServerRead(d, meta)
-		if err != nil {
-			return nil, "", err
-		}
 		// get the instance
 		server, err := client.Servers.Get(context.Background(), id)
 		if err != nil {
 			return nil, "", fmt.Errorf("error retrieving server (%s) (refresh) %s", id, err)
 		}
 
-		attr, ok := d.GetOk(attribute)
+		data := gatherServerResourceData(server)
+		attr, ok := data[attribute]
 		if !ok {
 			return nil, "", nil
 		}

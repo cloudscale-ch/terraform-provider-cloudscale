@@ -2,16 +2,18 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -35,17 +37,17 @@ func testSweepLoadBalancers(region string) error {
 		return err
 	}
 
-	foundError := error(nil)
+	var errs []error
 	for _, lb := range loadBalancers {
 		if strings.HasPrefix(lb.Name, "terraform-") {
 			log.Printf("Destroying load balancer %s", lb.Name)
 
 			if err := client.LoadBalancers.Delete(context.Background(), lb.UUID); err != nil {
-				foundError = err
+				errs = append(errs, err)
 			}
 		}
 	}
-	return foundError
+	return errors.Join(errs...)
 }
 
 func TestAccCloudscaleLoadBalancer_Basic(t *testing.T) {

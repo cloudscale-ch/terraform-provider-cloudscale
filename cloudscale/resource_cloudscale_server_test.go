@@ -2,6 +2,7 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v7"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -37,17 +38,17 @@ func testSweepServers(region string) error {
 		return err
 	}
 
-	foundError := error(nil)
+	var errs []error
 	for _, s := range servers {
 		if strings.HasPrefix(s.Name, "terraform-") {
 			log.Printf("Destroying Server %s", s.Name)
 
 			if err := client.Servers.Delete(context.Background(), s.UUID); err != nil {
-				foundError = err
+				errs = append(errs, err)
 			}
 		}
 	}
-	return foundError
+	return errors.Join(errs...)
 }
 
 func TestAccCloudscaleServer_Basic(t *testing.T) {

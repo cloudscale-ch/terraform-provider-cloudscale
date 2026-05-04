@@ -55,6 +55,8 @@ provider_installation {
 
 ### Running Acceptance Tests
 
+> **Warning:** Only run acceptance tests against a dedicated cloudscale.ch project that contains no other resources. Tests may accidentially delete or modify existing resources in the project.
+
 Acceptance tests create real resources and might incur costs. They also use a specific version of Terraform (see [Terraform CLI Installation Behaviors](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests#terraform-cli-installation-behaviors)).
 
 - **Run all tests:**
