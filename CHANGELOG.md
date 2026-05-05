@@ -1,3 +1,9 @@
+## 5.1.0
+* Add `cloudscale_volume_snapshot` resource and data source.
+* Support creating volumes from a snapshot via `volume_snapshot_uuid`.
+* Deprecate `device_path` on server volumes: it was always null, will be removed in a future major version.
+* Update go dependencies.
+
 ## 5.0.2
 * Update go dependencies.
 * Update CI/CD dependencies.
