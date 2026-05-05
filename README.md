@@ -110,6 +110,7 @@ following commands:
 
 ## Releasing the Provider
 
+1. For major version releases: consider removing fields that were previously marked as `Deprecated`.
 1. Ensure the `CHANGELOG.md` is up-to-date.
 1. Ensure the `.github/workflows/terraform-integration-tests.yml` tests the 3 most recent Terraform versions.
 1. Create a new release [on GitHub](https://github.com/cloudscale-ch/terraform-provider-cloudscale/releases/new).
