@@ -75,6 +75,11 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"device_path": {
+						Type:       schema.TypeString,
+						Computed:   true,
+						Deprecated: "This attribute is always null and will be removed in a future major version.",
+					},
 					"uuid": {
 						Type:     schema.TypeString,
 						Computed: true,

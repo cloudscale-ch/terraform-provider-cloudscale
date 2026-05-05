@@ -84,6 +84,7 @@ In addition to the arguments listed above, the following computed attributes are
 * `ssh_fingerprints` - A list of SSH host key fingerprints (strings) of this server.
 * `ssh_host_keys` - A list of SSH host keys (strings) of this server.
 * `volumes` - A list of volume objects attached to this server. Each volume object has three attributes:
+    * `device_path` - (Deprecated) The path (string) to the volume on your server (e.g. `/dev/vda`). This attribute is always null and will be removed in a future major version.
     * `size_gb` - The size (int) of the volume in GB. Typically matches `volume_size_gb` or `bulk_volume_size_gb`.
     * `type` - A string. Either `ssd` or `bulk`.
 * `public_ipv4_address` - The first `public` IPv4 address of this server. The returned IP address may be `""` if the server does not have a public IPv4.
