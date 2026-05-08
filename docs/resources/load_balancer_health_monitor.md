@@ -26,7 +26,6 @@ resource "cloudscale_load_balancer_health_monitor" "lb1-health-monitor" {
 
 The following arguments are supported when creating new load balancer health monitor:
 
-* `name` - (Required) Name of the new load balancer health monitor.
 * `pool_uuid` - (Required) The pool of the health monitor.
 
 * `type` - (Required) The type of the health monitor. Options include: `"ping"`, `"tcp"`, `"http"`, `"https"` and `"tls-hello"`.
