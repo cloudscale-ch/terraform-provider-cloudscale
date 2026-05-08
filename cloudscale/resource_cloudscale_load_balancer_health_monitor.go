@@ -3,9 +3,10 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 )
 
 const healthMonitorHumanName = "load balancer health monitor"
@@ -232,7 +233,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 					httpOpts.Method = d.Get(attribute).(string)
 				} else if attribute == "http_url_path" {
 					httpOpts.UrlPath = d.Get(attribute).(string)
-				}else if attribute == "http_host" {
+				} else if attribute == "http_host" {
 					if attr, ok := d.GetOk(attribute); ok {
 						s := attr.(string)
 						httpOpts.Host = &s
@@ -267,7 +268,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	} else {
 		m["http_expected_codes"] = nil
 	}
-	m["tags"] = loadBalancerHealthMonitor.Tags
+	m["tags"] = TagsToRaw(loadBalancerHealthMonitor.Tags)
 	return m
 }
 

@@ -3,10 +3,11 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
 	"math"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -190,7 +191,7 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	m["user_data_handling"] = customImage.UserDataHandling
 	m["firmware_type"] = customImage.FirmwareType
 	m["checksums"] = customImage.Checksums
-	m["tags"] = customImage.Tags
+	m["tags"] = TagsToRaw(customImage.Tags)
 
 	zoneSlugs := make([]string, 0, len(customImage.Zones))
 	for _, zone := range customImage.Zones {

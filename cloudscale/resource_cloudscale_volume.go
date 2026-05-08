@@ -186,7 +186,7 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	m["type"] = volume.Type
 	m["zone_slug"] = volume.Zone.Slug
 	m["server_uuids"] = volume.ServerUUIDs
-	m["tags"] = volume.Tags
+	m["tags"] = TagsToRaw(volume.Tags)
 	return m
 }
 

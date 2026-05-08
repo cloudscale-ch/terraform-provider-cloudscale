@@ -3,11 +3,12 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
-	"time"
 )
 
 const loadBalancerHumanName = "load balancer"
@@ -190,7 +191,7 @@ func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) Resou
 	m["flavor_slug"] = loadbalancer.Flavor.Slug
 	m["zone_slug"] = loadbalancer.Zone.Slug
 	m["status"] = loadbalancer.Status
-	m["tags"] = loadbalancer.Tags
+	m["tags"] = TagsToRaw(loadbalancer.Tags)
 
 	if addrss := len(loadbalancer.VIPAddresses); addrss > 0 {
 		vipAddressesMap := make([]map[string]any, 0, addrss)

@@ -3,9 +3,10 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 )
 
 const poolHumanName = "load balancer pool"
@@ -117,7 +118,7 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 	m["load_balancer_href"] = loadbalancerpool.LoadBalancer.HREF
 	m["algorithm"] = loadbalancerpool.Algorithm
 	m["protocol"] = loadbalancerpool.Protocol
-	m["tags"] = loadbalancerpool.Tags
+	m["tags"] = TagsToRaw(loadbalancerpool.Tags)
 	return m
 }
 

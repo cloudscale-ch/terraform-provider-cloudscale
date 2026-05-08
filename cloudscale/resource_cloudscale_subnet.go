@@ -148,7 +148,7 @@ func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
 	m["network_name"] = subnet.Network.Name
 	m["gateway_address"] = subnet.GatewayAddress
 	m["dns_servers"] = subnet.DNSServers
-	m["tags"] = subnet.Tags
+	m["tags"] = TagsToRaw(subnet.Tags)
 	return m
 }
 

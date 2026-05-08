@@ -3,10 +3,11 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const poolMemberHumanName = "load balancer pool member"
@@ -195,7 +196,7 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	m["monitor_port"] = loadbalancerPoolMember.MonitorPort
 	m["address"] = loadbalancerPoolMember.Address
 	m["monitor_status"] = loadbalancerPoolMember.MonitorStatus
-	m["tags"] = loadbalancerPoolMember.Tags
+	m["tags"] = TagsToRaw(loadbalancerPoolMember.Tags)
 	return m
 }
 

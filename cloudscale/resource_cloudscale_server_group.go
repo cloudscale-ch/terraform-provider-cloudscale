@@ -103,7 +103,7 @@ func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) Resource
 	m["name"] = serverGroup.Name
 	m["type"] = serverGroup.Type
 	m["zone_slug"] = serverGroup.Zone.Slug
-	m["tags"] = serverGroup.Tags
+	m["tags"] = TagsToRaw(serverGroup.Tags)
 	return m
 }
 

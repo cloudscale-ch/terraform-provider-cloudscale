@@ -160,7 +160,7 @@ func gatherVolumeSnapshotResourceData(snap *cloudscale.VolumeSnapshot) ResourceD
 	m["source_volume_href"] = snap.SourceVolume.HREF
 	m["size_gb"] = snap.SizeGB
 	m["status"] = snap.Status
-	m["tags"] = snap.Tags
+	m["tags"] = TagsToRaw(snap.Tags)
 	return m
 }
 

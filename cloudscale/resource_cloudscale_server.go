@@ -483,7 +483,7 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	m["image_slug"] = server.Image.Slug
 	m["zone_slug"] = server.Zone.Slug
 	m["status"] = server.Status
-	m["tags"] = server.Tags
+	m["tags"] = TagsToRaw(server.Tags)
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]any, 0, volumes)

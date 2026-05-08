@@ -2,6 +2,7 @@ package cloudscale
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -29,14 +30,29 @@ func dataSourceResourceRead(
 		}
 		var foundItems []map[string]any
 
+		// Filter resources: each set attribute must match (maps use subset semantics).
 		for _, m := range resources {
 			match := true
-			for key := range sourceSchema {
-				if attr, ok := d.GetOk(key); ok {
-					if m[key] != attr {
-						match = false
-						break
+			for key, schemaEntry := range sourceSchema {
+				attr, ok := d.GetOk(key)
+				if !ok {
+					continue // not a filter criterion
+				}
+				if schemaEntry.Type == schema.TypeMap {
+					// Tags: all filter key-value pairs must be present in the resource (subset, not exact).
+					filterMap := attr.(map[string]interface{})
+					resourceMap, _ := m[key].(map[string]interface{})
+					for fk, fv := range filterMap {
+						if resourceMap[fk] != fv {
+							match = false
+							break // one tag mismatch is sufficient
+						}
 					}
+				} else if !reflect.DeepEqual(m[key], attr) {
+					match = false
+				}
+				if !match {
+					break // skip remaining attributes
 				}
 			}
 			if match {

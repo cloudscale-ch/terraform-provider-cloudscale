@@ -167,7 +167,7 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	m["timeout_member_connect_ms"] = loadbalancerlistener.TimeoutMemberConnectMS
 	m["timeout_member_data_ms"] = loadbalancerlistener.TimeoutMemberDataMS
 	m["allowed_cidrs"] = loadbalancerlistener.AllowedCIDRs
-	m["tags"] = loadbalancerlistener.Tags
+	m["tags"] = TagsToRaw(loadbalancerlistener.Tags)
 	return m
 }
 

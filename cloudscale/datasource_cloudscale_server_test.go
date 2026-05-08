@@ -116,6 +116,73 @@ func TestAccCloudscaleServer_DS_NotExisting(t *testing.T) {
 	})
 }
 
+// Tag filtering is implemented generically in dataSourceResourceRead (datasources.go),
+// so this test covers all data sources; no need to duplicate it per resource.
+func TestAccCloudscaleServer_DS_FilterByTags(t *testing.T) {
+	var server cloudscale.Server
+	rInt := acctest.RandInt()
+	name := fmt.Sprintf("terraform-%d", rInt)
+	config := serverConfig_baselineWithTag(rInt)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				Config: config + testAccCheckCloudscaleServerConfig_tags(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleServerExists("data.cloudscale_server.foo", &server),
+					resource.TestCheckResourceAttrPtr(
+						"cloudscale_server.basic", "id", &server.UUID),
+					resource.TestCheckResourceAttrPtr(
+						"data.cloudscale_server.foo", "id", &server.UUID),
+					resource.TestCheckResourceAttr(
+						"data.cloudscale_server.foo", "name", name),
+				),
+			},
+			{
+				Config:      config + testAccCheckCloudscaleServerConfig_tags(rInt+1),
+				ExpectError: regexp.MustCompile(`Found zero servers`),
+			},
+		},
+	})
+}
+
+func TestAccCloudscaleServer_DS_FilterByTags_NoTags(t *testing.T) {
+	rInt := acctest.RandInt()
+	config := serverConfig_baseline(2, rInt)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				// No filter at all: matches all servers.
+				Config:      config + "\n" + `data "cloudscale_server" "foo" {}`,
+				ExpectError: regexp.MustCompile(`Found \d+ servers, expected one`),
+			},
+			{
+				// tags = {} is identical: it also matches all servers without tags.
+				Config:      config + "\n" + `data "cloudscale_server" "foo" { tags = {} }`,
+				ExpectError: regexp.MustCompile(`Found \d+ servers, expected one`),
+			},
+			{
+				// A server with no tags must not match a non-empty tag filter.
+				Config:      config + testAccCheckCloudscaleServerConfig_tags(rInt),
+				ExpectError: regexp.MustCompile(`Found zero servers`),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleServerConfig_name(name string) string {
 	return fmt.Sprintf(`
 data "cloudscale_server" "foo" {
@@ -153,4 +220,31 @@ resource "cloudscale_server" "basic" {
   zone_slug                 = "rma1"
   ssh_keys 	                = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
 }`, count, rInt, DefaultImageSlug)
+}
+
+func serverConfig_baselineWithTag(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_server" "basic" {
+  name                      = "terraform-%d"
+  flavor_slug               = "flex-4-1"
+  allow_stopping_for_update = true
+  image_slug                = "%s"
+  volume_size_gb            = 10
+  zone_slug                 = "rma1"
+  ssh_keys                  = ["ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY=", "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFEepRNW5hDct4AdJ8oYsb4lNP5E9XY5fnz3ZvgNCEv7m48+bhUjJXUPuamWix3zigp2lgJHC6SChI/okJ41GUY="]
+  tags = {
+    test-id  = "%d"
+    provider = "cloudscale-tf-test"
+  }
+}`, rInt, DefaultImageSlug, rInt)
+}
+
+func testAccCheckCloudscaleServerConfig_tags(rInt int) string {
+	return fmt.Sprintf(`
+data "cloudscale_server" "foo" {
+  tags = {
+    test-id = "%d"
+  }
+}
+`, rInt)
 }
