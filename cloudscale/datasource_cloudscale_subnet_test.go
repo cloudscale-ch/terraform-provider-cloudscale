@@ -13,7 +13,7 @@ import (
 func TestAccCloudscaleSubnet_DS_Basic(t *testing.T) {
 	var subnet cloudscale.Subnet
 	rInt := acctest.RandInt()
-	uniqueInt := 1
+	uniqueInt := rInt%200 + 30
 	cidr1 := fmt.Sprintf("10.%d.0.0/24", uniqueInt)
 	cidr2 := fmt.Sprintf("10.%d.1.0/24", uniqueInt)
 	config := subnetConfig_baseline(2, rInt, uniqueInt)
