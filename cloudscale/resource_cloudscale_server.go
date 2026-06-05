@@ -2,8 +2,10 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
@@ -27,6 +29,7 @@ func resourceCloudscaleServer() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(1 * time.Hour),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceCloudscaleServerImport,
@@ -678,7 +681,34 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 func deleteServer(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-	return client.Servers.Delete(context.Background(), id)
+	if err := client.Servers.Delete(context.Background(), id); err != nil {
+		return err
+	}
+	if err := waitForServerDeleted(id, meta, d.Timeout(schema.TimeoutDelete)); err != nil {
+		return err
+	}
+	// Brief grace period after the server record disappears
+	time.Sleep(5 * time.Second)
+	return nil
+}
+
+func waitForServerDeleted(id string, meta any, remaining time.Duration) error {
+	client := meta.(*cloudscale.Client)
+	err := waitForDeleted(remaining, func() (exists bool, err error) {
+		server, err := client.Servers.Get(context.Background(), id)
+		if err != nil {
+			if errorResponse, ok := errors.AsType[*cloudscale.ErrorResponse](err); ok && errorResponse.StatusCode == http.StatusNotFound {
+				return false, nil
+			}
+			return false, fmt.Errorf("error retrieving server (%s) (delete refresh) %s", id, err)
+		}
+		log.Printf("[INFO] Status is %s", server.Status)
+		return true, nil
+	})
+	if err != nil {
+		return fmt.Errorf("error waiting for server (%s) to be deleted: %s", id, err)
+	}
+	return nil
 }
 
 func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {

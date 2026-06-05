@@ -2,8 +2,11 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -28,6 +31,9 @@ func resourceCloudscaleNetwork() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: getNetworkSchema(RESOURCE),
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(3 * time.Minute),
+		},
 	}
 }
 
@@ -182,5 +188,26 @@ func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpd
 func deleteNetwork(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-	return client.Networks.Delete(context.Background(), id)
+	if err := client.Networks.Delete(context.Background(), id); err != nil {
+		return err
+	}
+	return waitForNetworkDeleted(id, meta, d.Timeout(schema.TimeoutDelete))
+}
+
+func waitForNetworkDeleted(id string, meta any, remaining time.Duration) error {
+	client := meta.(*cloudscale.Client)
+	err := waitForDeleted(remaining, func() (exists bool, err error) {
+		_, err = client.Networks.Get(context.Background(), id)
+		if err != nil {
+			if errorResponse, ok := errors.AsType[*cloudscale.ErrorResponse](err); ok && errorResponse.StatusCode == http.StatusNotFound {
+				return false, nil
+			}
+			return false, fmt.Errorf("error retrieving network (%s) (delete refresh) %s", id, err)
+		}
+		return true, nil
+	})
+	if err != nil {
+		return fmt.Errorf("error waiting for network (%s) to be deleted: %s", id, err)
+	}
+	return nil
 }

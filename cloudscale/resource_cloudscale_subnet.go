@@ -2,8 +2,10 @@ package cloudscale
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
@@ -29,6 +31,9 @@ func resourceCloudscaleSubnet() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: getSubnetSchema(RESOURCE),
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(3 * time.Minute),
+		},
 	}
 }
 
@@ -200,7 +205,26 @@ func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpda
 func deleteSubnet(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
-	time.Sleep(5 * time.Second)
-	return client.Subnets.Delete(context.Background(), id)
+	if err := client.Subnets.Delete(context.Background(), id); err != nil {
+		return err
+	}
+	return waitForSubnetDeleted(id, meta, d.Timeout(schema.TimeoutDelete))
+}
+
+func waitForSubnetDeleted(id string, meta any, remaining time.Duration) error {
+	client := meta.(*cloudscale.Client)
+	err := waitForDeleted(remaining, func() (exists bool, err error) {
+		_, err = client.Subnets.Get(context.Background(), id)
+		if err != nil {
+			if errorResponse, ok := errors.AsType[*cloudscale.ErrorResponse](err); ok && errorResponse.StatusCode == http.StatusNotFound {
+				return false, nil
+			}
+			return false, fmt.Errorf("error retrieving subnet (%s) (delete refresh) %s", id, err)
+		}
+		return true, nil
+	})
+	if err != nil {
+		return fmt.Errorf("error waiting for subnet (%s) to be deleted: %s", id, err)
+	}
+	return nil
 }
