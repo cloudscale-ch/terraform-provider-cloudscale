@@ -78,8 +78,16 @@ func getLoadBalancerPoolSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
+func lbLockKey(lbUUID string) string {
+	return fmt.Sprintf("cloudscale/load-balancer/%s", lbUUID)
+}
+
 func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
+
+	lbUUID := d.Get("load_balancer_uuid").(string)
+	globalMu.Lock(lbLockKey(lbUUID))
+	defer globalMu.Unlock(lbLockKey(lbUUID))
 
 	opts := &cloudscale.LoadBalancerPoolRequest{
 		Name:         d.Get("name").(string),
@@ -153,5 +161,8 @@ func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.L
 func deleteLoadBalancerPool(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
+	lbUUID := d.Get("load_balancer_uuid").(string)
+	globalMu.Lock(lbLockKey(lbUUID))
+	defer globalMu.Unlock(lbLockKey(lbUUID))
 	return client.LoadBalancerPools.Delete(context.Background(), id)
 }

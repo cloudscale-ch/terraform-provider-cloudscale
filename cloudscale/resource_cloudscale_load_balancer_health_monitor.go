@@ -117,8 +117,10 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudscale.Client)
 
+	// No mutex needed: only one health monitor per pool is allowed, so a mutex would never actually serialize anything.
+	poolUUID := d.Get("pool_uuid").(string)
 	opts := &cloudscale.LoadBalancerHealthMonitorRequest{
-		Pool: d.Get("pool_uuid").(string),
+		Pool: poolUUID,
 		Type: d.Get("type").(string),
 	}
 
@@ -272,6 +274,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 }
 
 func deleteLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) error {
+	// No mutex needed: only one health monitor per pool is allowed, so a mutex would never actually serialize anything.
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
 	return client.LoadBalancerHealthMonitors.Delete(context.Background(), id)
