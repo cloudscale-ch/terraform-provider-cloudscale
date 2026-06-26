@@ -9,8 +9,9 @@ import (
 
 // testDSSchema is a minimal schema for dataSourceResourceRead unit tests.
 var testDSSchema = map[string]*schema.Schema{
-	"name": {Type: schema.TypeString, Optional: true},
-	"tags": &TagsSchema,
+	"name":     {Type: schema.TypeString, Optional: true},
+	"ssh_keys": {Type: schema.TypeList, Optional: true, Elem: &schema.Schema{Type: schema.TypeString}},
+	"tags":     &TagsSchema,
 }
 
 func mockFetch(rows ...ResourceDataRaw) func(*schema.ResourceData, any) ([]ResourceDataRaw, error) {
@@ -202,6 +203,53 @@ func TestDataSourceRead_EmptyTagFilter(t *testing.T) {
 		t.Fatal("expected ambiguity error, got none")
 	}
 	if diags[0].Summary != "Found 2 things, expected one" {
+		t.Errorf("unexpected error: %s", diags[0].Summary)
+	}
+}
+
+func TestDataSourceRead_ListMatch(t *testing.T) {
+	// gather returns []string (from the SDK struct); d.GetOk returns []interface{}.
+	// The filter must normalise the types before comparing, otherwise reflect.DeepEqual
+	// returns false and the resource is silently excluded.
+
+	// Arrange
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "ssh_keys": []string{"key-a"}, "tags": map[string]interface{}{}},
+		{"id": "bbb", "name": "beta", "ssh_keys": []string{"key-b"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"ssh_keys": []interface{}{"key-a"}}
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	// Act
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	// Assert
+	if diags.HasError() {
+		t.Fatalf("unexpected error: %s", diags[0].Summary)
+	}
+	if resourceData.Id() != "aaa" {
+		t.Errorf("got id=%q, want aaa", resourceData.Id())
+	}
+}
+
+func TestDataSourceRead_ListNoMatch(t *testing.T) {
+	// list filter with a value that matches no resource returns a zero-match diagnostic
+
+	// Arrange
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "ssh_keys": []string{"key-a"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"ssh_keys": []interface{}{"key-z"}}
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	// Act
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	// Assert
+	if !diags.HasError() {
+		t.Fatal("expected error, got none")
+	}
+	if diags[0].Summary != "Found zero things" {
 		t.Errorf("unexpected error: %s", diags[0].Summary)
 	}
 }
