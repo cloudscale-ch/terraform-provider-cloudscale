@@ -128,7 +128,7 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 	}
 	opts.AllowedCIDRs = &s
 
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] LoadBalancerListener create configuration: %#v", opts)
 
@@ -167,7 +167,7 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	m["timeout_member_connect_ms"] = loadbalancerlistener.TimeoutMemberConnectMS
 	m["timeout_member_data_ms"] = loadbalancerlistener.TimeoutMemberDataMS
 	m["allowed_cidrs"] = loadbalancerlistener.AllowedCIDRs
-	m["tags"] = TagsToRaw(loadbalancerlistener.Tags)
+	m["tags"] = TagsToState(loadbalancerlistener.Tags)
 	return m
 }
 
@@ -215,7 +215,7 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 				}
 				opts.AllowedCIDRs = &s
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

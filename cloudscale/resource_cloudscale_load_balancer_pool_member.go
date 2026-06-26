@@ -160,7 +160,7 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta
 		val := attr.(bool)
 		opts.Enabled = &val
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] LoadBalancerPoolMember create configuration: %#v", opts)
 
@@ -196,7 +196,7 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	m["monitor_port"] = loadbalancerPoolMember.MonitorPort
 	m["address"] = loadbalancerPoolMember.Address
 	m["monitor_status"] = loadbalancerPoolMember.MonitorStatus
-	m["tags"] = TagsToRaw(loadbalancerPoolMember.Tags)
+	m["tags"] = TagsToState(loadbalancerPoolMember.Tags)
 	return m
 }
 
@@ -225,7 +225,7 @@ func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*clouds
 				v := d.Get(attribute).(bool)
 				opts.Enabled = &v
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

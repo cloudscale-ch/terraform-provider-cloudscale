@@ -76,7 +76,7 @@ func resourceCloudscaleServerGroupCreate(d *schema.ResourceData, meta any) error
 	if attr, ok := d.GetOk("zone_slug"); ok {
 		opts.Zone = attr.(string)
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] ServerGroup create configuration: %#v", opts)
 
@@ -103,7 +103,7 @@ func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) Resource
 	m["name"] = serverGroup.Name
 	m["type"] = serverGroup.Type
 	m["zone_slug"] = serverGroup.Zone.Slug
-	m["tags"] = TagsToRaw(serverGroup.Tags)
+	m["tags"] = TagsToState(serverGroup.Tags)
 	return m
 }
 
@@ -129,7 +129,7 @@ func gatherServerGroupUpdateRequest(d *schema.ResourceData) []*cloudscale.Server
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

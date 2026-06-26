@@ -18,8 +18,8 @@ var (
 	}
 )
 
-// CopyTags converts Terraform state tags (map[string]interface{}) to the SDK type.
-func CopyTags(d *schema.ResourceData) *cloudscale.TagMap {
+// TagsFromState reads the "tags" attribute from Terraform state and converts it to the SDK type.
+func TagsFromState(d *schema.ResourceData) *cloudscale.TagMap {
 	newTags := make(cloudscale.TagMap)
 
 	for k, v := range d.Get("tags").(map[string]any) {
@@ -29,8 +29,8 @@ func CopyTags(d *schema.ResourceData) *cloudscale.TagMap {
 	return &newTags
 }
 
-// TagsToRaw is the inverse of CopyTags: converts SDK tags to Terraform's map type.
-func TagsToRaw(tags cloudscale.TagMap) map[string]interface{} {
+// TagsToState converts SDK tags to the map type used in Terraform state.
+func TagsToState(tags cloudscale.TagMap) map[string]interface{} {
 	result := make(map[string]interface{}, len(tags))
 	for k, v := range tags {
 		result[k] = v

@@ -125,7 +125,7 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
 	if attr, ok := d.GetOk("type"); ok {
 		opts.Type = attr.(string)
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] FloatingIP create configuration: %#v", opts)
 
@@ -153,7 +153,7 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	m["next_hop"] = floatingIP.NextHop
 	m["reverse_ptr"] = floatingIP.ReversePointer
 	m["type"] = floatingIP.Type
-	m["tags"] = TagsToRaw(floatingIP.Tags)
+	m["tags"] = TagsToState(floatingIP.Tags)
 	if floatingIP.Server != nil {
 		m["server"] = floatingIP.Server.UUID
 	} else {
@@ -205,7 +205,7 @@ func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.Floatin
 					opts.LoadBalancer = loadBalancerUUID
 				}
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

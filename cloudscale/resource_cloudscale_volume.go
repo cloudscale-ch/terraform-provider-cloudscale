@@ -108,7 +108,7 @@ func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 	opts := &cloudscale.VolumeCreateRequest{
 		Name: d.Get("name").(string),
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	snapshotUUID, fromSnapshot := d.GetOk("volume_snapshot_uuid")
 	if fromSnapshot {
@@ -186,7 +186,7 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	m["type"] = volume.Type
 	m["zone_slug"] = volume.Zone.Slug
 	m["server_uuids"] = volume.ServerUUIDs
-	m["tags"] = TagsToRaw(volume.Tags)
+	m["tags"] = TagsToState(volume.Tags)
 	return m
 }
 
@@ -222,7 +222,7 @@ func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeUpda
 			} else if attribute == "size_gb" {
 				opts.SizeGB = d.Get(attribute).(int)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

@@ -122,7 +122,7 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta any) erro
 		opts.VIPAddresses = &vipAddressRequests
 	}
 
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] LoadBalancer create configuration: %#v", opts)
 
@@ -191,7 +191,7 @@ func gatherLoadBalancerResourceData(loadbalancer *cloudscale.LoadBalancer) Resou
 	m["flavor_slug"] = loadbalancer.Flavor.Slug
 	m["zone_slug"] = loadbalancer.Zone.Slug
 	m["status"] = loadbalancer.Status
-	m["tags"] = TagsToRaw(loadbalancer.Tags)
+	m["tags"] = TagsToState(loadbalancer.Tags)
 
 	if addrss := len(loadbalancer.VIPAddresses); addrss > 0 {
 		vipAddressesMap := make([]map[string]any, 0, addrss)
@@ -235,7 +235,7 @@ func gatherLoadBalancerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadB
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}
