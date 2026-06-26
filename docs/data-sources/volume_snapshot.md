@@ -21,7 +21,7 @@ The following arguments can be used to look up a volume snapshot:
 * `id` - (Optional) The UUID of the volume snapshot.
 * `name` - (Optional) The name of the volume snapshot.
 * `source_volume_uuid` - (Optional) The UUID of the source volume.
-* `tags` - (Optional) Tags allow you to assign custom metadata to resources. Tags are always strings (both keys and values).
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

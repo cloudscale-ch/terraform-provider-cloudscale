@@ -41,6 +41,7 @@ The following arguments can be used to look up a custom image:
 * `id` - (Optional) The UUID of a custom image.
 * `name` - (Optional) The human-readable name of a custom image.
 * `slug` - (Optional) A string identifying a custom image.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

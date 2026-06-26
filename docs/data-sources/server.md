@@ -21,6 +21,7 @@ The following arguments can be used to look up a server:
 * `id` - (Optional) The UUID of a server.
 * `name` - (Optional) Name of the server.
 * `zone_slug` - (Optional) The slug of the zone in which the server exists. Options include `lpg1` and `rma1`.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

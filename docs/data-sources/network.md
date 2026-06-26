@@ -40,7 +40,7 @@ The following arguments can be used to look up a network:
 * `id` - (Optional) The UUID of a network.
 * `name` - (Optional) The name of a network.
 * `zone_slug` - (Optional) The zone slug of a network. Options include `lpg1` and `rma1`.
-
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 
