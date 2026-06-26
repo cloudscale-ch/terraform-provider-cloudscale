@@ -83,10 +83,15 @@ In addition to the arguments listed above, the following computed attributes are
 * `href` - The cloudscale.ch API URL of the current resource.
 * `ssh_fingerprints` - A list of SSH host key fingerprints (strings) of this server.
 * `ssh_host_keys` - A list of SSH host keys (strings) of this server.
-* `volumes` - A list of volume objects attached to this server. Each volume object has three attributes:
+* `volumes` - A list of volume objects attached to this server. Each volume object has the following attributes:
     * `device_path` - (Deprecated) The path (string) to the volume on your server (e.g. `/dev/vda`). This attribute is always null and will be removed in a future major version.
     * `size_gb` - The size (int) of the volume in GB. Typically matches `volume_size_gb` or `bulk_volume_size_gb`.
     * `type` - A string. Either `ssd` or `bulk`.
+    * `uuid` - The UUID of the volume.
+* `server_groups` - A list of server group objects this server is associated with. Each object has the following attributes:
+    * `href` - The cloudscale.ch API URL of the server group.
+    * `name` - The name of the server group.
+    * `uuid` - The UUID of the server group.
 * `public_ipv4_address` - The first `public` IPv4 address of this server. The returned IP address may be `""` if the server does not have a public IPv4.
 * `private_ipv4_address` - The first `private` IPv4 address of this server. The returned IP address may be `""` if the server does not have private networking enabled.
 * `public_ipv6_address` - The first `public` IPv6 address of this server. The returned IP address may be `""` if the server does not have a public IPv6.
