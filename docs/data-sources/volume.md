@@ -30,5 +30,4 @@ The following arguments can be used to look up a volume:
 In addition to the arguments listed above, the following computed attributes are exported:
 
 * `href` - The cloudscale.ch API URL of the current resource.
-* `size_gb` - The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
 * `server_uuids` - A list of server UUIDs.
