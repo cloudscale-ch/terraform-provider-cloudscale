@@ -61,6 +61,26 @@ func getDeleteOperation(
 	}
 }
 
+// withLock wraps a Create/Update/Delete operation so it is serialized on a key derived
+// from the resource data. The cloudscale API rejects many concurrent operations that
+// share some resource (e.g. a parent), so Terraform's parallelism must be serialized on
+// that shared key.
+//
+// keyFunc derives the lock key from the resource data and returns ok=false when no lock
+// is needed.
+func withLock(
+	keyFunc func(d *schema.ResourceData) (string, bool),
+	op func(d *schema.ResourceData, meta any) error,
+) func(d *schema.ResourceData, meta any) error {
+	return func(d *schema.ResourceData, meta any) error {
+		if key, ok := keyFunc(d); ok {
+			globalMu.Lock(key)
+			defer globalMu.Unlock(key)
+		}
+		return op(d, meta)
+	}
+}
+
 type GenericResourceIdentifier struct {
 	Id string
 }

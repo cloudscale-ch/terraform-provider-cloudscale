@@ -11,6 +11,16 @@ import (
 
 const listenerHumanName = "load balancer listener"
 
+// loadBalancerListenerLockKey serializes listener operations on their parent pool when
+// one is set. If the API ever supports pool-less listeners, we will also need to lock on
+// the LB UUID to serialize those.
+func loadBalancerListenerLockKey(d *schema.ResourceData) (string, bool) {
+	if poolUUID, ok := d.GetOk("pool_uuid"); ok {
+		return lbPoolLockKey(poolUUID.(string)), true
+	}
+	return "", false
+}
+
 var (
 	resourceCloudscaleLoadBalancerListenerRead   = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
 	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest)
@@ -19,10 +29,10 @@ var (
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleLoadBalancerListenerCreate,
+		Create: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerCreate),
 		Read:   resourceCloudscaleLoadBalancerListenerRead,
-		Update: resourceCloudscaleLoadBalancerListenerUpdate,
-		Delete: resourceCloudscaleLoadBalancerListenerDelete,
+		Update: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerUpdate),
+		Delete: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerDelete),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -101,22 +111,14 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 
-	// Lock on the pool when present. If the API ever supports pool-less listeners,
-	// we will also need to lock on the LB UUID to serialize those.
-	poolUUID, hasPool := d.GetOk("pool_uuid")
-	if hasPool {
-		globalMu.Lock(lbPoolLockKey(poolUUID.(string)))
-		defer globalMu.Unlock(lbPoolLockKey(poolUUID.(string)))
-	}
-
 	opts := &cloudscale.LoadBalancerListenerRequest{
 		Name:         d.Get("name").(string),
 		Protocol:     d.Get("protocol").(string),
 		ProtocolPort: d.Get("protocol_port").(int),
 	}
 
-	if hasPool {
-		opts.Pool = poolUUID.(string)
+	if attr, ok := d.GetOk("pool_uuid"); ok {
+		opts.Pool = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("timeout_client_data_ms"); ok {
@@ -233,11 +235,5 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 func deleteLoadBalancerListener(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-	// Lock on the pool when present. If the API ever supports pool-less listeners,
-	// we will also need to lock on the LB UUID to serialize those.
-	if poolUUID, ok := d.GetOk("pool_uuid"); ok {
-		globalMu.Lock(lbPoolLockKey(poolUUID.(string)))
-		defer globalMu.Unlock(lbPoolLockKey(poolUUID.(string)))
-	}
 	return client.LoadBalancerListeners.Delete(context.Background(), id)
 }

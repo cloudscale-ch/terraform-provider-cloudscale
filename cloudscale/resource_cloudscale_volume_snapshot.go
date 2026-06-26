@@ -14,6 +14,20 @@ import (
 
 const volumeSnapshotHumanName = "volume snapshot"
 
+func snapshotLockKey(volumeUUID string) string {
+	return fmt.Sprintf("cloudscale/volume-snapshot/%s", volumeUUID)
+}
+
+// volumeSnapshotLockKey serializes snapshot operations on their source volume. The
+// cloudscale API rejects concurrent snapshot operations on the same source volume, so
+// create/update/delete are serialized per volume UUID. Because withLock wraps the
+// whole operation, the lock is held through the full create/delete status-wait cycle
+// (see resourceCloudscaleVolumeSnapshotCreate / deleteVolumeSnapshot), ensuring the
+// volume is no longer busy before the next operation on it starts.
+func volumeSnapshotLockKey(d *schema.ResourceData) (string, bool) {
+	return snapshotLockKey(d.Get("source_volume_uuid").(string)), true
+}
+
 var (
 	resourceCloudscaleVolumeSnapshotRead   = getReadOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, readVolumeSnapshot, gatherVolumeSnapshotResourceData)
 	resourceCloudscaleVolumeSnapshotUpdate = getUpdateOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, updateVolumeSnapshot, resourceCloudscaleVolumeSnapshotRead, gatherVolumeSnapshotUpdateRequest)
@@ -22,10 +36,10 @@ var (
 
 func resourceCloudscaleVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleVolumeSnapshotCreate,
+		Create: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotCreate),
 		Read:   resourceCloudscaleVolumeSnapshotRead,
-		Update: resourceCloudscaleVolumeSnapshotUpdate,
-		Delete: resourceCloudscaleVolumeSnapshotDelete,
+		Update: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotUpdate),
+		Delete: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotDelete),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -79,10 +93,6 @@ func getVolumeSnapshotSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func snapshotLockKey(volumeUUID string) string {
-	return fmt.Sprintf("cloudscale/volume-snapshot/%s", volumeUUID)
-}
-
 func resourceCloudscaleVolumeSnapshotCreate(d *schema.ResourceData, meta any) error {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
@@ -90,13 +100,6 @@ func resourceCloudscaleVolumeSnapshotCreate(d *schema.ResourceData, meta any) er
 	client := meta.(*cloudscale.Client)
 
 	sourceVolumeUUID := d.Get("source_volume_uuid").(string)
-	// The cloudscale API rejects concurrent snapshot operations on the same source
-	// volume. Lock per volume UUID so that if two snapshots of the same volume are
-	// created in the same apply, they are serialized. The lock is held through the
-	// full create + status-wait cycle to ensure the volume is no longer busy before
-	// the next operation starts.
-	globalMu.Lock(snapshotLockKey(sourceVolumeUUID))
-	defer globalMu.Unlock(snapshotLockKey(sourceVolumeUUID))
 
 	opts := &cloudscale.VolumeSnapshotCreateRequest{
 		Name:         d.Get("name").(string),
@@ -196,13 +199,6 @@ func gatherVolumeSnapshotUpdateRequest(d *schema.ResourceData) []*cloudscale.Vol
 func deleteVolumeSnapshot(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-
-	sourceVolumeUUID := d.Get("source_volume_uuid").(string)
-	// Same API constraint as create: concurrent delete + create (or delete + delete)
-	// on the same source volume are rejected. Lock so that the delete and its
-	// background cleanup wait complete before any subsequent operation on this volume.
-	globalMu.Lock(snapshotLockKey(sourceVolumeUUID))
-	defer globalMu.Unlock(snapshotLockKey(sourceVolumeUUID))
 
 	if err := client.VolumeSnapshots.Delete(context.Background(), id); err != nil {
 		return err

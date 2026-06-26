@@ -10,6 +10,15 @@ import (
 
 const poolHumanName = "load balancer pool"
 
+func lbLockKey(lbUUID string) string {
+	return fmt.Sprintf("cloudscale/load-balancer/%s", lbUUID)
+}
+
+// loadBalancerPoolLockKey serializes pool operations on their parent load balancer.
+func loadBalancerPoolLockKey(d *schema.ResourceData) (string, bool) {
+	return lbLockKey(d.Get("load_balancer_uuid").(string)), true
+}
+
 var (
 	resourceCloudscaleLoadBalancerPoolRead   = getReadOperation(poolHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
 	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest)
@@ -18,10 +27,10 @@ var (
 
 func resourceCloudscaleLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleLoadBalancerPoolCreate,
+		Create: withLock(loadBalancerPoolLockKey, resourceCloudscaleLoadBalancerPoolCreate),
 		Read:   resourceCloudscaleLoadBalancerPoolRead,
-		Update: resourceCloudscaleLoadBalancerPoolUpdate,
-		Delete: resourceCloudscaleLoadBalancerPoolDelete,
+		Update: withLock(loadBalancerPoolLockKey, resourceCloudscaleLoadBalancerPoolUpdate),
+		Delete: withLock(loadBalancerPoolLockKey, resourceCloudscaleLoadBalancerPoolDelete),
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -78,16 +87,8 @@ func getLoadBalancerPoolSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func lbLockKey(lbUUID string) string {
-	return fmt.Sprintf("cloudscale/load-balancer/%s", lbUUID)
-}
-
 func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
-
-	lbUUID := d.Get("load_balancer_uuid").(string)
-	globalMu.Lock(lbLockKey(lbUUID))
-	defer globalMu.Unlock(lbLockKey(lbUUID))
 
 	opts := &cloudscale.LoadBalancerPoolRequest{
 		Name:         d.Get("name").(string),
@@ -161,8 +162,5 @@ func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.L
 func deleteLoadBalancerPool(d *schema.ResourceData, meta any) error {
 	client := meta.(*cloudscale.Client)
 	id := d.Id()
-	lbUUID := d.Get("load_balancer_uuid").(string)
-	globalMu.Lock(lbLockKey(lbUUID))
-	defer globalMu.Unlock(lbLockKey(lbUUID))
 	return client.LoadBalancerPools.Delete(context.Background(), id)
 }
