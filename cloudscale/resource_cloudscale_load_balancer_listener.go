@@ -68,23 +68,23 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"timeout_client_data_ms": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"timeout_member_connect_ms": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"timeout_member_data_ms": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"allowed_cidrs": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"tags": &TagsSchema,
