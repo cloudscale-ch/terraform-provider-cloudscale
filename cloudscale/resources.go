@@ -1,9 +1,11 @@
 package cloudscale
 
 import (
+	"context"
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -39,27 +41,29 @@ func getReadOperation[TResource any, TResourceID any](
 func getUpdateOperation[TResourceID any, TRequest any](
 	resourceHumanName string,
 	idFunc func(d *schema.ResourceData) TResourceID,
-	updateFunc func(rId TResourceID, meta any, updateRequest *TRequest) error,
+	updateFunc func(ctx context.Context, rId TResourceID, meta any, updateRequest *TRequest) error,
 	resourceReadFunc schema.ReadFunc,
 	gatherRequestsFunc func(d *schema.ResourceData) []*TRequest,
 	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
-) schema.UpdateFunc {
-	return func(d *schema.ResourceData, meta any) error {
+) schema.UpdateContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		if mutexKeyFunc != nil {
 			if key, ok := mutexKeyFunc(d); ok {
-				globalMu.Lock(key)
+				if err := globalMu.LockContext(ctx, key); err != nil {
+					return diag.FromErr(err)
+				}
 				defer globalMu.Unlock(key)
 			}
 		}
 		rId := idFunc(d)
 		updateRequests := gatherRequestsFunc(d)
 		for _, request := range updateRequests {
-			err := updateFunc(rId, meta, request)
+			err := updateFunc(ctx, rId, meta, request)
 			if err != nil {
-				return fmt.Errorf("error updating the %s (%s) status (%s)", resourceHumanName, d.Id(), err)
+				return diag.FromErr(fmt.Errorf("error updating the %s (%s) status (%s)", resourceHumanName, d.Id(), err))
 			}
 		}
-		return resourceReadFunc(d, meta)
+		return diag.FromErr(resourceReadFunc(d, meta))
 	}
 }
 
@@ -70,22 +74,24 @@ func getUpdateOperation[TResourceID any, TRequest any](
 func getDeleteOperation[TResourceID any](
 	resourceHumanName string,
 	idFunc func(d *schema.ResourceData) TResourceID,
-	deleteFunc func(rId TResourceID, meta any) error,
+	deleteFunc func(ctx context.Context, rId TResourceID, meta any) error,
 	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
-) schema.DeleteFunc {
-	return func(d *schema.ResourceData, meta any) error {
+) schema.DeleteContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		log.Printf("[INFO] Deleting %s: %s", resourceHumanName, d.Id())
 		if mutexKeyFunc != nil {
 			if key, ok := mutexKeyFunc(d); ok {
-				globalMu.Lock(key)
+				if err := globalMu.LockContext(ctx, key); err != nil {
+					return diag.FromErr(err)
+				}
 				defer globalMu.Unlock(key)
 			}
 		}
 		rId := idFunc(d)
-		err := deleteFunc(rId, meta)
+		err := deleteFunc(ctx, rId, meta)
 
 		if err != nil {
-			return CheckDeleted(d, err, fmt.Sprintf("Error deleting %s", resourceHumanName))
+			return diag.FromErr(CheckDeleted(d, err, fmt.Sprintf("Error deleting %s", resourceHumanName)))
 		}
 		return nil
 	}
@@ -100,14 +106,16 @@ func getDeleteOperation[TResourceID any](
 // is needed.
 func withLock(
 	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
-	op func(d *schema.ResourceData, meta any) error,
-) func(d *schema.ResourceData, meta any) error {
-	return func(d *schema.ResourceData, meta any) error {
+	op func(context.Context, *schema.ResourceData, interface{}) diag.Diagnostics,
+) func(context.Context, *schema.ResourceData, interface{}) diag.Diagnostics {
+	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		if key, ok := mutexKeyFunc(d); ok {
-			globalMu.Lock(key)
+			if err := globalMu.LockContext(ctx, key); err != nil {
+				return diag.FromErr(err)
+			}
 			defer globalMu.Unlock(key)
 		}
-		return op(d, meta)
+		return op(ctx, d, meta)
 	}
 }
 

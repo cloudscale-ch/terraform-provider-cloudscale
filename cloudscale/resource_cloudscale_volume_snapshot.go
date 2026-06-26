@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -36,10 +37,10 @@ var (
 
 func resourceCloudscaleVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotCreate),
-		Read:   resourceCloudscaleVolumeSnapshotRead,
-		Update: resourceCloudscaleVolumeSnapshotUpdate,
-		Delete: resourceCloudscaleVolumeSnapshotDelete,
+		CreateContext: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotCreate),
+		Read:          resourceCloudscaleVolumeSnapshotRead,
+		UpdateContext: resourceCloudscaleVolumeSnapshotUpdate,
+		DeleteContext: resourceCloudscaleVolumeSnapshotDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -93,7 +94,7 @@ func getVolumeSnapshotSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleVolumeSnapshotCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleVolumeSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -109,9 +110,9 @@ func resourceCloudscaleVolumeSnapshotCreate(d *schema.ResourceData, meta any) er
 
 	log.Printf("[DEBUG] VolumeSnapshot create configuration: %#v", opts)
 
-	snap, err := client.VolumeSnapshots.Create(context.Background(), opts)
+	snap, err := client.VolumeSnapshots.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating VolumeSnapshot: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating VolumeSnapshot: %s", err))
 	}
 
 	d.SetId(snap.UUID)
@@ -119,25 +120,21 @@ func resourceCloudscaleVolumeSnapshotCreate(d *schema.ResourceData, meta any) er
 	log.Printf("[INFO] VolumeSnapshot ID: %s", d.Id())
 
 	remainingTime := timeout - time.Since(startTime)
-	_, err = waitForStatus([]string{}, "available", &remainingTime, newVolumeSnapshotRefreshFunc(d, "status", meta))
+	_, err = waitForStatus(ctx, []string{}, "available", &remainingTime, newVolumeSnapshotRefreshFunc(ctx, d, "status", meta))
 	if err != nil {
-		return fmt.Errorf("error waiting for volume snapshot (%s) to become available: %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error waiting for volume snapshot (%s) to become available: %s", d.Id(), err))
 	}
 
-	err = resourceCloudscaleVolumeSnapshotRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("error reading the volume snapshot (%s): %s", d.Id(), err)
-	}
-	return nil
+	return diag.FromErr(resourceCloudscaleVolumeSnapshotRead(d, meta))
 }
 
-func newVolumeSnapshotRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
+func newVolumeSnapshotRefreshFunc(ctx context.Context, d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
 	return func() (any, string, error) {
 		id := d.Id()
 
 		// get the instance
-		snap, err := client.VolumeSnapshots.Get(context.Background(), id)
+		snap, err := client.VolumeSnapshots.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("error retrieving volume snapshot (%s) (refresh) %s", id, err)
 		}
@@ -172,9 +169,9 @@ func readVolumeSnapshot(rId GenericResourceIdentifier, meta any) (*cloudscale.Vo
 	return client.VolumeSnapshots.Get(context.Background(), rId.Id)
 }
 
-func updateVolumeSnapshot(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeSnapshotUpdateRequest) error {
+func updateVolumeSnapshot(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeSnapshotUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.VolumeSnapshots.Update(context.Background(), rId.Id, updateRequest)
+	return client.VolumeSnapshots.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherVolumeSnapshotUpdateRequest(d *schema.ResourceData) []*cloudscale.VolumeSnapshotUpdateRequest {
@@ -196,26 +193,22 @@ func gatherVolumeSnapshotUpdateRequest(d *schema.ResourceData) []*cloudscale.Vol
 	return requests
 }
 
-// volumeSnapshotDeleteTimeout is the SDK default timeout (no Timeouts block is declared
-// for this resource, so d.Timeout would also return this value).
-const volumeSnapshotDeleteTimeout = 20 * time.Minute
-
-func deleteVolumeSnapshot(rId GenericResourceIdentifier, meta any) error {
+func deleteVolumeSnapshot(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
 
-	if err := client.VolumeSnapshots.Delete(context.Background(), rId.Id); err != nil {
+	if err := client.VolumeSnapshots.Delete(ctx, rId.Id); err != nil {
 		return err
 	}
 	// Unlike most cloudscale resources that disappear immediately after DELETE,
 	// volume snapshots go through a background cleanup period. During this time
 	// the snapshot still exists with status "deleting". We wait for it to be gone.
-	return waitForVolumeSnapshotDeleted(rId.Id, meta, volumeSnapshotDeleteTimeout)
+	return waitForVolumeSnapshotDeleted(ctx, rId.Id, meta)
 }
 
-func waitForVolumeSnapshotDeleted(id string, meta any, remaining time.Duration) error {
+func waitForVolumeSnapshotDeleted(ctx context.Context, id string, meta any) error {
 	client := meta.(*cloudscale.Client)
-	err := waitForDeleted(remaining, func() (exists bool, err error) {
-		snapshot, err := client.VolumeSnapshots.Get(context.Background(), id)
+	err := waitForDeleted(ctx, func() (exists bool, err error) {
+		snapshot, err := client.VolumeSnapshots.Get(ctx, id)
 		if err != nil {
 			if errorResponse, ok := err.(*cloudscale.ErrorResponse); ok && errorResponse.StatusCode == http.StatusNotFound { // API returns 404 once fully deleted
 				return false, nil // gone

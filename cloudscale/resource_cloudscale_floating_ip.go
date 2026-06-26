@@ -21,8 +21,8 @@ func resourceCloudscaleFloatingIP() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceFloatingIPCreate,
 		Read:   resourceFloatingIPRead,
-		Update: resourceFloatingIPUpdate,
-		Delete: resourceFloatingIPDelete,
+		UpdateContext: resourceFloatingIPUpdate,
+		DeleteContext: resourceFloatingIPDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -177,9 +177,9 @@ func readFloatingIP(rId GenericResourceIdentifier, meta any) (*cloudscale.Floati
 
 }
 
-func updateFloatingIP(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.FloatingIPUpdateRequest) error {
+func updateFloatingIP(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.FloatingIPUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.FloatingIPs.Update(context.Background(), rId.Id, updateRequest)
+	return client.FloatingIPs.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.FloatingIPUpdateRequest {
@@ -212,7 +212,7 @@ func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.Floatin
 	return requests
 }
 
-func deleteFloatingIP(rId GenericResourceIdentifier, meta any) error {
+func deleteFloatingIP(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.FloatingIPs.Delete(context.Background(), rId.Id)
+	return client.FloatingIPs.Delete(ctx, rId.Id)
 }

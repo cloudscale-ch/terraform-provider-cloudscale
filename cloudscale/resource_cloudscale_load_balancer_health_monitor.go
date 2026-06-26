@@ -3,9 +3,11 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const healthMonitorHumanName = "load balancer health monitor"
@@ -21,10 +23,10 @@ func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 		// Unlike pools, pool members and listeners, health monitor operations are not
 		// wrapped with withLock: only one health monitor per pool is allowed, so a
 		// mutex would never actually serialize anything.
-		Create: resourceCloudscaleLoadBalancerHealthMonitorCreate,
-		Read:   resourceCloudscaleLoadBalancerHealthMonitorRead,
-		Update: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
-		Delete: resourceCloudscaleLoadBalancerHealthMonitorDelete,
+		CreateContext: resourceCloudscaleLoadBalancerHealthMonitorCreate,
+		Read:          resourceCloudscaleLoadBalancerHealthMonitorRead,
+		UpdateContext: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerHealthMonitorDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -117,7 +119,7 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 	return m
 }
 
-func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCloudscaleLoadBalancerHealthMonitorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerHealthMonitorRequest{
@@ -165,19 +167,15 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 
 	log.Printf("[DEBUG] LoadBalancerHealthMonitor create configuration: %#v", opts)
 
-	healthMonitor, err := client.LoadBalancerHealthMonitors.Create(context.Background(), opts)
+	healthMonitor, err := client.LoadBalancerHealthMonitors.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("error creating LoadBalancerHealthMonitor: %s", err)
+		return diag.FromErr(fmt.Errorf("error creating LoadBalancerHealthMonitor: %s", err))
 	}
 
 	d.SetId(healthMonitor.UUID)
 
 	log.Printf("[INFO] LoadBalancerHealthMonitor UUID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerHealthMonitorRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("error reading the load balancer health monitor (%s): %s", d.Id(), err)
-	}
-	return nil
+	return diag.FromErr(resourceCloudscaleLoadBalancerHealthMonitorRead(d, meta))
 }
 
 func getCodes(codes []any) []string {
@@ -193,9 +191,9 @@ func readLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) (*cl
 	return client.LoadBalancerHealthMonitors.Get(context.Background(), rId.Id)
 }
 
-func updateLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerHealthMonitorRequest) error {
+func updateLoadBalancerHealthMonitor(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerHealthMonitorRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerHealthMonitors.Update(context.Background(), rId.Id, updateRequest)
+	return client.LoadBalancerHealthMonitors.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cloudscale.LoadBalancerHealthMonitorRequest {
@@ -235,7 +233,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 					httpOpts.Method = d.Get(attribute).(string)
 				} else if attribute == "http_url_path" {
 					httpOpts.UrlPath = d.Get(attribute).(string)
-				}else if attribute == "http_host" {
+				} else if attribute == "http_host" {
 					if attr, ok := d.GetOk(attribute); ok {
 						s := attr.(string)
 						httpOpts.Host = &s
@@ -274,7 +272,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	return m
 }
 
-func deleteLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) error {
+func deleteLoadBalancerHealthMonitor(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerHealthMonitors.Delete(context.Background(), rId.Id)
+	return client.LoadBalancerHealthMonitors.Delete(ctx, rId.Id)
 }

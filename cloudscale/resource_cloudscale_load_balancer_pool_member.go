@@ -3,10 +3,12 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const poolMemberHumanName = "load balancer pool member"
@@ -28,10 +30,10 @@ var (
 
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 	return &schema.Resource{
-		Create: withLock(loadBalancerPoolMemberLockKey, resourceCloudscaleLoadBalancerPoolMemberCreate),
-		Read:   resourceCloudscaleLoadBalancerPoolMemberRead,
-		Update: resourceCloudscaleLoadBalancerPoolMemberUpdate,
-		Delete: resourceCloudscaleLoadBalancerPoolMemberDelete,
+		CreateContext: withLock(loadBalancerPoolMemberLockKey, resourceCloudscaleLoadBalancerPoolMemberCreate),
+		Read:          resourceCloudscaleLoadBalancerPoolMemberRead,
+		UpdateContext: resourceCloudscaleLoadBalancerPoolMemberUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerPoolMemberDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: func(
@@ -154,7 +156,7 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleLoadBalancerPoolMemberCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerPoolMemberRequest{
@@ -173,19 +175,15 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta
 	log.Printf("[DEBUG] LoadBalancerPoolMember create configuration: %#v", opts)
 
 	poolID := d.Get("pool_uuid").(string)
-	poolMember, err := client.LoadBalancerPoolMembers.Create(context.Background(), poolID, opts)
+	poolMember, err := client.LoadBalancerPoolMembers.Create(ctx, poolID, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating LoadBalancerPoolMember: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating LoadBalancerPoolMember: %s", err))
 	}
 
 	d.SetId(poolMember.UUID)
 
 	log.Printf("[INFO] LoadBalancerPoolMember ID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerPoolMemberRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the load balancer pool member (%s): %s", d.Id(), err)
-	}
-	return nil
+	return diag.FromErr(resourceCloudscaleLoadBalancerPoolMemberRead(d, meta))
 }
 
 func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
@@ -213,9 +211,9 @@ func readLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, me
 	return client.LoadBalancerPoolMembers.Get(context.Background(), rId.PoolID, rId.Id)
 }
 
-func updateLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolMemberRequest) error {
+func updateLoadBalancerPoolMember(ctx context.Context, rId LoadBalancerPoolMemberResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolMemberRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPoolMembers.Update(context.Background(), rId.PoolID, rId.Id, updateRequest)
+	return client.LoadBalancerPoolMembers.Update(ctx, rId.PoolID, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolMemberRequest {
@@ -240,7 +238,7 @@ func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*clouds
 	return requests
 }
 
-func deleteLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, meta any) error {
+func deleteLoadBalancerPoolMember(ctx context.Context, rId LoadBalancerPoolMemberResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPoolMembers.Delete(context.Background(), rId.PoolID, rId.Id)
+	return client.LoadBalancerPoolMembers.Delete(ctx, rId.PoolID, rId.Id)
 }

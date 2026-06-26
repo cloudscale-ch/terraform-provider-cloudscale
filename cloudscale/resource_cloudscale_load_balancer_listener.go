@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -29,10 +30,10 @@ var (
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
-		Create: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerCreate),
-		Read:   resourceCloudscaleLoadBalancerListenerRead,
-		Update: resourceCloudscaleLoadBalancerListenerUpdate,
-		Delete: resourceCloudscaleLoadBalancerListenerDelete,
+		CreateContext: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerCreate),
+		Read:          resourceCloudscaleLoadBalancerListenerRead,
+		UpdateContext: resourceCloudscaleLoadBalancerListenerUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerListenerDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -108,7 +109,7 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleLoadBalancerListenerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerListenerRequest{
@@ -142,19 +143,15 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 
 	log.Printf("[DEBUG] LoadBalancerListener create configuration: %#v", opts)
 
-	loadBalancerListener, err := client.LoadBalancerListeners.Create(context.Background(), opts)
+	loadBalancerListener, err := client.LoadBalancerListeners.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating LoadBalancerListener: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating LoadBalancerListener: %s", err))
 	}
 
 	d.SetId(loadBalancerListener.UUID)
 
 	log.Printf("[INFO] LoadBalancerListener ID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerListenerRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the load balancer listener (%s): %s", d.Id(), err)
-	}
-	return nil
+	return diag.FromErr(resourceCloudscaleLoadBalancerListenerRead(d, meta))
 }
 
 func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.LoadBalancerListener) ResourceDataRaw {
@@ -186,9 +183,9 @@ func readLoadBalancerListener(rId GenericResourceIdentifier, meta any) (*cloudsc
 	return client.LoadBalancerListeners.Get(context.Background(), rId.Id)
 }
 
-func updateLoadBalancerListener(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerListenerRequest) error {
+func updateLoadBalancerListener(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerListenerRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerListeners.Update(context.Background(), rId.Id, updateRequest)
+	return client.LoadBalancerListeners.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerListenerRequest {
@@ -232,7 +229,7 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 	return requests
 }
 
-func deleteLoadBalancerListener(rId GenericResourceIdentifier, meta any) error {
+func deleteLoadBalancerListener(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerListeners.Delete(context.Background(), rId.Id)
+	return client.LoadBalancerListeners.Delete(ctx, rId.Id)
 }

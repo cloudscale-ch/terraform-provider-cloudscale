@@ -21,8 +21,8 @@ func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleNetworkCreate,
 		Read:   resourceCloudscaleNetworkRead,
-		Update: resourceCloudscaleNetworkUpdate,
-		Delete: resourceCloudscaleNetworkDelete,
+		UpdateContext: resourceCloudscaleNetworkUpdate,
+		DeleteContext: resourceCloudscaleNetworkDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -153,9 +153,9 @@ func readNetwork(rId GenericResourceIdentifier, meta any) (*cloudscale.Network, 
 	return client.Networks.Get(context.Background(), rId.Id)
 }
 
-func updateNetwork(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.NetworkUpdateRequest) error {
+func updateNetwork(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.NetworkUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.Networks.Update(context.Background(), rId.Id, updateRequest)
+	return client.Networks.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpdateRequest {
@@ -179,7 +179,7 @@ func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpd
 	return requests
 }
 
-func deleteNetwork(rId GenericResourceIdentifier, meta any) error {
+func deleteNetwork(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.Networks.Delete(context.Background(), rId.Id)
+	return client.Networks.Delete(ctx, rId.Id)
 }

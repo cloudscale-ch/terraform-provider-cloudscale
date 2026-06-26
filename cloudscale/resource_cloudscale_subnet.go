@@ -22,8 +22,8 @@ func resourceCloudscaleSubnet() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleSubnetCreate,
 		Read:   resourceCloudscaleSubnetRead,
-		Update: resourceCloudscaleSubnetUpdate,
-		Delete: resourceCloudscaleSubnetDelete,
+		UpdateContext: resourceCloudscaleSubnetUpdate,
+		DeleteContext: resourceCloudscaleSubnetDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -157,9 +157,9 @@ func readSubnet(rId GenericResourceIdentifier, meta any) (*cloudscale.Subnet, er
 	return client.Subnets.Get(context.Background(), rId.Id)
 }
 
-func updateSubnet(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.SubnetUpdateRequest) error {
+func updateSubnet(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.SubnetUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.Subnets.Update(context.Background(), rId.Id, updateRequest)
+	return client.Subnets.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpdateRequest {
@@ -197,9 +197,9 @@ func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpda
 	return requests
 }
 
-func deleteSubnet(rId GenericResourceIdentifier, meta any) error {
+func deleteSubnet(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
 	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
 	time.Sleep(5 * time.Second)
-	return client.Subnets.Delete(context.Background(), rId.Id)
+	return client.Subnets.Delete(ctx, rId.Id)
 }

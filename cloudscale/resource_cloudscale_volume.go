@@ -21,8 +21,8 @@ func resourceCloudscaleVolume() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleVolumeCreate,
 		Read:   resourceCloudscaleVolumeRead,
-		Update: resourceCloudscaleVolumeUpdate,
-		Delete: resourceCloudscaleVolumeDelete,
+		UpdateContext: resourceCloudscaleVolumeUpdate,
+		DeleteContext: resourceCloudscaleVolumeDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -195,9 +195,9 @@ func readVolume(rId GenericResourceIdentifier, meta any) (*cloudscale.Volume, er
 	return client.Volumes.Get(context.Background(), rId.Id)
 }
 
-func updateVolume(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeUpdateRequest) error {
+func updateVolume(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.Volumes.Update(context.Background(), rId.Id, updateRequest)
+	return client.Volumes.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeUpdateRequest {
@@ -229,7 +229,7 @@ func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeUpda
 	return requests
 }
 
-func deleteVolume(rId GenericResourceIdentifier, meta any) error {
+func deleteVolume(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.Volumes.Delete(context.Background(), rId.Id)
+	return client.Volumes.Delete(ctx, rId.Id)
 }

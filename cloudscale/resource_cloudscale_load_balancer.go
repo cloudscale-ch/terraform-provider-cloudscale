@@ -22,8 +22,8 @@ func resourceCloudscaleLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleLoadBalancerCreate,
 		Read:   resourceCloudscaleLoadBalancerRead,
-		Update: resourceCloudscaleLoadBalancerUpdate,
-		Delete: resourceCloudscaleLoadBalancerDelete,
+		UpdateContext: resourceCloudscaleLoadBalancerUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -135,7 +135,7 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta any) erro
 	log.Printf("[INFO] LoadBalancer ID: %s", d.Id())
 
 	remainingTime := timeout - time.Since(startTime)
-	_, err = waitForStatus([]string{"changing"}, "running", &remainingTime, newLoadBalancerRefreshFunc(d, "status", meta))
+	_, err = waitForStatus(ctx, []string{"changing"}, "running", &remainingTime, newLoadBalancerRefreshFunc(ctx, d, "status", meta))
 	if err != nil {
 		return fmt.Errorf("error waiting for load balancer (%s) to become ready: %s", d.Id(), err)
 	}
@@ -147,13 +147,13 @@ func resourceCloudscaleLoadBalancerCreate(d *schema.ResourceData, meta any) erro
 	return nil
 }
 
-func newLoadBalancerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
+func newLoadBalancerRefreshFunc(ctx context.Context, d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
 	return func() (any, string, error) {
 		id := d.Id()
 
 		// get the instance
-		loadBalancer, err := client.LoadBalancers.Get(context.Background(), id)
+		loadBalancer, err := client.LoadBalancers.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("error retrieving load balancer(%s) (refresh) %s", id, err)
 		}
@@ -217,9 +217,9 @@ func readLoadBalancer(rId GenericResourceIdentifier, meta any) (*cloudscale.Load
 	return client.LoadBalancers.Get(context.Background(), rId.Id)
 }
 
-func updateLoadBalancer(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerRequest) error {
+func updateLoadBalancer(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancers.Update(context.Background(), rId.Id, updateRequest)
+	return client.LoadBalancers.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerRequest {
@@ -241,7 +241,7 @@ func gatherLoadBalancerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadB
 	return requests
 }
 
-func deleteLoadBalancer(rId GenericResourceIdentifier, meta any) error {
+func deleteLoadBalancer(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancers.Delete(context.Background(), rId.Id)
+	return client.LoadBalancers.Delete(ctx, rId.Id)
 }

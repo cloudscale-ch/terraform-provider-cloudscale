@@ -20,8 +20,8 @@ func resourceCloudscaleServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceCloudscaleServerCreate,
 		Read:   resourceCloudscaleServerRead,
-		Update: resourceCloudscaleServerUpdate,
-		Delete: resourceCloudscaleServerDelete,
+		Update:        resourceCloudscaleServerUpdate,
+		DeleteContext: resourceCloudscaleServerDelete,
 
 		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
@@ -675,9 +675,9 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 	return resourceCloudscaleServerRead(d, meta)
 }
 
-func deleteServer(rId GenericResourceIdentifier, meta any) error {
+func deleteServer(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	return client.Servers.Delete(context.Background(), rId.Id)
+	return client.Servers.Delete(ctx, rId.Id)
 }
 
 func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {

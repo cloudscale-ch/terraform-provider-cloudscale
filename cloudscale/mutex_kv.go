@@ -1,8 +1,11 @@
 package cloudscale
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"sync"
+	"time"
 )
 
 // Source: https://developer.hashicorp.com/terraform/plugin/sdkv2/guides/v2-upgrade-guide#removal-of-helper-mutexkv-package
@@ -19,15 +22,26 @@ type MutexKV struct {
 	store map[string]*sync.Mutex
 }
 
-// Locks the mutex for the given key. Caller is responsible for calling Unlock
-// for the same key
-func (m *MutexKV) Lock(key string) {
+// LockContext tries to acquire the mutex for the given key, retrying until the
+// context is done. Returns an error if the context deadline is exceeded before
+// the lock is acquired.
+func (m *MutexKV) LockContext(ctx context.Context, key string) error {
 	log.Printf("[DEBUG] Locking %q", key)
-	m.get(key).Lock()
-	log.Printf("[DEBUG] Locked %q", key)
+	mu := m.get(key)
+	for {
+		if mu.TryLock() {
+			log.Printf("[DEBUG] Locked %q", key)
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timed out waiting to acquire lock %q: %w", key, ctx.Err())
+		case <-time.After(50 * time.Millisecond):
+		}
+	}
 }
 
-// Unlock the mutex for the given key. Caller must have called Lock for the same key first
+// Unlock the mutex for the given key. Caller must have called LockContext for the same key first
 func (m *MutexKV) Unlock(key string) {
 	log.Printf("[DEBUG] Unlocking %q", key)
 	m.get(key).Unlock()
