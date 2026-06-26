@@ -48,6 +48,12 @@ func dataSourceResourceRead(
 							break // one tag mismatch is sufficient
 						}
 					}
+				} else if schemaEntry.Type == schema.TypeList || schemaEntry.Type == schema.TypeSet {
+					// Gather functions return []string from the SDK struct; d.GetOk returns []interface{}.
+					// Normalise before comparing so reflect.DeepEqual sees the same dynamic type.
+					if !reflect.DeepEqual(toInterfaceSlice(m[key]), attr) {
+						match = false
+					}
 				} else if !reflect.DeepEqual(m[key], attr) {
 					match = false
 				}
@@ -69,6 +75,21 @@ func dataSourceResourceRead(
 		delete(item, "id")
 		fillResourceData(d, item)
 
+		return nil
+	}
+}
+
+func toInterfaceSlice(v any) []interface{} {
+	switch s := v.(type) {
+	case []string:
+		result := make([]interface{}, len(s))
+		for i, str := range s {
+			result[i] = str
+		}
+		return result
+	case []interface{}:
+		return s
+	default:
 		return nil
 	}
 }
