@@ -18,7 +18,7 @@ func dataSourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 	}
 }
 
-func listLoadBalancerHealthMonitors(d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancerHealthMonitor, error) {
+func listLoadBalancerHealthMonitors(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancerHealthMonitor, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerHealthMonitors.List(context.Background())
+	return client.LoadBalancerHealthMonitors.List(ctx)
 }

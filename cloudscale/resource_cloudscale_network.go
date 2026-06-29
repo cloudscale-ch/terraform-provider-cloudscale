@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -19,8 +20,8 @@ var (
 
 func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleNetworkCreate,
-		Read:   resourceCloudscaleNetworkRead,
+		CreateContext: resourceCloudscaleNetworkCreate,
+		ReadContext:   resourceCloudscaleNetworkRead,
 		UpdateContext: resourceCloudscaleNetworkUpdate,
 		DeleteContext: resourceCloudscaleNetworkDelete,
 
@@ -91,7 +92,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleNetworkCreate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleNetworkCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.NetworkCreateRequest{
@@ -112,19 +113,15 @@ func resourceCloudscaleNetworkCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] Network create configuration: %#v", opts)
 
-	network, err := client.Networks.Create(context.Background(), opts)
+	network, err := client.Networks.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating network: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating network: %s", err))
 	}
 
 	d.SetId(network.UUID)
 
 	log.Printf("[INFO] Network ID %s", d.Id())
-	err = resourceCloudscaleNetworkRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the network (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleNetworkRead(ctx, d, meta)
 }
 
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
@@ -148,9 +145,9 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 	return m
 }
 
-func readNetwork(rId GenericResourceIdentifier, meta any) (*cloudscale.Network, error) {
+func readNetwork(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.Network, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Networks.Get(context.Background(), rId.Id)
+	return client.Networks.Get(ctx, rId.Id)
 }
 
 func updateNetwork(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.NetworkUpdateRequest) error {

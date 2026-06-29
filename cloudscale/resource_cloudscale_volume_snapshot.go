@@ -38,7 +38,7 @@ var (
 func resourceCloudscaleVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotCreate),
-		Read:          resourceCloudscaleVolumeSnapshotRead,
+		ReadContext:   resourceCloudscaleVolumeSnapshotRead,
 		UpdateContext: resourceCloudscaleVolumeSnapshotUpdate,
 		DeleteContext: resourceCloudscaleVolumeSnapshotDelete,
 
@@ -125,7 +125,7 @@ func resourceCloudscaleVolumeSnapshotCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error waiting for volume snapshot (%s) to become available: %s", d.Id(), err))
 	}
 
-	return diag.FromErr(resourceCloudscaleVolumeSnapshotRead(d, meta))
+	return resourceCloudscaleVolumeSnapshotRead(ctx, d, meta)
 }
 
 func newVolumeSnapshotRefreshFunc(ctx context.Context, d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
@@ -164,9 +164,9 @@ func gatherVolumeSnapshotResourceData(snap *cloudscale.VolumeSnapshot) ResourceD
 	return m
 }
 
-func readVolumeSnapshot(rId GenericResourceIdentifier, meta any) (*cloudscale.VolumeSnapshot, error) {
+func readVolumeSnapshot(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.VolumeSnapshot, error) {
 	client := meta.(*cloudscale.Client)
-	return client.VolumeSnapshots.Get(context.Background(), rId.Id)
+	return client.VolumeSnapshots.Get(ctx, rId.Id)
 }
 
 func updateVolumeSnapshot(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeSnapshotUpdateRequest) error {

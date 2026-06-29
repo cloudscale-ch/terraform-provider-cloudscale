@@ -19,7 +19,7 @@ func dataSourceCloudscaleServer() *schema.Resource {
 	}
 }
 
-func listServers(d *schema.ResourceData, meta any) ([]cloudscale.Server, error) {
+func listServers(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.Server, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Servers.List(context.Background())
+	return client.Servers.List(ctx)
 }

@@ -19,7 +19,7 @@ func dataSourceCloudscaleSubnet() *schema.Resource {
 	}
 }
 
-func listSubnets(d *schema.ResourceData, meta any) ([]cloudscale.Subnet, error) {
+func listSubnets(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.Subnet, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Subnets.List(context.Background())
+	return client.Subnets.List(ctx)
 }

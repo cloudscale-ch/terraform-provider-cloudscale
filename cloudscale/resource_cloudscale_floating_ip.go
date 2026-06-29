@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -19,8 +20,8 @@ var (
 
 func resourceCloudscaleFloatingIP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceFloatingIPCreate,
-		Read:   resourceFloatingIPRead,
+		CreateContext: resourceFloatingIPCreate,
+		ReadContext:   resourceFloatingIPRead,
 		UpdateContext: resourceFloatingIPUpdate,
 		DeleteContext: resourceFloatingIPDelete,
 
@@ -96,7 +97,7 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
+func resourceFloatingIPCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.FloatingIPCreateRequest{
@@ -129,18 +130,14 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] FloatingIP create configuration: %#v", opts)
 
-	floatingIP, err := client.FloatingIPs.Create(context.Background(), opts)
+	floatingIP, err := client.FloatingIPs.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating FloatingIP: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating FloatingIP: %s", err))
 	}
 
 	d.SetId(floatingIP.IP())
 
-	err = resourceFloatingIPRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the floating IP (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceFloatingIPRead(ctx, d, meta)
 }
 
 func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDataRaw {
@@ -171,10 +168,9 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	return m
 }
 
-func readFloatingIP(rId GenericResourceIdentifier, meta any) (*cloudscale.FloatingIP, error) {
+func readFloatingIP(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.FloatingIP, error) {
 	client := meta.(*cloudscale.Client)
-	return client.FloatingIPs.Get(context.Background(), rId.Id)
-
+	return client.FloatingIPs.Get(ctx, rId.Id)
 }
 
 func updateFloatingIP(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.FloatingIPUpdateRequest) error {

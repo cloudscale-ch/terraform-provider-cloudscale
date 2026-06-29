@@ -16,15 +16,15 @@ import (
 func getReadOperation[TResource any, TResourceID any](
 	resourceHumanName string,
 	idFunc func(d *schema.ResourceData) TResourceID,
-	readFunc func(rID TResourceID, meta any) (*TResource, error),
+	readFunc func(ctx context.Context, rID TResourceID, meta any) (*TResource, error),
 	gatherFunc func(resource *TResource) ResourceDataRaw,
-) schema.ReadFunc {
-	return func(d *schema.ResourceData, meta any) error {
+) schema.ReadContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 		rId := idFunc(d)
-		resource, err := readFunc(rId, meta)
+		resource, err := readFunc(ctx, rId, meta)
 
 		if err != nil {
-			return CheckDeleted(d, err, fmt.Sprintf("Error retrieving %s (%v)", resourceHumanName, rId))
+			return diag.FromErr(CheckDeleted(d, err, fmt.Sprintf("Error retrieving %s (%v)", resourceHumanName, rId)))
 		}
 
 		fillResourceData(d, gatherFunc(resource))
@@ -42,7 +42,7 @@ func getUpdateOperation[TResourceID any, TRequest any](
 	resourceHumanName string,
 	idFunc func(d *schema.ResourceData) TResourceID,
 	updateFunc func(ctx context.Context, rId TResourceID, meta any, updateRequest *TRequest) error,
-	resourceReadFunc schema.ReadFunc,
+	resourceReadFunc schema.ReadContextFunc,
 	gatherRequestsFunc func(d *schema.ResourceData) []*TRequest,
 	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
 ) schema.UpdateContextFunc {
@@ -63,7 +63,7 @@ func getUpdateOperation[TResourceID any, TRequest any](
 				return diag.FromErr(fmt.Errorf("error updating the %s (%s) status (%s)", resourceHumanName, d.Id(), err))
 			}
 		}
-		return diag.FromErr(resourceReadFunc(d, meta))
+		return resourceReadFunc(ctx, d, meta)
 	}
 }
 

@@ -31,7 +31,7 @@ var (
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerCreate),
-		Read:          resourceCloudscaleLoadBalancerListenerRead,
+		ReadContext:   resourceCloudscaleLoadBalancerListenerRead,
 		UpdateContext: resourceCloudscaleLoadBalancerListenerUpdate,
 		DeleteContext: resourceCloudscaleLoadBalancerListenerDelete,
 
@@ -151,7 +151,7 @@ func resourceCloudscaleLoadBalancerListenerCreate(ctx context.Context, d *schema
 	d.SetId(loadBalancerListener.UUID)
 
 	log.Printf("[INFO] LoadBalancerListener ID: %s", d.Id())
-	return diag.FromErr(resourceCloudscaleLoadBalancerListenerRead(d, meta))
+	return resourceCloudscaleLoadBalancerListenerRead(ctx, d, meta)
 }
 
 func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.LoadBalancerListener) ResourceDataRaw {
@@ -178,9 +178,9 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	return m
 }
 
-func readLoadBalancerListener(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerListener, error) {
+func readLoadBalancerListener(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerListener, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerListeners.Get(context.Background(), rId.Id)
+	return client.LoadBalancerListeners.Get(ctx, rId.Id)
 }
 
 func updateLoadBalancerListener(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerListenerRequest) error {

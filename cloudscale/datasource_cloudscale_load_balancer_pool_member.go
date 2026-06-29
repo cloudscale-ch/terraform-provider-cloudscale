@@ -18,8 +18,8 @@ func dataSourceCloudscaleLoadBalancerPoolMember() *schema.Resource {
 	}
 }
 
-func listLoadBalancerPoolMembers(d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancerPoolMember, error) {
+func listLoadBalancerPoolMembers(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancerPoolMember, error) {
 	client := meta.(*cloudscale.Client)
 	poolId := d.Get("pool_uuid").(string)
-	return client.LoadBalancerPoolMembers.List(context.Background(), poolId)
+	return client.LoadBalancerPoolMembers.List(ctx, poolId)
 }

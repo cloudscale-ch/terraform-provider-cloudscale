@@ -18,7 +18,7 @@ func dataSourceCloudscaleLoadBalancer() *schema.Resource {
 	}
 }
 
-func listLoadBalancers(d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancer, error) {
+func listLoadBalancers(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancer, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancers.List(context.Background())
+	return client.LoadBalancers.List(ctx)
 }

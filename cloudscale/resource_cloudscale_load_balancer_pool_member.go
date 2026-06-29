@@ -31,7 +31,7 @@ var (
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: withLock(loadBalancerPoolMemberLockKey, resourceCloudscaleLoadBalancerPoolMemberCreate),
-		Read:          resourceCloudscaleLoadBalancerPoolMemberRead,
+		ReadContext:   resourceCloudscaleLoadBalancerPoolMemberRead,
 		UpdateContext: resourceCloudscaleLoadBalancerPoolMemberUpdate,
 		DeleteContext: resourceCloudscaleLoadBalancerPoolMemberDelete,
 
@@ -183,7 +183,7 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(ctx context.Context, d *sche
 	d.SetId(poolMember.UUID)
 
 	log.Printf("[INFO] LoadBalancerPoolMember ID: %s", d.Id())
-	return diag.FromErr(resourceCloudscaleLoadBalancerPoolMemberRead(d, meta))
+	return resourceCloudscaleLoadBalancerPoolMemberRead(ctx, d, meta)
 }
 
 func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
@@ -206,9 +206,9 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	return m
 }
 
-func readLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, meta any) (*cloudscale.LoadBalancerPoolMember, error) {
+func readLoadBalancerPoolMember(ctx context.Context, rId LoadBalancerPoolMemberResourceIdentifier, meta any) (*cloudscale.LoadBalancerPoolMember, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPoolMembers.Get(context.Background(), rId.PoolID, rId.Id)
+	return client.LoadBalancerPoolMembers.Get(ctx, rId.PoolID, rId.Id)
 }
 
 func updateLoadBalancerPoolMember(ctx context.Context, rId LoadBalancerPoolMemberResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolMemberRequest) error {

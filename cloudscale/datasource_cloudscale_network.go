@@ -19,7 +19,7 @@ func dataSourceCloudscaleNetwork() *schema.Resource {
 	}
 }
 
-func listNetworks(d *schema.ResourceData, meta any) ([]cloudscale.Network, error) {
+func listNetworks(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.Network, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Networks.List(context.Background())
+	return client.Networks.List(ctx)
 }

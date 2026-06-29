@@ -1,6 +1,7 @@
 package cloudscale
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -53,8 +54,8 @@ func getPoolId(rs *terraform.ResourceState) LoadBalancerPoolMemberResourceIdenti
 func getTestAccCheckCloudscaleResourceExistsFunc[TResource any, TResourceID any](
 	resourceType string,
 	idFunc func(d *terraform.ResourceState) TResourceID,
-	readFunc func(rId TResourceID, meta any,
-) (*TResource, error)) func(n string, resource *TResource) resource.TestCheckFunc {
+	readFunc func(ctx context.Context, rId TResourceID, meta any) (*TResource, error),
+) func(n string, resource *TResource) resource.TestCheckFunc {
 	return func(
 		n string,
 		resource *TResource,
@@ -69,7 +70,7 @@ func getTestAccCheckCloudscaleResourceExistsFunc[TResource any, TResourceID any]
 			}
 
 			resourceId := idFunc(rs)
-			retrievedResource, err := readFunc(resourceId, testAccProvider.Meta())
+			retrievedResource, err := readFunc(context.Background(), resourceId, testAccProvider.Meta())
 
 			if err != nil {
 				return err
@@ -85,12 +86,12 @@ func getTestAccCheckCloudscaleResourceExistsFunc[TResource any, TResourceID any]
 func getTestAccCheckCloudscaleResourceNotExistsFunc[TResource any, TResourceID any](
 	resourceType string,
 	resourceIdFunc func(resource *TResource) TResourceID,
-	readFunc func(rId TResourceID, meta any) (*TResource, error),
+	readFunc func(ctx context.Context, rId TResourceID, meta any) (*TResource, error),
 ) func(resource *TResource) resource.TestCheckFunc {
 	return func(resource *TResource) resource.TestCheckFunc {
 		return func(s *terraform.State) error {
 			resourceId := resourceIdFunc(resource)
-			_, err := readFunc(resourceId, testAccProvider.Meta())
+			_, err := readFunc(context.Background(), resourceId, testAccProvider.Meta())
 			if err == nil {
 				return fmt.Errorf("%s still exists", resourceType)
 			}

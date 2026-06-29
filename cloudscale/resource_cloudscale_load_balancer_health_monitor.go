@@ -24,7 +24,7 @@ func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 		// wrapped with withLock: only one health monitor per pool is allowed, so a
 		// mutex would never actually serialize anything.
 		CreateContext: resourceCloudscaleLoadBalancerHealthMonitorCreate,
-		Read:          resourceCloudscaleLoadBalancerHealthMonitorRead,
+		ReadContext:   resourceCloudscaleLoadBalancerHealthMonitorRead,
 		UpdateContext: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
 		DeleteContext: resourceCloudscaleLoadBalancerHealthMonitorDelete,
 
@@ -175,7 +175,7 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(ctx context.Context, d *s
 	d.SetId(healthMonitor.UUID)
 
 	log.Printf("[INFO] LoadBalancerHealthMonitor UUID: %s", d.Id())
-	return diag.FromErr(resourceCloudscaleLoadBalancerHealthMonitorRead(d, meta))
+	return resourceCloudscaleLoadBalancerHealthMonitorRead(ctx, d, meta)
 }
 
 func getCodes(codes []any) []string {
@@ -186,9 +186,9 @@ func getCodes(codes []any) []string {
 	return s
 }
 
-func readLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
+func readLoadBalancerHealthMonitor(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerHealthMonitors.Get(context.Background(), rId.Id)
+	return client.LoadBalancerHealthMonitors.Get(ctx, rId.Id)
 }
 
 func updateLoadBalancerHealthMonitor(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerHealthMonitorRequest) error {

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -22,8 +23,8 @@ var (
 
 func resourceCloudscaleCustomImage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCustomImageCreate,
-		Read:   resourceCustomImageRead,
+		CreateContext: resourceCustomImageCreate,
+		ReadContext:   resourceCustomImageRead,
 		UpdateContext: resourceCustomImageUpdate,
 		DeleteContext: resourceCustomImageDelete,
 
@@ -113,7 +114,7 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCustomImageCreate(d *schema.ResourceData, meta any) error {
+func resourceCustomImageCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -143,9 +144,9 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] CustomImage create configuration: %#v", opts)
 
-	customImageImport, err := client.CustomImageImports.Create(context.Background(), opts)
+	customImageImport, err := client.CustomImageImports.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating customImageImport: %z", err)
+		return diag.FromErr(fmt.Errorf("Error creating customImageImport: %z", err))
 	}
 
 	d.SetId(customImageImport.CustomImage.UUID)
@@ -155,15 +156,15 @@ func resourceCustomImageCreate(d *schema.ResourceData, meta any) error {
 	remainingTime := timeout - time.Since(startTime)
 	_, err = waitForCustomImageImportStatus(ctx, customImageImport.UUID, d, meta, []string{"in_progress"}, "import_status", "success", remainingTime)
 	if err != nil {
-		return fmt.Errorf("Error waiting for custom image import status (%s) (%s) ", customImageImport.UUID, err)
+		return diag.FromErr(fmt.Errorf("Error waiting for custom image import status (%s) (%s) ", customImageImport.UUID, err))
 	}
-	customImageImport, err = client.CustomImageImports.Get(context.Background(), customImageImport.UUID)
+	customImageImport, err = client.CustomImageImports.Get(ctx, customImageImport.UUID)
 	if err != nil {
-		return fmt.Errorf("Error getting customImage: %z", err)
+		return diag.FromErr(fmt.Errorf("Error getting customImage: %z", err))
 	}
-	customImage, err := client.CustomImages.Get(context.Background(), customImageImport.CustomImage.UUID)
+	customImage, err := client.CustomImages.Get(ctx, customImageImport.CustomImage.UUID)
 	if err != nil {
-		return fmt.Errorf("Error getting customImage: %z", err)
+		return diag.FromErr(fmt.Errorf("Error getting customImage: %z", err))
 	}
 
 	fillCustomImageResourceData(d, customImageImport, customImage)
@@ -200,9 +201,9 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	return m
 }
 
-func readCustomImage(rId GenericResourceIdentifier, meta any) (*cloudscale.CustomImage, error) {
+func readCustomImage(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.CustomImage, error) {
 	client := meta.(*cloudscale.Client)
-	return client.CustomImages.Get(context.Background(), rId.Id)
+	return client.CustomImages.Get(ctx, rId.Id)
 }
 
 func updateCustomImage(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.CustomImageRequest) error {
