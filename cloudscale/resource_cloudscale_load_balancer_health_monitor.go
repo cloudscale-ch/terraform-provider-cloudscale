@@ -12,8 +12,8 @@ const healthMonitorHumanName = "load balancer health monitor"
 
 var (
 	resourceCloudscaleLoadBalancerHealthMonitorRead   = getReadOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
-	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests)
-	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, deleteLoadBalancerHealthMonitor)
+	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests, nil)
+	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerHealthMonitor, nil)
 )
 
 func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
@@ -274,8 +274,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	return m
 }
 
-func deleteLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.LoadBalancerHealthMonitors.Delete(context.Background(), id)
+	return client.LoadBalancerHealthMonitors.Delete(context.Background(), rId.Id)
 }

@@ -12,8 +12,8 @@ const objectsUserHumanName = "Objects User"
 
 var (
 	resourceCloudscaleObjectsUserRead   = getReadOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, readObjectsUser, gatherObjectsUserResourceData)
-	resourceCloudscaleObjectsUserUpdate = getUpdateOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, updateObjectsUser, resourceCloudscaleObjectsUserRead, gatherObjectsUserUpdateRequest)
-	resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, deleteObjectsUser)
+	resourceCloudscaleObjectsUserUpdate = getUpdateOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, updateObjectsUser, resourceCloudscaleObjectsUserRead, gatherObjectsUserUpdateRequest, nil)
+	resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, deleteObjectsUser, nil)
 )
 
 func resourceCloudscaleObjectsUser() *schema.Resource {
@@ -146,8 +146,7 @@ func gatherObjectsUserUpdateRequest(d *schema.ResourceData) []*cloudscale.Object
 	return requests
 }
 
-func deleteObjectsUser(d *schema.ResourceData, meta any) error {
+func deleteObjectsUser(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.ObjectsUsers.Delete(context.Background(), id)
+	return client.ObjectsUsers.Delete(context.Background(), rId.Id)
 }

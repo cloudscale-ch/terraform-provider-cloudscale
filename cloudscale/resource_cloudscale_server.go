@@ -14,7 +14,7 @@ import (
 const serverHumanName = "server"
 
 var resourceCloudscaleServerRead = getReadOperation(serverHumanName, getGenericResourceIdentifierFromSchema, readServer, gatherServerResourceData)
-var resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, deleteServer)
+var resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, getGenericResourceIdentifierFromSchema, deleteServer, nil)
 
 func resourceCloudscaleServer() *schema.Resource {
 	return &schema.Resource{
@@ -675,10 +675,9 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 	return resourceCloudscaleServerRead(d, meta)
 }
 
-func deleteServer(d *schema.ResourceData, meta any) error {
+func deleteServer(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.Servers.Delete(context.Background(), id)
+	return client.Servers.Delete(context.Background(), rId.Id)
 }
 
 func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {

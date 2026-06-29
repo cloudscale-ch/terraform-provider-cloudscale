@@ -21,16 +21,16 @@ func loadBalancerPoolLockKey(d *schema.ResourceData) (string, bool) {
 
 var (
 	resourceCloudscaleLoadBalancerPoolRead   = getReadOperation(poolHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
-	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest)
-	resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, deleteLoadBalancerPool)
+	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest, loadBalancerPoolLockKey)
+	resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerPool, loadBalancerPoolLockKey)
 )
 
 func resourceCloudscaleLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
 		Create: withLock(loadBalancerPoolLockKey, resourceCloudscaleLoadBalancerPoolCreate),
 		Read:   resourceCloudscaleLoadBalancerPoolRead,
-		Update: withLock(loadBalancerPoolLockKey, resourceCloudscaleLoadBalancerPoolUpdate),
-		Delete: withLock(loadBalancerPoolLockKey, resourceCloudscaleLoadBalancerPoolDelete),
+		Update: resourceCloudscaleLoadBalancerPoolUpdate,
+		Delete: resourceCloudscaleLoadBalancerPoolDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -159,8 +159,7 @@ func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.L
 	return requests
 }
 
-func deleteLoadBalancerPool(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerPool(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.LoadBalancerPools.Delete(context.Background(), id)
+	return client.LoadBalancerPools.Delete(context.Background(), rId.Id)
 }

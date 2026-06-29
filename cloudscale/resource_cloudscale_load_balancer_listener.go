@@ -23,16 +23,16 @@ func loadBalancerListenerLockKey(d *schema.ResourceData) (string, bool) {
 
 var (
 	resourceCloudscaleLoadBalancerListenerRead   = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
-	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest)
-	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, deleteLoadBalancerListener)
+	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest, loadBalancerListenerLockKey)
+	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerListener, loadBalancerListenerLockKey)
 )
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
 		Create: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerCreate),
 		Read:   resourceCloudscaleLoadBalancerListenerRead,
-		Update: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerUpdate),
-		Delete: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerDelete),
+		Update: resourceCloudscaleLoadBalancerListenerUpdate,
+		Delete: resourceCloudscaleLoadBalancerListenerDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -232,8 +232,7 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 	return requests
 }
 
-func deleteLoadBalancerListener(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerListener(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.LoadBalancerListeners.Delete(context.Background(), id)
+	return client.LoadBalancerListeners.Delete(context.Background(), rId.Id)
 }

@@ -14,8 +14,8 @@ const subnetHumanName = "subnet"
 
 var (
 	resourceCloudscaleSubnetRead   = getReadOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, readSubnet, gatherSubnetResourceData)
-	resourceCloudscaleSubnetUpdate = getUpdateOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, updateSubnet, resourceCloudscaleSubnetRead, gatherSubnetUpdateRequests)
-	resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, deleteSubnet)
+	resourceCloudscaleSubnetUpdate = getUpdateOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, updateSubnet, resourceCloudscaleSubnetRead, gatherSubnetUpdateRequests, nil)
+	resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, deleteSubnet, nil)
 )
 
 func resourceCloudscaleSubnet() *schema.Resource {
@@ -197,10 +197,9 @@ func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpda
 	return requests
 }
 
-func deleteSubnet(d *schema.ResourceData, meta any) error {
+func deleteSubnet(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
 	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
 	time.Sleep(5 * time.Second)
-	return client.Subnets.Delete(context.Background(), id)
+	return client.Subnets.Delete(context.Background(), rId.Id)
 }

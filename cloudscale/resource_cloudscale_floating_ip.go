@@ -13,8 +13,8 @@ const floatingIPHumanName = "Floating IP"
 
 var (
 	resourceFloatingIPRead   = getReadOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, readFloatingIP, gatherFloatingIPResourceData)
-	resourceFloatingIPUpdate = getUpdateOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, updateFloatingIP, resourceFloatingIPRead, gatherFloatingIPUpdateRequest)
-	resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, deleteFloatingIP)
+	resourceFloatingIPUpdate = getUpdateOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, updateFloatingIP, resourceFloatingIPRead, gatherFloatingIPUpdateRequest, nil)
+	resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, deleteFloatingIP, nil)
 )
 
 func resourceCloudscaleFloatingIP() *schema.Resource {
@@ -212,8 +212,7 @@ func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.Floatin
 	return requests
 }
 
-func deleteFloatingIP(d *schema.ResourceData, meta any) error {
+func deleteFloatingIP(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.FloatingIPs.Delete(context.Background(), id)
+	return client.FloatingIPs.Delete(context.Background(), rId.Id)
 }

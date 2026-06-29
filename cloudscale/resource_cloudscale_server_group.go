@@ -13,8 +13,8 @@ const serverGroupHumanName = "server group"
 
 var (
 	resourceCloudscaleServerGroupRead   = getReadOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, readServerGroup, gatherServerGroupResourceData)
-	resourceCloudscaleServerGroupUpdate = getUpdateOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, updateServerGroup, resourceCloudscaleServerGroupRead, gatherServerGroupUpdateRequest)
-	resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, deleteServerGroup)
+	resourceCloudscaleServerGroupUpdate = getUpdateOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, updateServerGroup, resourceCloudscaleServerGroupRead, gatherServerGroupUpdateRequest, nil)
+	resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, deleteServerGroup, nil)
 )
 
 func resourceCloudscaleServerGroup() *schema.Resource {
@@ -136,8 +136,7 @@ func gatherServerGroupUpdateRequest(d *schema.ResourceData) []*cloudscale.Server
 	return requests
 }
 
-func deleteServerGroup(d *schema.ResourceData, meta any) error {
+func deleteServerGroup(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.ServerGroups.Delete(context.Background(), id)
+	return client.ServerGroups.Delete(context.Background(), rId.Id)
 }

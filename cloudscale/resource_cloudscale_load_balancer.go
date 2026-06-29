@@ -14,8 +14,8 @@ const loadBalancerHumanName = "load balancer"
 
 var (
 	resourceCloudscaleLoadBalancerRead   = getReadOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancer, gatherLoadBalancerResourceData)
-	resourceCloudscaleLoadBalancerUpdate = getUpdateOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancer, resourceCloudscaleLoadBalancerRead, gatherLoadBalancerUpdateRequest)
-	resourceCloudscaleLoadBalancerDelete = getDeleteOperation(loadBalancerHumanName, deleteLoadBalancer)
+	resourceCloudscaleLoadBalancerUpdate = getUpdateOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancer, resourceCloudscaleLoadBalancerRead, gatherLoadBalancerUpdateRequest, nil)
+	resourceCloudscaleLoadBalancerDelete = getDeleteOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancer, nil)
 )
 
 func resourceCloudscaleLoadBalancer() *schema.Resource {
@@ -241,8 +241,7 @@ func gatherLoadBalancerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadB
 	return requests
 }
 
-func deleteLoadBalancer(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancer(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.LoadBalancers.Delete(context.Background(), id)
+	return client.LoadBalancers.Delete(context.Background(), rId.Id)
 }

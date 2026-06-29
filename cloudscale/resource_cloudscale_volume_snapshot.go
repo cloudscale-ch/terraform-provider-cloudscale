@@ -30,16 +30,16 @@ func volumeSnapshotLockKey(d *schema.ResourceData) (string, bool) {
 
 var (
 	resourceCloudscaleVolumeSnapshotRead   = getReadOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, readVolumeSnapshot, gatherVolumeSnapshotResourceData)
-	resourceCloudscaleVolumeSnapshotUpdate = getUpdateOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, updateVolumeSnapshot, resourceCloudscaleVolumeSnapshotRead, gatherVolumeSnapshotUpdateRequest)
-	resourceCloudscaleVolumeSnapshotDelete = getDeleteOperation(volumeSnapshotHumanName, deleteVolumeSnapshot)
+	resourceCloudscaleVolumeSnapshotUpdate = getUpdateOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, updateVolumeSnapshot, resourceCloudscaleVolumeSnapshotRead, gatherVolumeSnapshotUpdateRequest, volumeSnapshotLockKey)
+	resourceCloudscaleVolumeSnapshotDelete = getDeleteOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, deleteVolumeSnapshot, volumeSnapshotLockKey)
 )
 
 func resourceCloudscaleVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Create: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotCreate),
 		Read:   resourceCloudscaleVolumeSnapshotRead,
-		Update: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotUpdate),
-		Delete: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotDelete),
+		Update: resourceCloudscaleVolumeSnapshotUpdate,
+		Delete: resourceCloudscaleVolumeSnapshotDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -196,17 +196,20 @@ func gatherVolumeSnapshotUpdateRequest(d *schema.ResourceData) []*cloudscale.Vol
 	return requests
 }
 
-func deleteVolumeSnapshot(d *schema.ResourceData, meta any) error {
-	client := meta.(*cloudscale.Client)
-	id := d.Id()
+// volumeSnapshotDeleteTimeout is the SDK default timeout (no Timeouts block is declared
+// for this resource, so d.Timeout would also return this value).
+const volumeSnapshotDeleteTimeout = 20 * time.Minute
 
-	if err := client.VolumeSnapshots.Delete(context.Background(), id); err != nil {
+func deleteVolumeSnapshot(rId GenericResourceIdentifier, meta any) error {
+	client := meta.(*cloudscale.Client)
+
+	if err := client.VolumeSnapshots.Delete(context.Background(), rId.Id); err != nil {
 		return err
 	}
 	// Unlike most cloudscale resources that disappear immediately after DELETE,
 	// volume snapshots go through a background cleanup period. During this time
 	// the snapshot still exists with status "deleting". We wait for it to be gone.
-	return waitForVolumeSnapshotDeleted(id, meta, d.Timeout(schema.TimeoutDelete))
+	return waitForVolumeSnapshotDeleted(rId.Id, meta, volumeSnapshotDeleteTimeout)
 }
 
 func waitForVolumeSnapshotDeleted(id string, meta any, remaining time.Duration) error {

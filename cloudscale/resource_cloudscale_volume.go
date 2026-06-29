@@ -13,8 +13,8 @@ const volumeHumanName = "volume"
 
 var (
 	resourceCloudscaleVolumeRead   = getReadOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, readVolume, gatherVolumeResourceData)
-	resourceCloudscaleVolumeUpdate = getUpdateOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, updateVolume, resourceCloudscaleVolumeRead, gatherVolumeUpdateRequests)
-	resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, deleteVolume)
+	resourceCloudscaleVolumeUpdate = getUpdateOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, updateVolume, resourceCloudscaleVolumeRead, gatherVolumeUpdateRequests, nil)
+	resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, deleteVolume, nil)
 )
 
 func resourceCloudscaleVolume() *schema.Resource {
@@ -229,8 +229,7 @@ func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeUpda
 	return requests
 }
 
-func deleteVolume(d *schema.ResourceData, meta any) error {
+func deleteVolume(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.Volumes.Delete(context.Background(), id)
+	return client.Volumes.Delete(context.Background(), rId.Id)
 }

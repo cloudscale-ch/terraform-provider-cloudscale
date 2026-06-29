@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// getReadOperation builds a ReadFunc from discrete steps:
+//   - idFunc:      extracts the resource identifier from state
+//   - readFunc:    fetches the resource from the API by that identifier
+//   - gatherFunc:  converts the API response into flat key/value pairs for state
 func getReadOperation[TResource any, TResourceID any](
 	resourceHumanName string,
 	idFunc func(d *schema.ResourceData) TResourceID,
@@ -26,14 +30,27 @@ func getReadOperation[TResource any, TResourceID any](
 	}
 }
 
+// getUpdateOperation builds an UpdateFunc from discrete steps:
+//   - idFunc:              extracts the resource identifier from state
+//   - updateFunc:          sends one update request to the API (called once per request)
+//   - resourceReadFunc:    refreshes state after all updates complete
+//   - gatherRequestsFunc:  builds the list of update requests from changed state
+//   - mutexKeyFunc:        derives a mutex key to serialize concurrent operations; nil = no lock
 func getUpdateOperation[TResourceID any, TRequest any](
 	resourceHumanName string,
 	idFunc func(d *schema.ResourceData) TResourceID,
 	updateFunc func(rId TResourceID, meta any, updateRequest *TRequest) error,
 	resourceReadFunc schema.ReadFunc,
 	gatherRequestsFunc func(d *schema.ResourceData) []*TRequest,
+	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
 ) schema.UpdateFunc {
 	return func(d *schema.ResourceData, meta any) error {
+		if mutexKeyFunc != nil {
+			if key, ok := mutexKeyFunc(d); ok {
+				globalMu.Lock(key)
+				defer globalMu.Unlock(key)
+			}
+		}
 		rId := idFunc(d)
 		updateRequests := gatherRequestsFunc(d)
 		for _, request := range updateRequests {
@@ -46,13 +63,26 @@ func getUpdateOperation[TResourceID any, TRequest any](
 	}
 }
 
-func getDeleteOperation(
+// getDeleteOperation builds a DeleteFunc from discrete steps:
+//   - idFunc:          extracts the resource identifier from state
+//   - deleteFunc:      calls the API to delete the resource by that identifier
+//   - mutexKeyFunc:    derives a mutex key to serialize concurrent operations; nil = no lock
+func getDeleteOperation[TResourceID any](
 	resourceHumanName string,
-	deleteFunc func(d *schema.ResourceData, meta any) error,
+	idFunc func(d *schema.ResourceData) TResourceID,
+	deleteFunc func(rId TResourceID, meta any) error,
+	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
 ) schema.DeleteFunc {
 	return func(d *schema.ResourceData, meta any) error {
 		log.Printf("[INFO] Deleting %s: %s", resourceHumanName, d.Id())
-		err := deleteFunc(d, meta)
+		if mutexKeyFunc != nil {
+			if key, ok := mutexKeyFunc(d); ok {
+				globalMu.Lock(key)
+				defer globalMu.Unlock(key)
+			}
+		}
+		rId := idFunc(d)
+		err := deleteFunc(rId, meta)
 
 		if err != nil {
 			return CheckDeleted(d, err, fmt.Sprintf("Error deleting %s", resourceHumanName))
@@ -66,14 +96,14 @@ func getDeleteOperation(
 // share some resource (e.g. a parent), so Terraform's parallelism must be serialized on
 // that shared key.
 //
-// keyFunc derives the lock key from the resource data and returns ok=false when no lock
+// mutexKeyFunc derives the lock key from the resource data and returns ok=false when no lock
 // is needed.
 func withLock(
-	keyFunc func(d *schema.ResourceData) (string, bool),
+	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
 	op func(d *schema.ResourceData, meta any) error,
 ) func(d *schema.ResourceData, meta any) error {
 	return func(d *schema.ResourceData, meta any) error {
-		if key, ok := keyFunc(d); ok {
+		if key, ok := mutexKeyFunc(d); ok {
 			globalMu.Lock(key)
 			defer globalMu.Unlock(key)
 		}

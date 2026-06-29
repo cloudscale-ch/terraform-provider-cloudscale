@@ -16,8 +16,8 @@ const customImageHumanName = "custom image"
 
 var (
 	resourceCustomImageRead   = getReadOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, readCustomImage, gatherCustomImageResourceData)
-	resourceCustomImageUpdate = getUpdateOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, updateCustomImage, resourceCustomImageRead, gatherCustomImageUpdateRequest)
-	resourceCustomImageDelete = getDeleteOperation(customImageHumanName, deleteCustomImage)
+	resourceCustomImageUpdate = getUpdateOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, updateCustomImage, resourceCustomImageRead, gatherCustomImageUpdateRequest, nil)
+	resourceCustomImageDelete = getDeleteOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, deleteCustomImage, nil)
 )
 
 func resourceCloudscaleCustomImage() *schema.Resource {
@@ -233,10 +233,9 @@ func gatherCustomImageUpdateRequest(d *schema.ResourceData) []*cloudscale.Custom
 	return requests
 }
 
-func deleteCustomImage(d *schema.ResourceData, meta any) error {
+func deleteCustomImage(rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.CustomImages.Delete(context.Background(), id)
+	return client.CustomImages.Delete(context.Background(), rId.Id)
 }
 
 func waitForCustomImageImportStatus(uuid string, d *schema.ResourceData, meta any, pending []string, attribute, target string, timeout time.Duration) (any, error) {
