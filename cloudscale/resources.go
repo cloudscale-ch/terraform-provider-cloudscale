@@ -9,6 +9,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// getCreateOperation builds a CreateFunc from discrete steps:
+//   - createFunc:    the underlying create implementation
+//   - mutexKeyFunc:  derives a mutex key to serialize concurrent operations; nil = no lock
+func getCreateOperation(
+	createFunc schema.CreateContextFunc,
+	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
+) schema.CreateContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+		if mutexKeyFunc != nil {
+			if key, ok := mutexKeyFunc(d); ok {
+				if err := globalMu.LockContext(ctx, key); err != nil {
+					return diag.FromErr(err)
+				}
+				defer globalMu.Unlock(key)
+			}
+		}
+		return createFunc(ctx, d, meta)
+	}
+}
+
 // getReadOperation builds a ReadFunc from discrete steps:
 //   - idFunc:      extracts the resource identifier from state
 //   - readFunc:    fetches the resource from the API by that identifier
@@ -108,28 +128,6 @@ func uuidLockKey(attr string, keyFunc func(string) string) func(*schema.Resource
 			return "", false
 		}
 		return keyFunc(uuid.(string)), true
-	}
-}
-
-// withLock wraps a Create/Update/Delete operation so it is serialized on a key derived
-// from the resource data. The cloudscale API rejects many concurrent operations that
-// share some resource (e.g. a parent), so Terraform's parallelism must be serialized on
-// that shared key.
-//
-// mutexKeyFunc derives the lock key from the resource data and returns ok=false when no lock
-// is needed.
-func withLock(
-	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
-	op func(context.Context, *schema.ResourceData, interface{}) diag.Diagnostics,
-) func(context.Context, *schema.ResourceData, interface{}) diag.Diagnostics {
-	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-		if key, ok := mutexKeyFunc(d); ok {
-			if err := globalMu.LockContext(ctx, key); err != nil {
-				return diag.FromErr(err)
-			}
-			defer globalMu.Unlock(key)
-		}
-		return op(ctx, d, meta)
 	}
 }
 

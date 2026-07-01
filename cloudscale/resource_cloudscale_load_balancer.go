@@ -14,6 +14,7 @@ import (
 const loadBalancerHumanName = "load balancer"
 
 var (
+	resourceCloudscaleLoadBalancerCreate = getCreateOperation(createLoadBalancer, nil)
 	resourceCloudscaleLoadBalancerRead   = getReadOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancer, gatherLoadBalancerResourceData)
 	resourceCloudscaleLoadBalancerUpdate = getUpdateOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancer, resourceCloudscaleLoadBalancerRead, gatherLoadBalancerUpdateRequest, nil)
 	resourceCloudscaleLoadBalancerDelete = getDeleteOperation(loadBalancerHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancer, nil)
@@ -102,7 +103,7 @@ func getLoadBalancerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createLoadBalancer(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 

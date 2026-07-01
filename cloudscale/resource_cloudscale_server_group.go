@@ -13,6 +13,7 @@ import (
 const serverGroupHumanName = "server group"
 
 var (
+	resourceCloudscaleServerGroupCreate = getCreateOperation(createServerGroup, nil)
 	resourceCloudscaleServerGroupRead   = getReadOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, readServerGroup, gatherServerGroupResourceData)
 	resourceCloudscaleServerGroupUpdate = getUpdateOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, updateServerGroup, resourceCloudscaleServerGroupRead, gatherServerGroupUpdateRequest, nil)
 	resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, deleteServerGroup, nil)
@@ -66,7 +67,7 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleServerGroupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createServerGroup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ServerGroupRequest{

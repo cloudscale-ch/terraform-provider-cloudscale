@@ -14,6 +14,7 @@ import (
 const subnetHumanName = "subnet"
 
 var (
+	resourceCloudscaleSubnetCreate = getCreateOperation(createSubnet, nil)
 	resourceCloudscaleSubnetRead   = getReadOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, readSubnet, gatherSubnetResourceData)
 	resourceCloudscaleSubnetUpdate = getUpdateOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, updateSubnet, resourceCloudscaleSubnetRead, gatherSubnetUpdateRequests, nil)
 	resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, deleteSubnet, nil)
@@ -88,7 +89,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleSubnetCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createSubnet(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.SubnetCreateRequest{

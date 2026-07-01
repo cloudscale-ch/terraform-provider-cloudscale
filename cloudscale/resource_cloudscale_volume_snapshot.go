@@ -21,21 +21,21 @@ func snapshotLockKey(volumeUUID string) string {
 
 // volumeSnapshotLockKey serializes snapshot operations on their source volume. The
 // cloudscale API rejects concurrent snapshot operations on the same source volume, so
-// create/update/delete are serialized per volume UUID. Because withLock wraps the
-// whole operation, the lock is held through the full create/delete status-wait cycle
-// (see resourceCloudscaleVolumeSnapshotCreate / deleteVolumeSnapshot), ensuring the
-// volume is no longer busy before the next operation on it starts.
+// create/update/delete are serialized per volume UUID. The lock is held through the
+// full create/delete status-wait cycle (see createVolumeSnapshot / deleteVolumeSnapshot),
+// ensuring the volume is no longer busy before the next operation on it starts.
 var volumeSnapshotLockKey = uuidLockKey("source_volume_uuid", snapshotLockKey)
 
 var (
 	resourceCloudscaleVolumeSnapshotRead   = getReadOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, readVolumeSnapshot, gatherVolumeSnapshotResourceData)
+	resourceCloudscaleVolumeSnapshotCreate = getCreateOperation(createVolumeSnapshot, volumeSnapshotLockKey)
 	resourceCloudscaleVolumeSnapshotUpdate = getUpdateOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, updateVolumeSnapshot, resourceCloudscaleVolumeSnapshotRead, gatherVolumeSnapshotUpdateRequest, volumeSnapshotLockKey)
 	resourceCloudscaleVolumeSnapshotDelete = getDeleteOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, deleteVolumeSnapshot, volumeSnapshotLockKey)
 )
 
 func resourceCloudscaleVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: withLock(volumeSnapshotLockKey, resourceCloudscaleVolumeSnapshotCreate),
+		CreateContext: resourceCloudscaleVolumeSnapshotCreate,
 		ReadContext:   resourceCloudscaleVolumeSnapshotRead,
 		UpdateContext: resourceCloudscaleVolumeSnapshotUpdate,
 		DeleteContext: resourceCloudscaleVolumeSnapshotDelete,
@@ -92,7 +92,7 @@ func getVolumeSnapshotSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleVolumeSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func createVolumeSnapshot(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 

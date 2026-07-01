@@ -16,6 +16,7 @@ import (
 const customImageHumanName = "custom image"
 
 var (
+	resourceCustomImageCreate = getCreateOperation(createCustomImage, nil)
 	resourceCustomImageRead   = getReadOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, readCustomImage, gatherCustomImageResourceData)
 	resourceCustomImageUpdate = getUpdateOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, updateCustomImage, resourceCustomImageRead, gatherCustomImageUpdateRequest, nil)
 	resourceCustomImageDelete = getDeleteOperation(customImageHumanName, getGenericResourceIdentifierFromSchema, deleteCustomImage, nil)
@@ -114,7 +115,7 @@ func getCustomImageSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCustomImageCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createCustomImage(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 

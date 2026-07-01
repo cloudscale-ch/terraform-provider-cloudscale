@@ -21,6 +21,7 @@ func lbPoolLockKey(poolUUID string) string {
 var loadBalancerPoolMemberLockKey = uuidLockKey("pool_uuid", lbPoolLockKey)
 
 var (
+	resourceCloudscaleLoadBalancerPoolMemberCreate = getCreateOperation(createLoadBalancerPoolMember, loadBalancerPoolMemberLockKey)
 	resourceCloudscaleLoadBalancerPoolMemberRead   = getReadOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)
 	resourceCloudscaleLoadBalancerPoolMemberUpdate = getUpdateOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, updateLoadBalancerPoolMember, resourceCloudscaleLoadBalancerPoolMemberRead, gatherLoadBalancerPoolMemberUpdateRequest, loadBalancerPoolMemberLockKey)
 	resourceCloudscaleLoadBalancerPoolMemberDelete = getDeleteOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, deleteLoadBalancerPoolMember, loadBalancerPoolMemberLockKey)
@@ -28,7 +29,7 @@ var (
 
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: withLock(loadBalancerPoolMemberLockKey, resourceCloudscaleLoadBalancerPoolMemberCreate),
+		CreateContext: resourceCloudscaleLoadBalancerPoolMemberCreate,
 		ReadContext:   resourceCloudscaleLoadBalancerPoolMemberRead,
 		UpdateContext: resourceCloudscaleLoadBalancerPoolMemberUpdate,
 		DeleteContext: resourceCloudscaleLoadBalancerPoolMemberDelete,
@@ -154,7 +155,7 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func createLoadBalancerPoolMember(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerPoolMemberRequest{

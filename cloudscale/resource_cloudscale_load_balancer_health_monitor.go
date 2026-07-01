@@ -13,6 +13,7 @@ import (
 const healthMonitorHumanName = "load balancer health monitor"
 
 var (
+	resourceCloudscaleLoadBalancerHealthMonitorCreate = getCreateOperation(createLoadBalancerHealthMonitor, nil)
 	resourceCloudscaleLoadBalancerHealthMonitorRead   = getReadOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
 	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests, nil)
 	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerHealthMonitor, nil)
@@ -21,8 +22,8 @@ var (
 func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 	return &schema.Resource{
 		// Unlike pools, pool members and listeners, health monitor operations are not
-		// wrapped with withLock: only one health monitor per pool is allowed, so a
-		// mutex would never actually serialize anything.
+		// serialized: only one health monitor per pool is allowed,
+		// so a mutex would never actually serialize anything.
 		CreateContext: resourceCloudscaleLoadBalancerHealthMonitorCreate,
 		ReadContext:   resourceCloudscaleLoadBalancerHealthMonitorRead,
 		UpdateContext: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
@@ -119,7 +120,7 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 	return m
 }
 
-func resourceCloudscaleLoadBalancerHealthMonitorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func createLoadBalancerHealthMonitor(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerHealthMonitorRequest{

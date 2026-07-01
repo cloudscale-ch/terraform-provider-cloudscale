@@ -13,6 +13,7 @@ import (
 const floatingIPHumanName = "Floating IP"
 
 var (
+	resourceFloatingIPCreate = getCreateOperation(createFloatingIP, nil)
 	resourceFloatingIPRead   = getReadOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, readFloatingIP, gatherFloatingIPResourceData)
 	resourceFloatingIPUpdate = getUpdateOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, updateFloatingIP, resourceFloatingIPRead, gatherFloatingIPUpdateRequest, nil)
 	resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, deleteFloatingIP, nil)
@@ -97,7 +98,7 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceFloatingIPCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createFloatingIP(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.FloatingIPCreateRequest{

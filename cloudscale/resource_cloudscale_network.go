@@ -13,6 +13,7 @@ import (
 const networkHumanName = "network"
 
 var (
+	resourceCloudscaleNetworkCreate = getCreateOperation(createNetwork, nil)
 	resourceCloudscaleNetworkRead   = getReadOperation(networkHumanName, getGenericResourceIdentifierFromSchema, readNetwork, gatherNetworkResourceData)
 	resourceCloudscaleNetworkUpdate = getUpdateOperation(networkHumanName, getGenericResourceIdentifierFromSchema, updateNetwork, resourceCloudscaleNetworkRead, gatherNetworkUpdateRequest, nil)
 	resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, getGenericResourceIdentifierFromSchema, deleteNetwork, nil)
@@ -92,7 +93,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleNetworkCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createNetwork(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.NetworkCreateRequest{

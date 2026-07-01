@@ -13,6 +13,7 @@ import (
 const volumeHumanName = "volume"
 
 var (
+	resourceCloudscaleVolumeCreate = getCreateOperation(createVolume, nil)
 	resourceCloudscaleVolumeRead   = getReadOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, readVolume, gatherVolumeResourceData)
 	resourceCloudscaleVolumeUpdate = getUpdateOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, updateVolume, resourceCloudscaleVolumeRead, gatherVolumeUpdateRequests, nil)
 	resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, deleteVolume, nil)
@@ -103,7 +104,7 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleVolumeCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createVolume(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.VolumeCreateRequest{

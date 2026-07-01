@@ -12,6 +12,7 @@ import (
 const objectsUserHumanName = "Objects User"
 
 var (
+	resourceCloudscaleObjectsUserCreate = getCreateOperation(createObjectsUser, nil)
 	resourceCloudscaleObjectsUserRead   = getReadOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, readObjectsUser, gatherObjectsUserResourceData)
 	resourceCloudscaleObjectsUserUpdate = getUpdateOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, updateObjectsUser, resourceCloudscaleObjectsUserRead, gatherObjectsUserUpdateRequest, nil)
 	resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, deleteObjectsUser, nil)
@@ -75,7 +76,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleObjectsUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createObjectsUser(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ObjectsUserRequest{

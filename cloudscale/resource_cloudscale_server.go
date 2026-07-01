@@ -14,8 +14,11 @@ import (
 
 const serverHumanName = "server"
 
-var resourceCloudscaleServerRead = getReadOperation(serverHumanName, getGenericResourceIdentifierFromSchema, readServer, gatherServerResourceData)
-var resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, getGenericResourceIdentifierFromSchema, deleteServer, nil)
+var (
+	resourceCloudscaleServerCreate = getCreateOperation(createServer, nil)
+	resourceCloudscaleServerRead   = getReadOperation(serverHumanName, getGenericResourceIdentifierFromSchema, readServer, gatherServerResourceData)
+	resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, getGenericResourceIdentifierFromSchema, deleteServer, nil)
+)
 
 func resourceCloudscaleServer() *schema.Resource {
 	return &schema.Resource{
@@ -289,7 +292,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleServerCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func createServer(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 

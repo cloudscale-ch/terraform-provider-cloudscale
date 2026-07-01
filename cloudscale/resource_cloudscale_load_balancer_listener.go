@@ -23,6 +23,7 @@ func loadBalancerListenerLockKey(d *schema.ResourceData) (string, bool) {
 }
 
 var (
+	resourceCloudscaleLoadBalancerListenerCreate = getCreateOperation(createLoadBalancerListener, loadBalancerListenerLockKey)
 	resourceCloudscaleLoadBalancerListenerRead   = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
 	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest, loadBalancerListenerLockKey)
 	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerListener, loadBalancerListenerLockKey)
@@ -30,7 +31,7 @@ var (
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: withLock(loadBalancerListenerLockKey, resourceCloudscaleLoadBalancerListenerCreate),
+		CreateContext: resourceCloudscaleLoadBalancerListenerCreate,
 		ReadContext:   resourceCloudscaleLoadBalancerListenerRead,
 		UpdateContext: resourceCloudscaleLoadBalancerListenerUpdate,
 		DeleteContext: resourceCloudscaleLoadBalancerListenerDelete,
@@ -109,7 +110,7 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerListenerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func createLoadBalancerListener(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerListenerRequest{
