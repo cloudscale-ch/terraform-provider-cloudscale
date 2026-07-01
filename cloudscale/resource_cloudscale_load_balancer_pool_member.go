@@ -18,9 +18,7 @@ func lbPoolLockKey(poolUUID string) string {
 }
 
 // loadBalancerPoolMemberLockKey serializes pool member operations on their parent pool.
-func loadBalancerPoolMemberLockKey(d *schema.ResourceData) (string, bool) {
-	return lbPoolLockKey(d.Get("pool_uuid").(string)), true
-}
+var loadBalancerPoolMemberLockKey = uuidLockKey("pool_uuid", lbPoolLockKey)
 
 var (
 	resourceCloudscaleLoadBalancerPoolMemberRead   = getReadOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)

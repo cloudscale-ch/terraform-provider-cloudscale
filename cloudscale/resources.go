@@ -97,6 +97,20 @@ func getDeleteOperation[TResourceID any](
 	}
 }
 
+// uuidLockKey returns a mutexKeyFunc that derives a lock key from a UUID attribute.
+// If attr is not set — which should never happen for Required attributes — it skips
+// the lock rather than acquiring one on a meaningless empty key.
+func uuidLockKey(attr string, keyFunc func(string) string) func(*schema.ResourceData) (string, bool) {
+	return func(d *schema.ResourceData) (string, bool) {
+		uuid, ok := d.GetOk(attr)
+		if !ok {
+			log.Printf("[WARN] uuidLockKey: %s not set for resource %s, skipping lock", attr, d.Id())
+			return "", false
+		}
+		return keyFunc(uuid.(string)), true
+	}
+}
+
 // withLock wraps a Create/Update/Delete operation so it is serialized on a key derived
 // from the resource data. The cloudscale API rejects many concurrent operations that
 // share some resource (e.g. a parent), so Terraform's parallelism must be serialized on

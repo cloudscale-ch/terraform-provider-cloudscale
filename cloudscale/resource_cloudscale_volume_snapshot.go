@@ -25,9 +25,7 @@ func snapshotLockKey(volumeUUID string) string {
 // whole operation, the lock is held through the full create/delete status-wait cycle
 // (see resourceCloudscaleVolumeSnapshotCreate / deleteVolumeSnapshot), ensuring the
 // volume is no longer busy before the next operation on it starts.
-func volumeSnapshotLockKey(d *schema.ResourceData) (string, bool) {
-	return snapshotLockKey(d.Get("source_volume_uuid").(string)), true
-}
+var volumeSnapshotLockKey = uuidLockKey("source_volume_uuid", snapshotLockKey)
 
 var (
 	resourceCloudscaleVolumeSnapshotRead   = getReadOperation(volumeSnapshotHumanName, getGenericResourceIdentifierFromSchema, readVolumeSnapshot, gatherVolumeSnapshotResourceData)
