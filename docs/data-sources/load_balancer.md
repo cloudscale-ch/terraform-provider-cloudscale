@@ -34,4 +34,4 @@ In addition to the arguments listed above, the following computed attributes are
     * `subnet_href` - The cloudscale.ch API URL of the subnet the VIP address is part of.
     * `subnet_uuid` - The UUID of the subnet this VIP address should be part of.
     * `subnet_cidr` - The cidr of the subnet the VIP address is part of.
-    * `address` - An VIP address that has been assigned to this load balancer.
+    * `address` - A VIP address that has been assigned to this load balancer.
