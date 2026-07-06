@@ -48,11 +48,31 @@ func dataSourceResourceRead(
 							break // one tag mismatch is sufficient
 						}
 					}
-				} else if schemaEntry.Type == schema.TypeList || schemaEntry.Type == schema.TypeSet {
+				} else if schemaEntry.Type == schema.TypeList {
 					// Gather functions return []string from the SDK struct; d.GetOk returns []interface{}.
 					// Normalise before comparing so reflect.DeepEqual sees the same dynamic type.
 					if !reflect.DeepEqual(toInterfaceSlice(m[key]), attr) {
 						match = false
+					}
+				} else if schemaEntry.Type == schema.TypeSet {
+					// As of this writing no data source filter field uses TypeSet, but fields
+					// like ssh_keys and server_group_ids do on the resource side and are
+					// candidates to be added. For those, subset semantics make sense: filtering
+					// by ssh_keys = ["key-a"] should match a server that has key-a among its
+					// keys, not only servers with exactly that one key.
+					// d.GetOk returns *schema.Set; build a lookup from the resource slice and
+					// check that every filter element is present.
+					filterList := attr.(*schema.Set).List()
+					resourceSlice := toInterfaceSlice(m[key])
+					resourceLookup := make(map[interface{}]struct{}, len(resourceSlice))
+					for _, v := range resourceSlice {
+						resourceLookup[v] = struct{}{}
+					}
+					for _, v := range filterList {
+						if _, ok := resourceLookup[v]; !ok {
+							match = false
+							break
+						}
 					}
 				} else if !reflect.DeepEqual(m[key], attr) {
 					match = false
