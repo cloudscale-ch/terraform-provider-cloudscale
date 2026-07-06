@@ -11,6 +11,7 @@ import (
 var testDSSchema = map[string]*schema.Schema{
 	"name":     {Type: schema.TypeString, Optional: true},
 	"ssh_keys": {Type: schema.TypeList, Optional: true, Elem: &schema.Schema{Type: schema.TypeString}},
+	"roles":    {Type: schema.TypeSet, Optional: true, Elem: &schema.Schema{Type: schema.TypeString}},
 	"tags":     &TagsSchema,
 }
 
@@ -299,3 +300,75 @@ func TestDataSourceRead_ListOrderMatters(t *testing.T) {
 	}
 }
 
+func TestDataSourceRead_SetMatchSameOrder(t *testing.T) {
+	// filter matches the resource when elements and order are identical
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "roles": []string{"reader", "writer"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"roles": []interface{}{"reader", "writer"}}
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	if diags.HasError() {
+		t.Fatalf("unexpected error: %s", diags[0].Summary)
+	}
+	if resourceData.Id() != "aaa" {
+		t.Errorf("got id=%q, want aaa", resourceData.Id())
+	}
+}
+
+func TestDataSourceRead_SetMatchDifferentOrder(t *testing.T) {
+	// set semantics: same elements in different order must still match
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "roles": []string{"reader", "writer"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"roles": []interface{}{"writer", "reader"}}
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	if diags.HasError() {
+		t.Fatalf("unexpected error: %s", diags[0].Summary)
+	}
+	if resourceData.Id() != "aaa" {
+		t.Errorf("got id=%q, want aaa", resourceData.Id())
+	}
+}
+
+func TestDataSourceRead_SetSubsetMatch(t *testing.T) {
+	// subset semantics: filter ["reader"] matches a resource with ["reader", "writer"],
+	// same as TypeMap (tags) — you filter by presence, not exact equality
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "roles": []string{"reader", "writer"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"roles": []interface{}{"reader"}}
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	if diags.HasError() {
+		t.Fatalf("unexpected error: %s", diags[0].Summary)
+	}
+	if resourceData.Id() != "aaa" {
+		t.Errorf("got id=%q, want aaa", resourceData.Id())
+	}
+}
+
+func TestDataSourceRead_SetNoMatch(t *testing.T) {
+	// filter contains an element the resource does not have — no match
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "roles": []string{"reader", "writer"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"roles": []interface{}{"admin"}}
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	if !diags.HasError() {
+		t.Fatal("expected zero-match error, got none")
+	}
+	if diags[0].Summary != "Found zero things" {
+		t.Errorf("unexpected error: %s", diags[0].Summary)
+	}
+}
