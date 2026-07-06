@@ -40,8 +40,8 @@ func dataSourceResourceRead(
 				}
 				if schemaEntry.Type == schema.TypeMap {
 					// Tags: all filter key-value pairs must be present in the resource (subset, not exact).
-					filterMap := attr.(map[string]interface{})
-					resourceMap, _ := m[key].(map[string]interface{})
+					filterMap := attr.(map[string]any)
+					resourceMap, _ := m[key].(map[string]any)
 					for fk, fv := range filterMap {
 						if resourceMap[fk] != fv {
 							match = false
@@ -49,9 +49,9 @@ func dataSourceResourceRead(
 						}
 					}
 				} else if schemaEntry.Type == schema.TypeList {
-					// Gather functions return []string from the SDK struct; d.GetOk returns []interface{}.
+					// Gather functions return []string from the SDK struct; d.GetOk returns []any.
 					// Normalise before comparing so reflect.DeepEqual sees the same dynamic type.
-					if !reflect.DeepEqual(toInterfaceSlice(m[key]), attr) {
+					if !reflect.DeepEqual(toAnySlice(m[key]), attr) {
 						match = false
 					}
 				} else if schemaEntry.Type == schema.TypeSet {
@@ -63,8 +63,8 @@ func dataSourceResourceRead(
 					// d.GetOk returns *schema.Set; build a lookup from the resource slice and
 					// check that every filter element is present.
 					filterList := attr.(*schema.Set).List()
-					resourceSlice := toInterfaceSlice(m[key])
-					resourceLookup := make(map[interface{}]struct{}, len(resourceSlice))
+					resourceSlice := toAnySlice(m[key])
+					resourceLookup := make(map[any]struct{}, len(resourceSlice))
 					for _, v := range resourceSlice {
 						resourceLookup[v] = struct{}{}
 					}
@@ -99,15 +99,15 @@ func dataSourceResourceRead(
 	}
 }
 
-func toInterfaceSlice(v any) []interface{} {
+func toAnySlice(v any) []any {
 	switch s := v.(type) {
 	case []string:
-		result := make([]interface{}, len(s))
+		result := make([]any, len(s))
 		for i, str := range s {
 			result[i] = str
 		}
 		return result
-	case []interface{}:
+	case []any:
 		return s
 	default:
 		return nil
