@@ -253,3 +253,49 @@ func TestDataSourceRead_ListNoMatch(t *testing.T) {
 		t.Errorf("unexpected error: %s", diags[0].Summary)
 	}
 }
+
+func TestDataSourceRead_ListSubsetNoMatch(t *testing.T) {
+	// filter is a strict subset of the resource's list: the resource does NOT match.
+
+	// Arrange
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "ssh_keys": []string{"key-a", "key-b"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"ssh_keys": []interface{}{"key-a"}} // subset, not full list
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	// Act
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	// Assert: exact match means ["key-a"] ≠ ["key-a", "key-b"]
+	if !diags.HasError() {
+		t.Fatal("expected zero-match error (exact match semantics), got none")
+	}
+	if diags[0].Summary != "Found zero things" {
+		t.Errorf("unexpected error: %s", diags[0].Summary)
+	}
+}
+
+func TestDataSourceRead_ListOrderMatters(t *testing.T) {
+	// same elements, different order — the resource does NOT match.
+	// reflect.DeepEqual on slices is order-sensitive.
+
+	// Arrange
+	rows := []ResourceDataRaw{
+		{"id": "aaa", "name": "alpha", "ssh_keys": []string{"key-a", "key-b"}, "tags": map[string]interface{}{}},
+	}
+	filter := ResourceDataRaw{"ssh_keys": []interface{}{"key-b", "key-a"}} // reversed
+	resourceData := schema.TestResourceDataRaw(t, testDSSchema, filter)
+
+	// Act
+	diags := dataSourceResourceRead("things", testDSSchema, mockFetch(rows...))(context.Background(), resourceData, nil)
+
+	// Assert
+	if !diags.HasError() {
+		t.Fatal("expected zero-match error (order-sensitive), got none")
+	}
+	if diags[0].Summary != "Found zero things" {
+		t.Errorf("unexpected error: %s", diags[0].Summary)
+	}
+}
+
