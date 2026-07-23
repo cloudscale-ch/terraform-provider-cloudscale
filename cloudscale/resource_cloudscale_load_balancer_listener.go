@@ -12,21 +12,15 @@ import (
 
 const listenerHumanName = "load balancer listener"
 
-// loadBalancerListenerLockKey serializes listener operations on their parent pool when
-// one is set. If the API ever supports pool-less listeners, we will also need to lock on
-// the LB UUID to serialize those.
-func loadBalancerListenerLockKey(d *schema.ResourceData) (string, bool) {
-	if poolUUID, ok := d.GetOk("pool_uuid"); ok {
-		return lbPoolLockKey(poolUUID.(string)), true
-	}
-	return "", false
-}
-
+// Listener operations serialize on the load balancer that owns the parent pool
+// via lockKeyFromPoolUUID. The API requires a pool on every listener today, so the
+// unlocked path is unreachable. When pool-less listeners land, the listener gains an
+// optional load_balancer_uuid (mutually exclusive with pool_uuid) to lock on instead.
 var (
-	resourceCloudscaleLoadBalancerListenerCreate = getCreateOperation(createLoadBalancerListener, loadBalancerListenerLockKey)
+	resourceCloudscaleLoadBalancerListenerCreate = getCreateOperation(createLoadBalancerListener, lockKeyFromPoolUUID)
 	resourceCloudscaleLoadBalancerListenerRead   = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
-	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest, loadBalancerListenerLockKey)
-	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerListener, loadBalancerListenerLockKey)
+	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest, lockKeyFromPoolUUID)
+	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerListener, lockKeyFromPoolUUID)
 )
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {

@@ -12,18 +12,17 @@ import (
 
 const healthMonitorHumanName = "load balancer health monitor"
 
+// Health monitor operations serialize on the load balancer that owns the parent pool
+// via lockKeyFromPoolUUID.
 var (
-	resourceCloudscaleLoadBalancerHealthMonitorCreate = getCreateOperation(createLoadBalancerHealthMonitor, nil)
+	resourceCloudscaleLoadBalancerHealthMonitorCreate = getCreateOperation(createLoadBalancerHealthMonitor, lockKeyFromPoolUUID)
 	resourceCloudscaleLoadBalancerHealthMonitorRead   = getReadOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
-	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests, nil)
-	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerHealthMonitor, nil)
+	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests, lockKeyFromPoolUUID)
+	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerHealthMonitor, lockKeyFromPoolUUID)
 )
 
 func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 	return &schema.Resource{
-		// Unlike pools, pool members and listeners, health monitor operations are not
-		// serialized: only one health monitor per pool is allowed,
-		// so a mutex would never actually serialize anything.
 		CreateContext: resourceCloudscaleLoadBalancerHealthMonitorCreate,
 		ReadContext:   resourceCloudscaleLoadBalancerHealthMonitorRead,
 		UpdateContext: resourceCloudscaleLoadBalancerHealthMonitorUpdate,

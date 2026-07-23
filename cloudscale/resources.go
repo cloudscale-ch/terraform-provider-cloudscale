@@ -9,16 +9,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// mutexKeyFunc derives a mutex key used to serialize concurrent operations on a
+// resource. It returns ok=false to skip locking. It receives ctx and meta so it
+// can, if necessary, resolve the lock key via the API (e.g. a pool member has to
+// look up its pool's load balancer).
+type mutexKeyFunc func(ctx context.Context, d *schema.ResourceData, meta any) (string, bool)
+
 // getCreateOperation builds a CreateFunc from discrete steps:
 //   - createFunc:    the underlying create implementation
 //   - mutexKeyFunc:  derives a mutex key to serialize concurrent operations; nil = no lock
 func getCreateOperation(
 	createFunc schema.CreateContextFunc,
-	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
+	mutexKeyFunc mutexKeyFunc,
 ) schema.CreateContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		if mutexKeyFunc != nil {
-			if key, ok := mutexKeyFunc(d); ok {
+			if key, ok := mutexKeyFunc(ctx, d, meta); ok {
 				if err := globalMu.LockContext(ctx, key); err != nil {
 					return diag.FromErr(err)
 				}
@@ -64,11 +70,11 @@ func getUpdateOperation[TResourceID any, TRequest any](
 	updateFunc func(ctx context.Context, rId TResourceID, meta any, updateRequest *TRequest) error,
 	resourceReadFunc schema.ReadContextFunc,
 	gatherRequestsFunc func(d *schema.ResourceData) []*TRequest,
-	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
+	mutexKeyFunc mutexKeyFunc,
 ) schema.UpdateContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		if mutexKeyFunc != nil {
-			if key, ok := mutexKeyFunc(d); ok {
+			if key, ok := mutexKeyFunc(ctx, d, meta); ok {
 				if err := globalMu.LockContext(ctx, key); err != nil {
 					return diag.FromErr(err)
 				}
@@ -95,12 +101,12 @@ func getDeleteOperation[TResourceID any](
 	resourceHumanName string,
 	idFunc func(d *schema.ResourceData) TResourceID,
 	deleteFunc func(ctx context.Context, rId TResourceID, meta any) error,
-	mutexKeyFunc func(d *schema.ResourceData) (string, bool),
+	mutexKeyFunc mutexKeyFunc,
 ) schema.DeleteContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		log.Printf("[INFO] Deleting %s: %s", resourceHumanName, d.Id())
 		if mutexKeyFunc != nil {
-			if key, ok := mutexKeyFunc(d); ok {
+			if key, ok := mutexKeyFunc(ctx, d, meta); ok {
 				if err := globalMu.LockContext(ctx, key); err != nil {
 					return diag.FromErr(err)
 				}
@@ -118,10 +124,10 @@ func getDeleteOperation[TResourceID any](
 }
 
 // uuidLockKey returns a mutexKeyFunc that derives a lock key from a UUID attribute.
-// If attr is not set — which should never happen for Required attributes — it skips
+// If attr is not set, which should never happen for Required attributes, it skips
 // the lock rather than acquiring one on a meaningless empty key.
-func uuidLockKey(attr string, keyFunc func(string) string) func(*schema.ResourceData) (string, bool) {
-	return func(d *schema.ResourceData) (string, bool) {
+func uuidLockKey(attr string, keyFunc func(string) string) mutexKeyFunc {
+	return func(_ context.Context, d *schema.ResourceData, _ any) (string, bool) {
 		uuid, ok := d.GetOk(attr)
 		if !ok {
 			log.Printf("[WARN] uuidLockKey: %s not set for resource %s, skipping lock", attr, d.Id())

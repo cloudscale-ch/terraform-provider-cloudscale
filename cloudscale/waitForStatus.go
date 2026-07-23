@@ -34,7 +34,7 @@ func waitForStatus(
 }
 
 // waitForDeleted polls existsFunc until the resource is gone. The deadline is
-// carried by ctx — the SDK injects d.Timeout(schema.TimeoutDelete) before
+// carried by ctx: the SDK injects d.Timeout(schema.TimeoutDelete) before
 // calling DeleteContext, so no separate timeout parameter is needed.
 // existsFunc must return (true, nil) while the resource exists,
 // (false, nil) once it is gone, or (_, err) on unexpected errors.

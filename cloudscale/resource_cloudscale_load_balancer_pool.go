@@ -12,18 +12,13 @@ import (
 
 const poolHumanName = "load balancer pool"
 
-func lbLockKey(lbUUID string) string {
-	return fmt.Sprintf("cloudscale/load-balancer/%s", lbUUID)
-}
-
-// loadBalancerPoolLockKey serializes pool operations on their parent load balancer.
-var loadBalancerPoolLockKey = uuidLockKey("load_balancer_uuid", lbLockKey)
-
+// Pool operations serialize on the parent load balancer
+// via lockKeyFromLoadBalancerUUID.
 var (
-	resourceCloudscaleLoadBalancerPoolCreate = getCreateOperation(createLoadBalancerPool, loadBalancerPoolLockKey)
+	resourceCloudscaleLoadBalancerPoolCreate = getCreateOperation(createLoadBalancerPool, lockKeyFromLoadBalancerUUID)
 	resourceCloudscaleLoadBalancerPoolRead   = getReadOperation(poolHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
-	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest, loadBalancerPoolLockKey)
-	resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerPool, loadBalancerPoolLockKey)
+	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest, lockKeyFromLoadBalancerUUID)
+	resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerPool, lockKeyFromLoadBalancerUUID)
 )
 
 func resourceCloudscaleLoadBalancerPool() *schema.Resource {
