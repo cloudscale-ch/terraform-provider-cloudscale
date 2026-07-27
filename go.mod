@@ -1,6 +1,6 @@
 module github.com/terraform-providers/terraform-provider-cloudscale
 
-go 1.26.1
+go 1.26.4
 
 require (
 	github.com/cloudscale-ch/cloudscale-go-sdk/v9 v9.1.0
@@ -61,3 +61,5 @@ require (
 	google.golang.org/grpc v1.82.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+replace github.com/cloudscale-ch/cloudscale-go-sdk/v9 => ../cloudscale-go-sdk
