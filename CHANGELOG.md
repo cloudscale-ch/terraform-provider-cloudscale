@@ -1,3 +1,11 @@
+## 5.1.1
+* Improve stability when managing load balancer resources by serializing concurrent API requests on the same load balancer.
+* Fix and document tag-based filtering in data sources to use subset matching: a resource matches if it has at least the specified tags.
+* Fix `cloudscale_load_balancer_listener` and `cloudscale_load_balancer_health_monitor` data source schemas to match the documented filter arguments (several fields were incorrectly exposed as filter arguments).
+* Fix documentation for load balancer, server, volume, and volume snapshot resources and data sources (missing attributes, duplicate entries, incorrect data source names, and Markdown formatting).
+* Update go dependencies.
+* Update CI/CD dependencies.
+
 ## 5.1.0
 * Add `cloudscale_volume_snapshot` resource and data source.
 * Support creating volumes from a snapshot via `volume_snapshot_uuid`.
@@ -160,4 +168,4 @@ IMPROVEMENTS:
 
 ## 1.0.0 (November 01, 2017)
 
-* Initial release of the cloudscale.ch provider
+* Initial release of the cloudscale
