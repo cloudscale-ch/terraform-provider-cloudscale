@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 )
@@ -11,17 +12,18 @@ import (
 const objectsUserHumanName = "Objects User"
 
 var (
+	resourceCloudscaleObjectsUserCreate = getCreateOperation(createObjectsUser, nil)
 	resourceCloudscaleObjectsUserRead   = getReadOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, readObjectsUser, gatherObjectsUserResourceData)
-	resourceCloudscaleObjectsUserUpdate = getUpdateOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, updateObjectsUser, resourceCloudscaleObjectsUserRead, gatherObjectsUserUpdateRequest)
-	resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, deleteObjectsUser)
+	resourceCloudscaleObjectsUserUpdate = getUpdateOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, updateObjectsUser, resourceCloudscaleObjectsUserRead, gatherObjectsUserUpdateRequest, nil)
+	resourceCloudscaleObjectsUserDelete = getDeleteOperation(objectsUserHumanName, getGenericResourceIdentifierFromSchema, deleteObjectsUser, nil)
 )
 
 func resourceCloudscaleObjectsUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleObjectsUserCreate,
-		Read:   resourceCloudscaleObjectsUserRead,
-		Update: resourceCloudscaleObjectsUserUpdate,
-		Delete: resourceCloudscaleObjectsUserDelete,
+		CreateContext: resourceCloudscaleObjectsUserCreate,
+		ReadContext:   resourceCloudscaleObjectsUserRead,
+		UpdateContext: resourceCloudscaleObjectsUserUpdate,
+		DeleteContext: resourceCloudscaleObjectsUserDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -74,7 +76,7 @@ func getObjectsUserSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleObjectsUserCreate(d *schema.ResourceData, meta any) error {
+func createObjectsUser(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ObjectsUserRequest{
@@ -82,20 +84,16 @@ func resourceCloudscaleObjectsUserCreate(d *schema.ResourceData, meta any) error
 	}
 	opts.Tags = CopyTags(d)
 
-	objectsUser, err := client.ObjectsUsers.Create(context.Background(), opts)
+	objectsUser, err := client.ObjectsUsers.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating objects user: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating objects user: %s", err))
 	}
 
 	d.SetId(objectsUser.ID)
 
 	log.Printf("[INFO] Objects user ID %s", d.Id())
 
-	err = resourceCloudscaleObjectsUserRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the objects user (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleObjectsUserRead(ctx, d, meta)
 }
 
 func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) ResourceDataRaw {
@@ -118,14 +116,14 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	return m
 }
 
-func readObjectsUser(rId GenericResourceIdentifier, meta any) (*cloudscale.ObjectsUser, error) {
+func readObjectsUser(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.ObjectsUser, error) {
 	client := meta.(*cloudscale.Client)
-	return client.ObjectsUsers.Get(context.Background(), rId.Id)
+	return client.ObjectsUsers.Get(ctx, rId.Id)
 }
 
-func updateObjectsUser(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.ObjectsUserRequest) error {
+func updateObjectsUser(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.ObjectsUserRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.ObjectsUsers.Update(context.Background(), rId.Id, updateRequest)
+	return client.ObjectsUsers.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherObjectsUserUpdateRequest(d *schema.ResourceData) []*cloudscale.ObjectsUserRequest {
@@ -146,8 +144,7 @@ func gatherObjectsUserUpdateRequest(d *schema.ResourceData) []*cloudscale.Object
 	return requests
 }
 
-func deleteObjectsUser(d *schema.ResourceData, meta any) error {
+func deleteObjectsUser(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.ObjectsUsers.Delete(context.Background(), id)
+	return client.ObjectsUsers.Delete(ctx, rId.Id)
 }

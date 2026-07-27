@@ -7,23 +7,25 @@ import (
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const subnetHumanName = "subnet"
 
 var (
+	resourceCloudscaleSubnetCreate = getCreateOperation(createSubnet, nil)
 	resourceCloudscaleSubnetRead   = getReadOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, readSubnet, gatherSubnetResourceData)
-	resourceCloudscaleSubnetUpdate = getUpdateOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, updateSubnet, resourceCloudscaleSubnetRead, gatherSubnetUpdateRequests)
-	resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, deleteSubnet)
+	resourceCloudscaleSubnetUpdate = getUpdateOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, updateSubnet, resourceCloudscaleSubnetRead, gatherSubnetUpdateRequests, nil)
+	resourceCloudscaleSubnetDelete = getDeleteOperation(subnetHumanName, getGenericResourceIdentifierFromSchema, deleteSubnet, nil)
 )
 
 func resourceCloudscaleSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleSubnetCreate,
-		Read:   resourceCloudscaleSubnetRead,
-		Update: resourceCloudscaleSubnetUpdate,
-		Delete: resourceCloudscaleSubnetDelete,
+		CreateContext: resourceCloudscaleSubnetCreate,
+		ReadContext:   resourceCloudscaleSubnetRead,
+		UpdateContext: resourceCloudscaleSubnetUpdate,
+		DeleteContext: resourceCloudscaleSubnetDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -87,7 +89,7 @@ func getSubnetSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleSubnetCreate(d *schema.ResourceData, meta any) error {
+func createSubnet(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.SubnetCreateRequest{
@@ -121,21 +123,16 @@ func resourceCloudscaleSubnetCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] Subnet create configuration: %#v", opts)
 
-	subnet, err := client.Subnets.Create(context.Background(), opts)
+	subnet, err := client.Subnets.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating subnet: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating subnet: %s", err))
 	}
 
 	d.SetId(subnet.UUID)
 
 	log.Printf("[INFO] Subnet ID %s", d.Id())
 
-	err = resourceCloudscaleSubnetRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the subnet (%s): %s", d.Id(), err)
-	}
-
-	return nil
+	return resourceCloudscaleSubnetRead(ctx, d, meta)
 }
 
 func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
@@ -152,14 +149,14 @@ func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
 	return m
 }
 
-func readSubnet(rId GenericResourceIdentifier, meta any) (*cloudscale.Subnet, error) {
+func readSubnet(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.Subnet, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Subnets.Get(context.Background(), rId.Id)
+	return client.Subnets.Get(ctx, rId.Id)
 }
 
-func updateSubnet(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.SubnetUpdateRequest) error {
+func updateSubnet(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.SubnetUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.Subnets.Update(context.Background(), rId.Id, updateRequest)
+	return client.Subnets.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpdateRequest {
@@ -197,10 +194,9 @@ func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpda
 	return requests
 }
 
-func deleteSubnet(d *schema.ResourceData, meta any) error {
+func deleteSubnet(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
 	// sending the next request immediately can cause errors, since the port cleanup process is still ongoing
 	time.Sleep(5 * time.Second)
-	return client.Subnets.Delete(context.Background(), id)
+	return client.Subnets.Delete(ctx, rId.Id)
 }

@@ -3,26 +3,31 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const poolMemberHumanName = "load balancer pool member"
 
+// Pool member operations serialize on the load balancer that owns the parent pool
+// via lockKeyFromPoolUUID.
 var (
+	resourceCloudscaleLoadBalancerPoolMemberCreate = getCreateOperation(createLoadBalancerPoolMember, lockKeyFromPoolUUID)
 	resourceCloudscaleLoadBalancerPoolMemberRead   = getReadOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, readLoadBalancerPoolMember, gatherLoadBalancerPoolMemberResourceData)
-	resourceCloudscaleLoadBalancerPoolMemberUpdate = getUpdateOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, updateLoadBalancerPoolMember, resourceCloudscaleLoadBalancerPoolMemberRead, gatherLoadBalancerPoolMemberUpdateRequest)
-	resourceCloudscaleLoadBalancerPoolMemberDelete = getDeleteOperation(poolMemberHumanName, deleteLoadBalancerPoolMember)
+	resourceCloudscaleLoadBalancerPoolMemberUpdate = getUpdateOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, updateLoadBalancerPoolMember, resourceCloudscaleLoadBalancerPoolMemberRead, gatherLoadBalancerPoolMemberUpdateRequest, lockKeyFromPoolUUID)
+	resourceCloudscaleLoadBalancerPoolMemberDelete = getDeleteOperation(poolMemberHumanName, getLoadBalancerResourceIdentifierFromSchema, deleteLoadBalancerPoolMember, lockKeyFromPoolUUID)
 )
 
 func resourceCloudscaleLoadBalancerPoolMembers() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleLoadBalancerPoolMemberCreate,
-		Read:   resourceCloudscaleLoadBalancerPoolMemberRead,
-		Update: resourceCloudscaleLoadBalancerPoolMemberUpdate,
-		Delete: resourceCloudscaleLoadBalancerPoolMemberDelete,
+		CreateContext: resourceCloudscaleLoadBalancerPoolMemberCreate,
+		ReadContext:   resourceCloudscaleLoadBalancerPoolMemberRead,
+		UpdateContext: resourceCloudscaleLoadBalancerPoolMemberUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerPoolMemberDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: func(
@@ -145,7 +150,7 @@ func getLoadBalancerPoolMemberSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta any) error {
+func createLoadBalancerPoolMember(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerPoolMemberRequest{
@@ -164,19 +169,15 @@ func resourceCloudscaleLoadBalancerPoolMemberCreate(d *schema.ResourceData, meta
 	log.Printf("[DEBUG] LoadBalancerPoolMember create configuration: %#v", opts)
 
 	poolID := d.Get("pool_uuid").(string)
-	poolMember, err := client.LoadBalancerPoolMembers.Create(context.Background(), poolID, opts)
+	poolMember, err := client.LoadBalancerPoolMembers.Create(ctx, poolID, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating LoadBalancerPoolMember: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating LoadBalancerPoolMember: %s", err))
 	}
 
 	d.SetId(poolMember.UUID)
 
 	log.Printf("[INFO] LoadBalancerPoolMember ID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerPoolMemberRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the load balancer pool member (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleLoadBalancerPoolMemberRead(ctx, d, meta)
 }
 
 func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale.LoadBalancerPoolMember) ResourceDataRaw {
@@ -199,14 +200,14 @@ func gatherLoadBalancerPoolMemberResourceData(loadbalancerPoolMember *cloudscale
 	return m
 }
 
-func readLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, meta any) (*cloudscale.LoadBalancerPoolMember, error) {
+func readLoadBalancerPoolMember(ctx context.Context, rId LoadBalancerPoolMemberResourceIdentifier, meta any) (*cloudscale.LoadBalancerPoolMember, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPoolMembers.Get(context.Background(), rId.PoolID, rId.Id)
+	return client.LoadBalancerPoolMembers.Get(ctx, rId.PoolID, rId.Id)
 }
 
-func updateLoadBalancerPoolMember(rId LoadBalancerPoolMemberResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolMemberRequest) error {
+func updateLoadBalancerPoolMember(ctx context.Context, rId LoadBalancerPoolMemberResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolMemberRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPoolMembers.Update(context.Background(), rId.PoolID, rId.Id, updateRequest)
+	return client.LoadBalancerPoolMembers.Update(ctx, rId.PoolID, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolMemberRequest {
@@ -231,9 +232,7 @@ func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*clouds
 	return requests
 }
 
-func deleteLoadBalancerPoolMember(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerPoolMember(ctx context.Context, rId LoadBalancerPoolMemberResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	poolID := d.Get("pool_uuid").(string)
-	return client.LoadBalancerPoolMembers.Delete(context.Background(), poolID, id)
+	return client.LoadBalancerPoolMembers.Delete(ctx, rId.PoolID, rId.Id)
 }

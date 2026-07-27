@@ -6,23 +6,25 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const serverGroupHumanName = "server group"
 
 var (
+	resourceCloudscaleServerGroupCreate = getCreateOperation(createServerGroup, nil)
 	resourceCloudscaleServerGroupRead   = getReadOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, readServerGroup, gatherServerGroupResourceData)
-	resourceCloudscaleServerGroupUpdate = getUpdateOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, updateServerGroup, resourceCloudscaleServerGroupRead, gatherServerGroupUpdateRequest)
-	resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, deleteServerGroup)
+	resourceCloudscaleServerGroupUpdate = getUpdateOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, updateServerGroup, resourceCloudscaleServerGroupRead, gatherServerGroupUpdateRequest, nil)
+	resourceCloudscaleServerGroupDelete = getDeleteOperation(serverGroupHumanName, getGenericResourceIdentifierFromSchema, deleteServerGroup, nil)
 )
 
 func resourceCloudscaleServerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleServerGroupCreate,
-		Read:   resourceCloudscaleServerGroupRead,
-		Update: resourceCloudscaleServerGroupUpdate,
-		Delete: resourceCloudscaleServerGroupDelete,
+		CreateContext: resourceCloudscaleServerGroupCreate,
+		ReadContext:   resourceCloudscaleServerGroupRead,
+		UpdateContext: resourceCloudscaleServerGroupUpdate,
+		DeleteContext: resourceCloudscaleServerGroupDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -65,7 +67,7 @@ func getServerGroupSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleServerGroupCreate(d *schema.ResourceData, meta any) error {
+func createServerGroup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.ServerGroupRequest{
@@ -80,20 +82,16 @@ func resourceCloudscaleServerGroupCreate(d *schema.ResourceData, meta any) error
 
 	log.Printf("[DEBUG] ServerGroup create configuration: %#v", opts)
 
-	serverGroup, err := client.ServerGroups.Create(context.Background(), opts)
+	serverGroup, err := client.ServerGroups.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating server group: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating server group: %s", err))
 	}
 
 	d.SetId(serverGroup.UUID)
 
 	log.Printf("[INFO] ServerGroup ID %s", d.Id())
 
-	err = resourceCloudscaleServerGroupRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the server group (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleServerGroupRead(ctx, d, meta)
 }
 
 func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) ResourceDataRaw {
@@ -107,14 +105,14 @@ func gatherServerGroupResourceData(serverGroup *cloudscale.ServerGroup) Resource
 	return m
 }
 
-func readServerGroup(rId GenericResourceIdentifier, meta any) (*cloudscale.ServerGroup, error) {
+func readServerGroup(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.ServerGroup, error) {
 	client := meta.(*cloudscale.Client)
-	return client.ServerGroups.Get(context.Background(), rId.Id)
+	return client.ServerGroups.Get(ctx, rId.Id)
 }
 
-func updateServerGroup(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.ServerGroupRequest) error {
+func updateServerGroup(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.ServerGroupRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.ServerGroups.Update(context.Background(), rId.Id, updateRequest)
+	return client.ServerGroups.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherServerGroupUpdateRequest(d *schema.ResourceData) []*cloudscale.ServerGroupRequest {
@@ -136,8 +134,7 @@ func gatherServerGroupUpdateRequest(d *schema.ResourceData) []*cloudscale.Server
 	return requests
 }
 
-func deleteServerGroup(d *schema.ResourceData, meta any) error {
+func deleteServerGroup(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.ServerGroups.Delete(context.Background(), id)
+	return client.ServerGroups.Delete(ctx, rId.Id)
 }

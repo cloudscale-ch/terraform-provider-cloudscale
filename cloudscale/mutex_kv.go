@@ -1,55 +1,73 @@
 package cloudscale
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"sync"
 )
 
-// Source: https://developer.hashicorp.com/terraform/plugin/sdkv2/guides/v2-upgrade-guide#removal-of-helper-mutexkv-package
-// License: public domain
-
-// MutexKV is a simple key/value store for arbitrary mutexes. It can be used to
-// serialize changes across arbitrary collaborators that share knowledge of the
-// keys they must serialize on.
+// MutexKV is a simple key/value store for per-key mutexes. It can be used to
+// serialize changes across collaborators that share knowledge of the keys they
+// must serialize on.
 //
-// The initial use case is to let aws_security_group_rule resources serialize
-// their access to individual security groups based on SG ID.
+// Each key is backed by a buffered channel of size 1. Sending to the channel
+// acquires the lock; receiving from it releases it. The channel size of 1 is
+// the critical invariant: it allows exactly one sender to hold the lock at a
+// time, while any additional senders block until the slot is freed.
+//
+// Inspired by the Hashicorp helper/mutexkv package (public domain,
+// https://developer.hashicorp.com/terraform/plugin/sdkv2/guides/v2-upgrade-guide#removal-of-helper-mutexkv-package), but
+// rewritten to use channels (the idiomatic Go approach to synchronization:
+// "don't communicate by sharing memory; share memory by communicating")
+// so that LockContext can respect context cancellation without polling.
 type MutexKV struct {
 	lock  sync.Mutex
-	store map[string]*sync.Mutex
+	store map[string]chan struct{}
 }
 
-// Locks the mutex for the given key. Caller is responsible for calling Unlock
-// for the same key
-func (m *MutexKV) Lock(key string) {
+// LockContext tries to acquire the mutex for the given key, blocking until the
+// lock is acquired or the context is done. Returns an error if the context is
+// cancelled or its deadline is exceeded before the lock is acquired.
+func (m *MutexKV) LockContext(ctx context.Context, key string) error {
 	log.Printf("[DEBUG] Locking %q", key)
-	m.get(key).Lock()
-	log.Printf("[DEBUG] Locked %q", key)
+	c := m.get(key)
+	select {
+	case c <- struct{}{}:
+		log.Printf("[DEBUG] Locked %q", key)
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("timed out waiting to acquire lock %q: %w", key, ctx.Err())
+	}
 }
 
-// Unlock the mutex for the given key. Caller must have called Lock for the same key first
+// Unlock the mutex for the given key. Caller must have called LockContext for the same key first
 func (m *MutexKV) Unlock(key string) {
 	log.Printf("[DEBUG] Unlocking %q", key)
-	m.get(key).Unlock()
-	log.Printf("[DEBUG] Unlocked %q", key)
+	select {
+	case <-m.get(key):
+		log.Printf("[DEBUG] Unlocked %q", key)
+	default:
+		panic(fmt.Sprintf("Unlock of unlocked key %q", key))
+	}
 }
 
-// Returns a mutex for the given key, no guarantee of its lock status
-func (m *MutexKV) get(key string) *sync.Mutex {
+// Returns a channel for the given key, no guarantee of its lock status
+func (m *MutexKV) get(key string) chan struct{} {
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	mutex, ok := m.store[key]
+	c, ok := m.store[key]
 	if !ok {
-		mutex = &sync.Mutex{}
-		m.store[key] = mutex
+		c = make(chan struct{}, 1) // size 1: allows exactly one holder at a time
+		m.store[key] = c
 	}
-	return mutex
+	return c
 }
 
 // Returns a properly initialized MutexKV
 func NewMutexKV() *MutexKV {
 	return &MutexKV{
-		store: make(map[string]*sync.Mutex),
+		store: make(map[string]chan struct{}),
 	}
 }
 

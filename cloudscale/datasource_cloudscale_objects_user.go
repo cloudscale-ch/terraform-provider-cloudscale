@@ -19,7 +19,7 @@ func dataSourceCloudscaleObjectsUser() *schema.Resource {
 	}
 }
 
-func listObjectsUsers(d *schema.ResourceData, meta any) ([]cloudscale.ObjectsUser, error) {
+func listObjectsUsers(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.ObjectsUser, error) {
 	client := meta.(*cloudscale.Client)
-	return client.ObjectsUsers.List(context.Background())
+	return client.ObjectsUsers.List(ctx)
 }

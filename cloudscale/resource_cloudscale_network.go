@@ -6,23 +6,25 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const networkHumanName = "network"
 
 var (
+	resourceCloudscaleNetworkCreate = getCreateOperation(createNetwork, nil)
 	resourceCloudscaleNetworkRead   = getReadOperation(networkHumanName, getGenericResourceIdentifierFromSchema, readNetwork, gatherNetworkResourceData)
-	resourceCloudscaleNetworkUpdate = getUpdateOperation(networkHumanName, getGenericResourceIdentifierFromSchema, updateNetwork, resourceCloudscaleNetworkRead, gatherNetworkUpdateRequest)
-	resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, deleteNetwork)
+	resourceCloudscaleNetworkUpdate = getUpdateOperation(networkHumanName, getGenericResourceIdentifierFromSchema, updateNetwork, resourceCloudscaleNetworkRead, gatherNetworkUpdateRequest, nil)
+	resourceCloudscaleNetworkDelete = getDeleteOperation(networkHumanName, getGenericResourceIdentifierFromSchema, deleteNetwork, nil)
 )
 
 func resourceCloudscaleNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleNetworkCreate,
-		Read:   resourceCloudscaleNetworkRead,
-		Update: resourceCloudscaleNetworkUpdate,
-		Delete: resourceCloudscaleNetworkDelete,
+		CreateContext: resourceCloudscaleNetworkCreate,
+		ReadContext:   resourceCloudscaleNetworkRead,
+		UpdateContext: resourceCloudscaleNetworkUpdate,
+		DeleteContext: resourceCloudscaleNetworkDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -91,7 +93,7 @@ func getNetworkSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleNetworkCreate(d *schema.ResourceData, meta any) error {
+func createNetwork(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.NetworkCreateRequest{
@@ -112,19 +114,15 @@ func resourceCloudscaleNetworkCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] Network create configuration: %#v", opts)
 
-	network, err := client.Networks.Create(context.Background(), opts)
+	network, err := client.Networks.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating network: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating network: %s", err))
 	}
 
 	d.SetId(network.UUID)
 
 	log.Printf("[INFO] Network ID %s", d.Id())
-	err = resourceCloudscaleNetworkRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the network (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleNetworkRead(ctx, d, meta)
 }
 
 func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
@@ -148,14 +146,14 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 	return m
 }
 
-func readNetwork(rId GenericResourceIdentifier, meta any) (*cloudscale.Network, error) {
+func readNetwork(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.Network, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Networks.Get(context.Background(), rId.Id)
+	return client.Networks.Get(ctx, rId.Id)
 }
 
-func updateNetwork(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.NetworkUpdateRequest) error {
+func updateNetwork(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.NetworkUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.Networks.Update(context.Background(), rId.Id, updateRequest)
+	return client.Networks.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpdateRequest {
@@ -179,8 +177,7 @@ func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpd
 	return requests
 }
 
-func deleteNetwork(d *schema.ResourceData, meta any) error {
+func deleteNetwork(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.Networks.Delete(context.Background(), id)
+	return client.Networks.Delete(ctx, rId.Id)
 }

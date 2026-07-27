@@ -6,23 +6,25 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const volumeHumanName = "volume"
 
 var (
+	resourceCloudscaleVolumeCreate = getCreateOperation(createVolume, nil)
 	resourceCloudscaleVolumeRead   = getReadOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, readVolume, gatherVolumeResourceData)
-	resourceCloudscaleVolumeUpdate = getUpdateOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, updateVolume, resourceCloudscaleVolumeRead, gatherVolumeUpdateRequests)
-	resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, deleteVolume)
+	resourceCloudscaleVolumeUpdate = getUpdateOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, updateVolume, resourceCloudscaleVolumeRead, gatherVolumeUpdateRequests, nil)
+	resourceCloudscaleVolumeDelete = getDeleteOperation(volumeHumanName, getGenericResourceIdentifierFromSchema, deleteVolume, nil)
 )
 
 func resourceCloudscaleVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleVolumeCreate,
-		Read:   resourceCloudscaleVolumeRead,
-		Update: resourceCloudscaleVolumeUpdate,
-		Delete: resourceCloudscaleVolumeDelete,
+		CreateContext: resourceCloudscaleVolumeCreate,
+		ReadContext:   resourceCloudscaleVolumeRead,
+		UpdateContext: resourceCloudscaleVolumeUpdate,
+		DeleteContext: resourceCloudscaleVolumeDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -102,7 +104,7 @@ func getVolumeSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
+func createVolume(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.VolumeCreateRequest{
@@ -136,9 +138,9 @@ func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] Volume create configuration: %#v", opts)
 
-	volume, err := client.Volumes.Create(context.Background(), opts)
+	volume, err := client.Volumes.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating volume: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating volume: %s", err))
 	}
 
 	d.SetId(volume.UUID)
@@ -150,8 +152,8 @@ func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 			if sizeGB != volume.SizeGB {
 				log.Printf("[INFO] Resizing volume %s to %d GB after creation from snapshot", volume.UUID, sizeGB)
 				updateReq := &cloudscale.VolumeUpdateRequest{SizeGB: sizeGB}
-				if err := client.Volumes.Update(context.Background(), volume.UUID, updateReq); err != nil {
-					return fmt.Errorf("Error resizing volume (%s) after creation from snapshot: %s", volume.UUID, err)
+				if err := client.Volumes.Update(ctx, volume.UUID, updateReq); err != nil {
+					return diag.FromErr(fmt.Errorf("Error resizing volume (%s) after creation from snapshot: %s", volume.UUID, err))
 				}
 			}
 		}
@@ -164,17 +166,13 @@ func resourceCloudscaleVolumeCreate(d *schema.ResourceData, meta any) error {
 				s[i] = serverUUIDs[i].(string)
 			}
 			updateReq := &cloudscale.VolumeUpdateRequest{ServerUUIDs: &s}
-			if err := client.Volumes.Update(context.Background(), volume.UUID, updateReq); err != nil {
-				return fmt.Errorf("Error attaching volume (%s) after creation from snapshot: %s", volume.UUID, err)
+			if err := client.Volumes.Update(ctx, volume.UUID, updateReq); err != nil {
+				return diag.FromErr(fmt.Errorf("Error attaching volume (%s) after creation from snapshot: %s", volume.UUID, err))
 			}
 		}
 	}
 
-	err = resourceCloudscaleVolumeRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the volume (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleVolumeRead(ctx, d, meta)
 }
 
 func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
@@ -190,14 +188,14 @@ func gatherVolumeResourceData(volume *cloudscale.Volume) ResourceDataRaw {
 	return m
 }
 
-func readVolume(rId GenericResourceIdentifier, meta any) (*cloudscale.Volume, error) {
+func readVolume(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.Volume, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Volumes.Get(context.Background(), rId.Id)
+	return client.Volumes.Get(ctx, rId.Id)
 }
 
-func updateVolume(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeUpdateRequest) error {
+func updateVolume(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.VolumeUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.Volumes.Update(context.Background(), rId.Id, updateRequest)
+	return client.Volumes.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeUpdateRequest {
@@ -229,8 +227,7 @@ func gatherVolumeUpdateRequests(d *schema.ResourceData) []*cloudscale.VolumeUpda
 	return requests
 }
 
-func deleteVolume(d *schema.ResourceData, meta any) error {
+func deleteVolume(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.Volumes.Delete(context.Background(), id)
+	return client.Volumes.Delete(ctx, rId.Id)
 }

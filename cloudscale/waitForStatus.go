@@ -1,7 +1,7 @@
 package cloudscale
 
 import (
-	"fmt"
+	"context"
 	"math"
 	"time"
 
@@ -9,6 +9,7 @@ import (
 )
 
 func waitForStatus(
+	ctx context.Context,
 	pending []string,
 	target string,
 	timeout *time.Duration,
@@ -29,25 +30,26 @@ func waitForStatus(
 		NotFoundChecks: math.MaxInt32,
 	}
 
-	return stateConf.WaitForState()
+	return stateConf.WaitForStateContext(ctx)
 }
 
-// waitForDeleted polls existsFunc until the resource is gone.
+// waitForDeleted polls existsFunc until the resource is gone. The deadline is
+// carried by ctx: the SDK injects d.Timeout(schema.TimeoutDelete) before
+// calling DeleteContext, so no separate timeout parameter is needed.
 // existsFunc must return (true, nil) while the resource exists,
 // (false, nil) once it is gone, or (_, err) on unexpected errors.
-func waitForDeleted(timeout time.Duration, existsFunc func() (bool, error)) error {
-	deadline := time.Now().Add(timeout)
+func waitForDeleted(ctx context.Context, existsFunc func() (bool, error)) error {
 	time.Sleep(10 * time.Second)
 	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		exists, err := existsFunc()
 		if err != nil {
 			return err
 		}
 		if !exists {
 			return nil
-		}
-		if time.Now().After(deadline) {
-			return fmt.Errorf("timeout: resource still exists after %s", timeout)
 		}
 		time.Sleep(10 * time.Second)
 	}

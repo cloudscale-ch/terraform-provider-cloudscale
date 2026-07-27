@@ -19,7 +19,7 @@ func dataSourceCloudscaleCustomImage() *schema.Resource {
 	}
 }
 
-func listCustomImages(d *schema.ResourceData, meta any) ([]cloudscale.CustomImage, error) {
+func listCustomImages(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.CustomImage, error) {
 	client := meta.(*cloudscale.Client)
-	return client.CustomImages.List(context.Background())
+	return client.CustomImages.List(ctx)
 }

@@ -6,23 +6,25 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const floatingIPHumanName = "Floating IP"
 
 var (
+	resourceFloatingIPCreate = getCreateOperation(createFloatingIP, nil)
 	resourceFloatingIPRead   = getReadOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, readFloatingIP, gatherFloatingIPResourceData)
-	resourceFloatingIPUpdate = getUpdateOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, updateFloatingIP, resourceFloatingIPRead, gatherFloatingIPUpdateRequest)
-	resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, deleteFloatingIP)
+	resourceFloatingIPUpdate = getUpdateOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, updateFloatingIP, resourceFloatingIPRead, gatherFloatingIPUpdateRequest, nil)
+	resourceFloatingIPDelete = getDeleteOperation(floatingIPHumanName, getGenericResourceIdentifierFromSchema, deleteFloatingIP, nil)
 )
 
 func resourceCloudscaleFloatingIP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceFloatingIPCreate,
-		Read:   resourceFloatingIPRead,
-		Update: resourceFloatingIPUpdate,
-		Delete: resourceFloatingIPDelete,
+		CreateContext: resourceFloatingIPCreate,
+		ReadContext:   resourceFloatingIPRead,
+		UpdateContext: resourceFloatingIPUpdate,
+		DeleteContext: resourceFloatingIPDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -96,7 +98,7 @@ func getFloatingIPSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
+func createFloatingIP(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.FloatingIPCreateRequest{
@@ -129,18 +131,14 @@ func resourceFloatingIPCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] FloatingIP create configuration: %#v", opts)
 
-	floatingIP, err := client.FloatingIPs.Create(context.Background(), opts)
+	floatingIP, err := client.FloatingIPs.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating FloatingIP: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating FloatingIP: %s", err))
 	}
 
 	d.SetId(floatingIP.IP())
 
-	err = resourceFloatingIPRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the floating IP (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceFloatingIPRead(ctx, d, meta)
 }
 
 func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDataRaw {
@@ -171,15 +169,14 @@ func gatherFloatingIPResourceData(floatingIP *cloudscale.FloatingIP) ResourceDat
 	return m
 }
 
-func readFloatingIP(rId GenericResourceIdentifier, meta any) (*cloudscale.FloatingIP, error) {
+func readFloatingIP(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.FloatingIP, error) {
 	client := meta.(*cloudscale.Client)
-	return client.FloatingIPs.Get(context.Background(), rId.Id)
-
+	return client.FloatingIPs.Get(ctx, rId.Id)
 }
 
-func updateFloatingIP(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.FloatingIPUpdateRequest) error {
+func updateFloatingIP(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.FloatingIPUpdateRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.FloatingIPs.Update(context.Background(), rId.Id, updateRequest)
+	return client.FloatingIPs.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.FloatingIPUpdateRequest {
@@ -212,8 +209,7 @@ func gatherFloatingIPUpdateRequest(d *schema.ResourceData) []*cloudscale.Floatin
 	return requests
 }
 
-func deleteFloatingIP(d *schema.ResourceData, meta any) error {
+func deleteFloatingIP(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.FloatingIPs.Delete(context.Background(), id)
+	return client.FloatingIPs.Delete(ctx, rId.Id)
 }

@@ -19,7 +19,7 @@ func dataSourceCloudscaleFloatingIP() *schema.Resource {
 	}
 }
 
-func listFloatingIPs(d *schema.ResourceData, meta any) ([]cloudscale.FloatingIP, error) {
+func listFloatingIPs(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.FloatingIP, error) {
 	client := meta.(*cloudscale.Client)
-	return client.FloatingIPs.List(context.Background())
+	return client.FloatingIPs.List(ctx)
 }

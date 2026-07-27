@@ -3,25 +3,30 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const healthMonitorHumanName = "load balancer health monitor"
 
+// Health monitor operations serialize on the load balancer that owns the parent pool
+// via lockKeyFromPoolUUID.
 var (
+	resourceCloudscaleLoadBalancerHealthMonitorCreate = getCreateOperation(createLoadBalancerHealthMonitor, lockKeyFromPoolUUID)
 	resourceCloudscaleLoadBalancerHealthMonitorRead   = getReadOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerHealthMonitor, gatherLoadBalancerHealthMonitorResourceData)
-	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests)
-	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, deleteLoadBalancerHealthMonitor)
+	resourceCloudscaleLoadBalancerHealthMonitorUpdate = getUpdateOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerHealthMonitor, resourceCloudscaleLoadBalancerHealthMonitorRead, gatherLoadBalancerHealthMonitorUpdateRequests, lockKeyFromPoolUUID)
+	resourceCloudscaleLoadBalancerHealthMonitorDelete = getDeleteOperation(healthMonitorHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerHealthMonitor, lockKeyFromPoolUUID)
 )
 
 func resourceCloudscaleLoadBalancerHealthMonitor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleLoadBalancerHealthMonitorCreate,
-		Read:   resourceCloudscaleLoadBalancerHealthMonitorRead,
-		Update: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
-		Delete: resourceCloudscaleLoadBalancerHealthMonitorDelete,
+		CreateContext: resourceCloudscaleLoadBalancerHealthMonitorCreate,
+		ReadContext:   resourceCloudscaleLoadBalancerHealthMonitorRead,
+		UpdateContext: resourceCloudscaleLoadBalancerHealthMonitorUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerHealthMonitorDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -114,7 +119,7 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 	return m
 }
 
-func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, meta interface{}) error {
+func createLoadBalancerHealthMonitor(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerHealthMonitorRequest{
@@ -162,19 +167,15 @@ func resourceCloudscaleLoadBalancerHealthMonitorCreate(d *schema.ResourceData, m
 
 	log.Printf("[DEBUG] LoadBalancerHealthMonitor create configuration: %#v", opts)
 
-	healthMonitor, err := client.LoadBalancerHealthMonitors.Create(context.Background(), opts)
+	healthMonitor, err := client.LoadBalancerHealthMonitors.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("error creating LoadBalancerHealthMonitor: %s", err)
+		return diag.FromErr(fmt.Errorf("error creating LoadBalancerHealthMonitor: %s", err))
 	}
 
 	d.SetId(healthMonitor.UUID)
 
 	log.Printf("[INFO] LoadBalancerHealthMonitor UUID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerHealthMonitorRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("error reading the load balancer health monitor (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleLoadBalancerHealthMonitorRead(ctx, d, meta)
 }
 
 func getCodes(codes []any) []string {
@@ -185,14 +186,14 @@ func getCodes(codes []any) []string {
 	return s
 }
 
-func readLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
+func readLoadBalancerHealthMonitor(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerHealthMonitor, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerHealthMonitors.Get(context.Background(), rId.Id)
+	return client.LoadBalancerHealthMonitors.Get(ctx, rId.Id)
 }
 
-func updateLoadBalancerHealthMonitor(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerHealthMonitorRequest) error {
+func updateLoadBalancerHealthMonitor(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerHealthMonitorRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerHealthMonitors.Update(context.Background(), rId.Id, updateRequest)
+	return client.LoadBalancerHealthMonitors.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cloudscale.LoadBalancerHealthMonitorRequest {
@@ -232,7 +233,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 					httpOpts.Method = d.Get(attribute).(string)
 				} else if attribute == "http_url_path" {
 					httpOpts.UrlPath = d.Get(attribute).(string)
-				}else if attribute == "http_host" {
+				} else if attribute == "http_host" {
 					if attr, ok := d.GetOk(attribute); ok {
 						s := attr.(string)
 						httpOpts.Host = &s
@@ -271,8 +272,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	return m
 }
 
-func deleteLoadBalancerHealthMonitor(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerHealthMonitor(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.LoadBalancerHealthMonitors.Delete(context.Background(), id)
+	return client.LoadBalancerHealthMonitors.Delete(ctx, rId.Id)
 }

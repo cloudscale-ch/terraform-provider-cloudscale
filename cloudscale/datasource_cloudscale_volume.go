@@ -19,7 +19,7 @@ func dataSourceCloudscaleVolume() *schema.Resource {
 	}
 }
 
-func listVolumes(d *schema.ResourceData, meta any) ([]cloudscale.Volume, error) {
+func listVolumes(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.Volume, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Volumes.List(context.Background())
+	return client.Volumes.List(ctx)
 }

@@ -7,21 +7,25 @@ import (
 	"time"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const serverHumanName = "server"
 
-var resourceCloudscaleServerRead = getReadOperation(serverHumanName, getGenericResourceIdentifierFromSchema, readServer, gatherServerResourceData)
-var resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, deleteServer)
+var (
+	resourceCloudscaleServerCreate = getCreateOperation(createServer, nil)
+	resourceCloudscaleServerRead   = getReadOperation(serverHumanName, getGenericResourceIdentifierFromSchema, readServer, gatherServerResourceData)
+	resourceCloudscaleServerDelete = getDeleteOperation(serverHumanName, getGenericResourceIdentifierFromSchema, deleteServer, nil)
+)
 
 func resourceCloudscaleServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleServerCreate,
-		Read:   resourceCloudscaleServerRead,
-		Update: resourceCloudscaleServerUpdate,
-		Delete: resourceCloudscaleServerDelete,
+		CreateContext: resourceCloudscaleServerCreate,
+		ReadContext:   resourceCloudscaleServerRead,
+		UpdateContext: resourceCloudscaleServerUpdate,
+		DeleteContext: resourceCloudscaleServerDelete,
 
 		Schema: getServerSchema(RESOURCE),
 		Timeouts: &schema.ResourceTimeout{
@@ -288,7 +292,7 @@ func getServerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleServerCreate(d *schema.ResourceData, meta any) error {
+func createServer(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutCreate)
 	startTime := time.Now()
 
@@ -364,9 +368,9 @@ func resourceCloudscaleServerCreate(d *schema.ResourceData, meta any) error {
 
 	log.Printf("[DEBUG] Server create configuration: %#v", opts)
 
-	server, err := client.Servers.Create(context.Background(), opts)
+	server, err := client.Servers.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating server: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating server: %s", err))
 	}
 
 	d.SetId(server.UUID)
@@ -374,38 +378,34 @@ func resourceCloudscaleServerCreate(d *schema.ResourceData, meta any) error {
 	log.Printf("[INFO] Server ID %s", d.Id())
 
 	remainingTime := timeout - time.Since(startTime)
-	_, err = waitForStatus([]string{"changing"}, "running", &remainingTime, newServerRefreshFunc(d, "status", meta))
+	_, err = waitForStatus(ctx, []string{"changing"}, "running", &remainingTime, newServerRefreshFunc(ctx, d, "status", meta))
 	if err != nil {
-		return fmt.Errorf("error waiting for server (%s) to become ready: %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error waiting for server (%s) to become ready: %s", d.Id(), err))
 	}
 
 	remainingTime = timeout - time.Since(startTime)
-	err = waitForSSHHostKeys(d, meta, &remainingTime)
+	err = waitForSSHHostKeys(ctx, d, meta, &remainingTime)
 	if err != nil {
-		return fmt.Errorf("error waiting for SSH host keys (%s) to be available: %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error waiting for SSH host keys (%s) to be available: %s", d.Id(), err))
 	}
 
 	if originalStatus == "stopped" {
 		updateRequest := &cloudscale.ServerUpdateRequest{
 			Status: originalStatus,
 		}
-		err := client.Servers.Update(context.Background(), server.UUID, updateRequest)
+		err := client.Servers.Update(ctx, server.UUID, updateRequest)
 		if err != nil {
-			return fmt.Errorf("error stopping the server (%s) status (%s) ", server.UUID, err)
+			return diag.FromErr(fmt.Errorf("error stopping the server (%s) status (%s) ", server.UUID, err))
 		}
 
 		remainingTime = timeout - time.Since(startTime)
-		_, err = waitForStatus([]string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
+		_, err = waitForStatus(ctx, []string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(ctx, d, "status", meta))
 		if err != nil {
-			return fmt.Errorf("error waiting for server status (%s) (%s) ", server.UUID, err)
+			return diag.FromErr(fmt.Errorf("error waiting for server status (%s) (%s) ", server.UUID, err))
 		}
 	}
 
-	err = resourceCloudscaleServerRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the server (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleServerRead(ctx, d, meta)
 }
 
 func createImageOption(d *schema.ResourceData) string {
@@ -550,12 +550,12 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	return m
 }
 
-func readServer(rId GenericResourceIdentifier, meta any) (*cloudscale.Server, error) {
+func readServer(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.Server, error) {
 	client := meta.(*cloudscale.Client)
-	return client.Servers.Get(context.Background(), rId.Id)
+	return client.Servers.Get(ctx, rId.Id)
 }
 
-func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
+func resourceCloudscaleServerUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	timeout := d.Timeout(schema.TimeoutUpdate)
 	startTime := time.Now()
 	remainingTime := timeout - time.Since(startTime)
@@ -574,46 +574,46 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 		// The root volume is the first volume.
 		volumeUUID := d.Get("volumes.0.uuid").(string)
 		opts := &cloudscale.VolumeUpdateRequest{SizeGB: d.Get("volume_size_gb").(int)}
-		err := client.Volumes.Update(context.Background(), volumeUUID, opts)
+		err := client.Volumes.Update(ctx, volumeUUID, opts)
 		if err != nil {
-			return fmt.Errorf("Error scaling the Volume (%s) status (%s) ", volumeUUID, err)
+			return diag.FromErr(fmt.Errorf("Error scaling the Volume (%s) status (%s) ", volumeUUID, err))
 		}
 	}
 
 	if d.HasChange("flavor_slug") {
 		if !d.Get("allow_stopping_for_update").(bool) {
-			return fmt.Errorf("Changing the flavor requires stopping the server. " +
-				"To acknowledge this, please set allow_stopping_for_update = true in your config.")
+			return diag.FromErr(fmt.Errorf("Changing the flavor requires stopping the server. " +
+				"To acknowledge this, please set allow_stopping_for_update = true in your config."))
 		}
 
-		server, err := client.Servers.Get(context.Background(), id)
+		server, err := client.Servers.Get(ctx, id)
 		if err != nil {
-			return fmt.Errorf("Error retrieving server (%s) for update %s", id, err)
+			return diag.FromErr(fmt.Errorf("Error retrieving server (%s) for update %s", id, err))
 		}
 		if server.Status != cloudscale.ServerStopped {
 			updateRequest := &cloudscale.ServerUpdateRequest{
 				Status: cloudscale.ServerStopped,
 			}
-			err := client.Servers.Update(context.Background(), id, updateRequest)
+			err := client.Servers.Update(ctx, id, updateRequest)
 			if err != nil {
-				return fmt.Errorf("Error updating server (%s), %s", server.Status, err)
+				return diag.FromErr(fmt.Errorf("Error updating server (%s), %s", server.Status, err))
 			}
 
 			remainingTime = timeout - time.Since(startTime)
-			_, err = waitForStatus([]string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
+			_, err = waitForStatus(ctx, []string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(ctx, d, "status", meta))
 			if err != nil {
-				return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
+				return diag.FromErr(fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err))
 			}
 		}
 
 		updateRequest := &cloudscale.ServerUpdateRequest{Flavor: wantedFlavor}
 
-		err = client.Servers.Update(context.Background(), id, updateRequest)
+		err = client.Servers.Update(ctx, id, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error scaling the Server (%s) status (%s) ", id, err)
+			return diag.FromErr(fmt.Errorf("Error scaling the Server (%s) status (%s) ", id, err))
 		}
 		remainingTime = timeout - time.Since(startTime)
-		_, err = waitForStatus([]string{"changing"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
+		_, err = waitForStatus(ctx, []string{"changing"}, "stopped", &remainingTime, newServerRefreshFunc(ctx, d, "status", meta))
 
 		// Signal that we want to start the server again
 		if wantedStatus == "running" {
@@ -625,69 +625,68 @@ func resourceCloudscaleServerUpdate(d *schema.ResourceData, meta any) error {
 		updateRequest := &cloudscale.ServerUpdateRequest{
 			Status: wantedStatus,
 		}
-		err := client.Servers.Update(context.Background(), id, updateRequest)
+		err := client.Servers.Update(ctx, id, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error changing status (%s) (%s) ", id, err)
+			return diag.FromErr(fmt.Errorf("Error changing status (%s) (%s) ", id, err))
 		}
 
 		if wantedStatus == "rebooted" {
-			return fmt.Errorf("Status (%s) not supported", wantedStatus)
+			return diag.FromErr(fmt.Errorf("Status (%s) not supported", wantedStatus))
 		}
 
 		remainingTime = timeout - time.Since(startTime)
 		if wantedStatus == "stopped" {
-			_, err = waitForStatus([]string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(d, "status", meta))
+			_, err = waitForStatus(ctx, []string{"changing", "running"}, "stopped", &remainingTime, newServerRefreshFunc(ctx, d, "status", meta))
 		} else {
-			_, err = waitForStatus([]string{"changing", "stopped"}, "running", &remainingTime, newServerRefreshFunc(d, "status", meta))
+			_, err = waitForStatus(ctx, []string{"changing", "stopped"}, "running", &remainingTime, newServerRefreshFunc(ctx, d, "status", meta))
 		}
 
 		if err != nil {
-			return fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err)
+			return diag.FromErr(fmt.Errorf("Error waiting for server (%s) to change status %s", d.Id(), err))
 		}
 	}
 
 	if d.HasChange("name") {
 		updateRequest := &cloudscale.ServerUpdateRequest{Name: wantedName}
-		err := client.Servers.Update(context.Background(), id, updateRequest)
+		err := client.Servers.Update(ctx, id, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error renaming the Server (%s) status (%s) ", id, err)
+			return diag.FromErr(fmt.Errorf("Error renaming the Server (%s) status (%s) ", id, err))
 		}
 	}
 
 	if d.HasChange("interfaces") {
 		interfaceRequests := createInterfaceOptions(d)
 		updateRequest := &cloudscale.ServerUpdateRequest{Interfaces: &interfaceRequests}
-		err := client.Servers.Update(context.Background(), id, updateRequest)
+		err := client.Servers.Update(ctx, id, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error changing the Server (%s) interfaces (%s) ", id, err)
+			return diag.FromErr(fmt.Errorf("Error changing the Server (%s) interfaces (%s) ", id, err))
 		}
 	}
 
 	if d.HasChange("tags") {
 		updateRequest := &cloudscale.ServerUpdateRequest{}
 		updateRequest.Tags = CopyTags(d)
-		err := client.Servers.Update(context.Background(), id, updateRequest)
+		err := client.Servers.Update(ctx, id, updateRequest)
 		if err != nil {
-			return fmt.Errorf("Error tagging the Server (%s) status (%s) ", id, err)
+			return diag.FromErr(fmt.Errorf("Error tagging the Server (%s) status (%s) ", id, err))
 		}
 	}
 
-	return resourceCloudscaleServerRead(d, meta)
+	return resourceCloudscaleServerRead(ctx, d, meta)
 }
 
-func deleteServer(d *schema.ResourceData, meta any) error {
+func deleteServer(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.Servers.Delete(context.Background(), id)
+	return client.Servers.Delete(ctx, rId.Id)
 }
 
-func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
+func newServerRefreshFunc(ctx context.Context, d *schema.ResourceData, attribute string, meta any) resource.StateRefreshFunc {
 	client := meta.(*cloudscale.Client)
 	return func() (any, string, error) {
 		id := d.Id()
 
 		// get the instance
-		server, err := client.Servers.Get(context.Background(), id)
+		server, err := client.Servers.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("error retrieving server (%s) (refresh) %s", id, err)
 		}
@@ -703,18 +702,18 @@ func newServerRefreshFunc(d *schema.ResourceData, attribute string, meta any) re
 	}
 }
 
-func waitForSSHHostKeys(d *schema.ResourceData, meta any, timeout *time.Duration) error {
+func waitForSSHHostKeys(ctx context.Context, d *schema.ResourceData, meta any, timeout *time.Duration) error {
 	if d.Get("skip_waiting_for_ssh_host_keys").(bool) {
 		log.Printf("[INFO] Not waiting for server (%s) to have host keys available", d.Id())
 		return nil
 	}
 	log.Printf("[INFO] Waiting %s for server (%s) to have host keys available", timeout, d.Id())
 
-	err := resource.Retry(*timeout, func() *resource.RetryError {
-		err := resourceCloudscaleServerRead(d, meta)
-		if err != nil {
+	err := resource.RetryContext(ctx, *timeout, func() *resource.RetryError {
+		diags := resourceCloudscaleServerRead(ctx, d, meta)
+		if diags.HasError() {
 			return &resource.RetryError{
-				Err:       err,
+				Err:       fmt.Errorf("error reading server (%s): %s", d.Id(), diags[0].Summary),
 				Retryable: false,
 			}
 		}

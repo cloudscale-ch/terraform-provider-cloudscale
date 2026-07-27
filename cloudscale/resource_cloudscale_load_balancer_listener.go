@@ -6,23 +6,29 @@ import (
 	"log"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const listenerHumanName = "load balancer listener"
 
+// Listener operations serialize on the load balancer that owns the parent pool
+// via lockKeyFromPoolUUID. The API requires a pool on every listener today, so the
+// unlocked path is unreachable. When pool-less listeners land, the listener gains an
+// optional load_balancer_uuid (mutually exclusive with pool_uuid) to lock on instead.
 var (
+	resourceCloudscaleLoadBalancerListenerCreate = getCreateOperation(createLoadBalancerListener, lockKeyFromPoolUUID)
 	resourceCloudscaleLoadBalancerListenerRead   = getReadOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerListener, gatherLoadBalancerListenerResourceData)
-	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest)
-	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, deleteLoadBalancerListener)
+	resourceCloudscaleLoadBalancerListenerUpdate = getUpdateOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerListener, resourceCloudscaleLoadBalancerListenerRead, gatherLoadBalancerListenerUpdateRequest, lockKeyFromPoolUUID)
+	resourceCloudscaleLoadBalancerListenerDelete = getDeleteOperation(listenerHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerListener, lockKeyFromPoolUUID)
 )
 
 func resourceCloudscaleLoadBalancerListener() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleLoadBalancerListenerCreate,
-		Read:   resourceCloudscaleLoadBalancerListenerRead,
-		Update: resourceCloudscaleLoadBalancerListenerUpdate,
-		Delete: resourceCloudscaleLoadBalancerListenerDelete,
+		CreateContext: resourceCloudscaleLoadBalancerListenerCreate,
+		ReadContext:   resourceCloudscaleLoadBalancerListenerRead,
+		UpdateContext: resourceCloudscaleLoadBalancerListenerUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerListenerDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -98,7 +104,7 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta any) error {
+func createLoadBalancerListener(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerListenerRequest{
@@ -132,19 +138,15 @@ func resourceCloudscaleLoadBalancerListenerCreate(d *schema.ResourceData, meta a
 
 	log.Printf("[DEBUG] LoadBalancerListener create configuration: %#v", opts)
 
-	loadBalancerListener, err := client.LoadBalancerListeners.Create(context.Background(), opts)
+	loadBalancerListener, err := client.LoadBalancerListeners.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating LoadBalancerListener: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating LoadBalancerListener: %s", err))
 	}
 
 	d.SetId(loadBalancerListener.UUID)
 
 	log.Printf("[INFO] LoadBalancerListener ID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerListenerRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the load balancer listener (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleLoadBalancerListenerRead(ctx, d, meta)
 }
 
 func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.LoadBalancerListener) ResourceDataRaw {
@@ -171,14 +173,14 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	return m
 }
 
-func readLoadBalancerListener(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerListener, error) {
+func readLoadBalancerListener(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerListener, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerListeners.Get(context.Background(), rId.Id)
+	return client.LoadBalancerListeners.Get(ctx, rId.Id)
 }
 
-func updateLoadBalancerListener(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerListenerRequest) error {
+func updateLoadBalancerListener(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerListenerRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerListeners.Update(context.Background(), rId.Id, updateRequest)
+	return client.LoadBalancerListeners.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerListenerRequest {
@@ -222,8 +224,7 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 	return requests
 }
 
-func deleteLoadBalancerListener(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerListener(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.LoadBalancerListeners.Delete(context.Background(), id)
+	return client.LoadBalancerListeners.Delete(ctx, rId.Id)
 }

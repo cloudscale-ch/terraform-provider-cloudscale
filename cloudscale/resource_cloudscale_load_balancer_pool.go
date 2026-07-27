@@ -3,25 +3,30 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const poolHumanName = "load balancer pool"
 
+// Pool operations serialize on the parent load balancer
+// via lockKeyFromLoadBalancerUUID.
 var (
+	resourceCloudscaleLoadBalancerPoolCreate = getCreateOperation(createLoadBalancerPool, lockKeyFromLoadBalancerUUID)
 	resourceCloudscaleLoadBalancerPoolRead   = getReadOperation(poolHumanName, getGenericResourceIdentifierFromSchema, readLoadBalancerPool, gatherLoadBalancerPoolResourceData)
-	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest)
-	resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, deleteLoadBalancerPool)
+	resourceCloudscaleLoadBalancerPoolUpdate = getUpdateOperation(poolHumanName, getGenericResourceIdentifierFromSchema, updateLoadBalancerPool, resourceCloudscaleLoadBalancerPoolRead, gatherLoadBalancerPoolUpdateRequest, lockKeyFromLoadBalancerUUID)
+	resourceCloudscaleLoadBalancerPoolDelete = getDeleteOperation(poolHumanName, getGenericResourceIdentifierFromSchema, deleteLoadBalancerPool, lockKeyFromLoadBalancerUUID)
 )
 
 func resourceCloudscaleLoadBalancerPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceCloudscaleLoadBalancerPoolCreate,
-		Read:   resourceCloudscaleLoadBalancerPoolRead,
-		Update: resourceCloudscaleLoadBalancerPoolUpdate,
-		Delete: resourceCloudscaleLoadBalancerPoolDelete,
+		CreateContext: resourceCloudscaleLoadBalancerPoolCreate,
+		ReadContext:   resourceCloudscaleLoadBalancerPoolRead,
+		UpdateContext: resourceCloudscaleLoadBalancerPoolUpdate,
+		DeleteContext: resourceCloudscaleLoadBalancerPoolDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -78,7 +83,7 @@ func getLoadBalancerPoolSchema(t SchemaType) map[string]*schema.Schema {
 	return m
 }
 
-func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta any) error {
+func createLoadBalancerPool(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudscale.Client)
 
 	opts := &cloudscale.LoadBalancerPoolRequest{
@@ -92,19 +97,15 @@ func resourceCloudscaleLoadBalancerPoolCreate(d *schema.ResourceData, meta any) 
 
 	log.Printf("[DEBUG] LoadBalancerPool create configuration: %#v", opts)
 
-	loadBalancerPool, err := client.LoadBalancerPools.Create(context.Background(), opts)
+	loadBalancerPool, err := client.LoadBalancerPools.Create(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating LoadBalancerPool: %s", err)
+		return diag.FromErr(fmt.Errorf("Error creating LoadBalancerPool: %s", err))
 	}
 
 	d.SetId(loadBalancerPool.UUID)
 
 	log.Printf("[INFO] LoadBalancerPool ID: %s", d.Id())
-	err = resourceCloudscaleLoadBalancerPoolRead(d, meta)
-	if err != nil {
-		return fmt.Errorf("Error reading the load balancer pool (%s): %s", d.Id(), err)
-	}
-	return nil
+	return resourceCloudscaleLoadBalancerPoolRead(ctx, d, meta)
 }
 
 func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalancerPool) ResourceDataRaw {
@@ -121,14 +122,14 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 	return m
 }
 
-func readLoadBalancerPool(rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerPool, error) {
+func readLoadBalancerPool(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.LoadBalancerPool, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPools.Get(context.Background(), rId.Id)
+	return client.LoadBalancerPools.Get(ctx, rId.Id)
 }
 
-func updateLoadBalancerPool(rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolRequest) error {
+func updateLoadBalancerPool(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.LoadBalancerPoolRequest) error {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerPools.Update(context.Background(), rId.Id, updateRequest)
+	return client.LoadBalancerPools.Update(ctx, rId.Id, updateRequest)
 }
 
 func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.LoadBalancerPoolRequest {
@@ -150,8 +151,7 @@ func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.L
 	return requests
 }
 
-func deleteLoadBalancerPool(d *schema.ResourceData, meta any) error {
+func deleteLoadBalancerPool(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
 	client := meta.(*cloudscale.Client)
-	id := d.Id()
-	return client.LoadBalancerPools.Delete(context.Background(), id)
+	return client.LoadBalancerPools.Delete(ctx, rId.Id)
 }

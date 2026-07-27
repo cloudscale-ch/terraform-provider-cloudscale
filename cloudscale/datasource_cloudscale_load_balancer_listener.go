@@ -18,7 +18,7 @@ func dataSourceCloudscaleLoadBalancerListener() *schema.Resource {
 	}
 }
 
-func listLoadBalancerListeners(d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancerListener, error) {
+func listLoadBalancerListeners(ctx context.Context, d *schema.ResourceData, meta any) ([]cloudscale.LoadBalancerListener, error) {
 	client := meta.(*cloudscale.Client)
-	return client.LoadBalancerListeners.List(context.Background())
+	return client.LoadBalancerListeners.List(ctx)
 }
