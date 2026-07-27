@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v10"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -20,7 +20,10 @@ import (
 func init() {
 	resource.AddTestSweepers("cloudscale_network", &resource.Sweeper{
 		Name: "cloudscale_network",
-		F:    testSweepNetworks,
+		// Router interfaces attach to networks, so routers (and their interfaces)
+		// must be swept before the networks they hold.
+		Dependencies: []string{"cloudscale_router"},
+		F:            testSweepNetworks,
 	})
 }
 

@@ -1,16 +1,16 @@
 package cloudscale
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"testing"
+	"context"
+	"strconv"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v10"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 

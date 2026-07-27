@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v10"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -416,15 +416,15 @@ func createImageOption(d *schema.ResourceData) string {
 	return d.Get("image_uuid").(string)
 }
 
-func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceRequest {
+func createInterfaceOptions(d *schema.ResourceData) []cloudscale.ServerInterfaceRequest {
 	interfacesCount := d.Get("interfaces.#").(int)
-	result := make([]cloudscale.InterfaceRequest, interfacesCount)
+	result := make([]cloudscale.ServerInterfaceRequest, interfacesCount)
 	for i := 0; i < interfacesCount; i++ {
 		prefix := fmt.Sprintf("interfaces.%d", i)
 		intType := d.Get(prefix + ".type").(string)
 
 		if intType == "public" {
-			result[i] = cloudscale.InterfaceRequest{
+			result[i] = cloudscale.ServerInterfaceRequest{
 				Network: "public",
 			}
 		} else {
@@ -434,8 +434,8 @@ func createInterfaceOptions(d *schema.ResourceData) []cloudscale.InterfaceReques
 	return result
 }
 
-func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) cloudscale.InterfaceRequest {
-	result := cloudscale.InterfaceRequest{}
+func createPrivateInterfaceOptions(d *schema.ResourceData, prefix string) cloudscale.ServerInterfaceRequest {
+	result := cloudscale.ServerInterfaceRequest{}
 
 	addressKey := prefix + ".addresses"
 	if d.HasChange(addressKey) {
