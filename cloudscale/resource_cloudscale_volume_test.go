@@ -294,7 +294,6 @@ func TestAccCloudscaleVolume_tags(t *testing.T) {
 	})
 }
 
-
 func testAccCheckCloudscaleVolumeIsSame(t *testing.T,
 	before, after *cloudscale.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
