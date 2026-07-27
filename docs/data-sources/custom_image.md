@@ -41,6 +41,7 @@ The following arguments can be used to look up a custom image:
 * `id` - (Optional) The UUID of a custom image.
 * `name` - (Optional) The human-readable name of a custom image.
 * `slug` - (Optional) A string identifying a custom image.
+* `firmware_type` - (Optional) The firmware type that will be used for servers created with the custom image. Options include `bios` and `uefi`.
 
 ## Attributes Reference
 
@@ -50,5 +51,4 @@ In addition to the arguments listed above, the following computed attributes are
 * `size_gb` - The size in GB of the custom image.
 * `checksums` - The checksums of the custom image as map.
 * `user_data_handling` - How user_data will be handled when creating a server. Options include `pass-through` and `extend-cloud-config`.
-* `firmware_type` - The firmware type that will be used for servers created with the custom image. Options include `bios` and `uefi`.
 * `zone_slugs` - The zones in which the custom image will be available. Options include `lpg1` and `rma1`.

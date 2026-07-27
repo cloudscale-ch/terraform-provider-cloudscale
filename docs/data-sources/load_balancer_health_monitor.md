@@ -26,8 +26,8 @@ The following arguments can be used to look up a load balancer listener:
 In addition to the arguments listed above, the following computed attributes are exported:
 
 * `href` - The cloudscale.ch API URL of the current resource.
-* `pool_href` = The cloudscale.ch API URL of the listener's load balancer pool.
-* `pool_name` = The load balancer pool name of the listener.
+* `pool_href` - The cloudscale.ch API URL of the listener's load balancer pool.
+* `pool_name` - The load balancer pool name of the listener.
 * `delay_s` - The delay between two successive checks in seconds.
 * `timeout_s` - The maximum time allowed for an individual check in seconds.
 * `up_threshold` - The number of checks that need to be successful before the `monitor_status` of a pool member changes to `"up"`.

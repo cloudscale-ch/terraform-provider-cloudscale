@@ -57,22 +57,22 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 		},
 		"delay_s": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"timeout_s": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"up_threshold": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"down_threshold": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"type": {
@@ -84,28 +84,28 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 		"http_expected_codes": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"http_method": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"http_url_path": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"http_version": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
-			ForceNew: true,
+			ForceNew: t.isResource(),
 		},
 		"http_host": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"tags": &TagsSchema,
