@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func Provider() *schema.Provider {
+func Provider(version string) *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"token": {
@@ -48,13 +48,16 @@ func Provider() *schema.Provider {
 			"cloudscale_load_balancer_health_monitor": resourceCloudscaleLoadBalancerHealthMonitor(),
 			"cloudscale_volume_snapshot":              resourceCloudscaleVolumeSnapshot(),
 		},
-		ConfigureFunc: providerConfigureClient,
+		ConfigureFunc: providerConfigureClient(version),
 	}
 }
 
-func providerConfigureClient(d *schema.ResourceData) (any, error) {
-	config := Config{
-		Token: d.Get("token").(string),
+func providerConfigureClient(version string) schema.ConfigureFunc {
+	return func(d *schema.ResourceData) (any, error) {
+		config := Config{
+			Token:   d.Get("token").(string),
+			Version: version,
+		}
+		return config.Client()
 	}
-	return config.Client()
 }
