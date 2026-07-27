@@ -18,10 +18,25 @@ var testAccProviders map[string]*schema.Provider
 var testAccProvider *schema.Provider
 
 func init() {
-	testAccProvider = Provider("test")
+	testAccProvider = Provider(testAccProviderVersion())
 	testAccProviders = map[string]*schema.Provider{
 		"cloudscale": testAccProvider,
 	}
+}
+
+// testAccProviderVersion identifies acceptance-test requests in the SDK
+// User-Agent by the commit under test, so requests hitting the real API can
+// be traced back to the CI run that made them. GITHUB_SHA is set
+// automatically by GitHub Actions; it falls back to "test" for local runs.
+func testAccProviderVersion() string {
+	sha := os.Getenv("GITHUB_SHA")
+	if sha == "" {
+		return "test"
+	}
+	if len(sha) > 6 {
+		sha = sha[:6]
+	}
+	return "acctest-" + sha
 }
 
 func TestProvider(t *testing.T) {
