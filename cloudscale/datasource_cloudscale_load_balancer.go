@@ -2,7 +2,7 @@ package cloudscale
 
 import (
 	"context"
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v10"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

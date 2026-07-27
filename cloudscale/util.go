@@ -3,8 +3,9 @@ package cloudscale
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
-	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
+	"github.com/cloudscale-ch/cloudscale-go-sdk/v10"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -47,4 +48,15 @@ func CheckDeleted(d *schema.ResourceData, err error, msg string) error {
 		return nil
 	}
 	return fmt.Errorf("%s %s: %s", msg, d.Id(), err)
+}
+
+func splitImportID(id, firstKey, secondKey string) (string, string, error) {
+	parts := strings.Split(id, ".")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("invalid import id %q. Expecting {%s}.{%s}", id, firstKey, secondKey)
+	}
+	if len(parts[0]) == 0 || len(parts[1]) == 0 {
+		return "", "", fmt.Errorf("invalid import id %q. Could not parse {%s}.{%s}", id, firstKey, secondKey)
+	}
+	return parts[0], parts[1], nil
 }
