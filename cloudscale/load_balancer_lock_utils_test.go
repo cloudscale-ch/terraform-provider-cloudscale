@@ -62,20 +62,22 @@ func TestUuidLockKey(t *testing.T) {
 		})
 
 		// meta is intentionally nil: reading an attribute must not need a client.
-		key, ok := keyFunc(context.Background(), d, nil)
-		if !ok {
-			t.Fatal("expected a lock key")
+		key, err := keyFunc(context.Background(), d, nil)
+		if err != nil {
+			t.Fatalf("unexpected error: %s", err)
 		}
 		if want := "cloudscale/load-balancer/lb-1"; key != want {
 			t.Errorf("key = %q, want %q", key, want)
 		}
 	})
 
-	t.Run("skips locking when the attribute is unset", func(t *testing.T) {
+	t.Run("errors when the attribute is unset", func(t *testing.T) {
 		d := schema.TestResourceDataRaw(t, poolSchema, map[string]any{})
 
-		if _, ok := keyFunc(context.Background(), d, nil); ok {
-			t.Error("expected locking to be skipped rather than locking on an empty key")
+		// The attribute is Required, so an unset value is a coding error: fail rather than
+		// lock on a meaningless key.
+		if _, err := keyFunc(context.Background(), d, nil); err == nil {
+			t.Error("expected an error when the attribute is unset")
 		}
 	})
 }
@@ -94,28 +96,27 @@ func TestLockKeyFromPoolUUID(t *testing.T) {
 		}))
 		d := schema.TestResourceDataRaw(t, memberSchema, map[string]any{"pool_uuid": poolUUID})
 
-		key, ok := lockKeyFromPoolUUID(context.Background(), d, client)
-		if !ok {
-			t.Fatal("expected a lock key")
+		key, err := lockKeyFromPoolUUID(context.Background(), d, client)
+		if err != nil {
+			t.Fatalf("unexpected error: %s", err)
 		}
 		if want := "cloudscale/load-balancer/lb-1"; key != want {
 			t.Errorf("key = %q, want %q", key, want)
 		}
 	})
 
-	t.Run("skips locking when pool_uuid is unset", func(t *testing.T) {
+	t.Run("errors when pool_uuid is unset", func(t *testing.T) {
 		client := testClient(t, http.NewServeMux())
 		d := schema.TestResourceDataRaw(t, memberSchema, map[string]any{})
 
-		if _, ok := lockKeyFromPoolUUID(context.Background(), d, client); ok {
-			t.Error("expected locking to be skipped when pool_uuid is unset")
+		if _, err := lockKeyFromPoolUUID(context.Background(), d, client); err == nil {
+			t.Error("expected an error when pool_uuid is unset")
 		}
 	})
 
-	// A failed resolution must not drop the lock: the operation still mutates some
-	// load balancer, we just cannot tell which one. Falling back to a global key
-	// serializes it against every load balancer, which is slow but correct.
-	t.Run("locks globally when the pool cannot be read", func(t *testing.T) {
+	// The load balancer can't be determined, so the operation must fail rather than run
+	// unserialized: we can't tell which load balancer it would mutate.
+	t.Run("errors when the pool cannot be read", func(t *testing.T) {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 			http.Error(w, `{"detail": "boom"}`, http.StatusInternalServerError)
@@ -123,30 +124,22 @@ func TestLockKeyFromPoolUUID(t *testing.T) {
 		client := testClient(t, mux)
 		d := schema.TestResourceDataRaw(t, memberSchema, map[string]any{"pool_uuid": poolUUID})
 
-		key, ok := lockKeyFromPoolUUID(context.Background(), d, client)
-		if !ok {
-			t.Fatal("expected a global lock key rather than no locking at all")
-		}
-		if want := "cloudscale/load-balancer/<<global>>"; key != want {
-			t.Errorf("key = %q, want %q", key, want)
+		if _, err := lockKeyFromPoolUUID(context.Background(), d, client); err == nil {
+			t.Error("expected an error when the pool cannot be read")
 		}
 	})
 
 	// Every pool has a load balancer, so an empty UUID here is a malformed response
 	// rather than a pool without one: the same failed resolution as above, just
 	// detected in the payload instead of the transport.
-	t.Run("locks globally when the pool has no load balancer", func(t *testing.T) {
+	t.Run("errors when the pool has no load balancer", func(t *testing.T) {
 		client := testClient(t, poolHandler(t, poolUUID, cloudscale.LoadBalancerPool{
 			UUID: poolUUID,
 		}))
 		d := schema.TestResourceDataRaw(t, memberSchema, map[string]any{"pool_uuid": poolUUID})
 
-		key, ok := lockKeyFromPoolUUID(context.Background(), d, client)
-		if !ok {
-			t.Fatal("expected a global lock key rather than no locking at all")
-		}
-		if want := "cloudscale/load-balancer/<<global>>"; key != want {
-			t.Errorf("key = %q, want %q", key, want)
+		if _, err := lockKeyFromPoolUUID(context.Background(), d, client); err == nil {
+			t.Error("expected an error when the pool has no load balancer")
 		}
 	})
 }
@@ -203,9 +196,9 @@ func TestLoadBalancerSubResourcesShareLockKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := schema.TestResourceDataRaw(t, tt.resSchema, tt.raw)
 
-			key, ok := tt.lockKeyFunc(context.Background(), d, client)
-			if !ok {
-				t.Fatalf("%s: locking was skipped, so its operations run unserialized", tt.name)
+			key, err := tt.lockKeyFunc(context.Background(), d, client)
+			if err != nil {
+				t.Fatalf("%s: %s", tt.name, err)
 			}
 			if key != want {
 				t.Errorf("%s locks on %q, want %q: every load balancer sub-resource must serialize on the same key",
