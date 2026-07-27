@@ -110,7 +110,7 @@ func createNetwork(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 		val := attr.(bool)
 		opts.AutoCreateIPV4Subnet = &val
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] Network create configuration: %#v", opts)
 
@@ -142,7 +142,7 @@ func gatherNetworkResourceData(network *cloudscale.Network) ResourceDataRaw {
 		subnets = append(subnets, g)
 	}
 	m["subnets"] = subnets
-	m["tags"] = network.Tags
+	m["tags"] = TagsToState(network.Tags)
 	return m
 }
 
@@ -170,7 +170,7 @@ func gatherNetworkUpdateRequest(d *schema.ResourceData) []*cloudscale.NetworkUpd
 			} else if attribute == "mtu" {
 				opts.MTU = d.Get(attribute).(int)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

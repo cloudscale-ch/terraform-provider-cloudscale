@@ -29,6 +29,7 @@ The following arguments can be used to look up a Floating IP:
 * `ip_version` - (Optional) `4` or `6`, for an IPv4 or IPv6 address or network respectively.
 * `region_slug` - (Optional) The slug of the region in which a Regional Floating IP is assigned.
 * `type` - (Optional) Options include `regional` and `global`.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

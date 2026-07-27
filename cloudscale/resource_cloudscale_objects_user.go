@@ -3,10 +3,11 @@ package cloudscale
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 )
 
 const objectsUserHumanName = "Objects User"
@@ -82,7 +83,7 @@ func createObjectsUser(ctx context.Context, d *schema.ResourceData, meta any) di
 	opts := &cloudscale.ObjectsUserRequest{
 		DisplayName: d.Get("display_name").(string),
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	objectsUser, err := client.ObjectsUsers.Create(ctx, opts)
 	if err != nil {
@@ -102,7 +103,7 @@ func gatherObjectsUserResourceData(objectsUser *cloudscale.ObjectsUser) Resource
 	m["href"] = objectsUser.HREF
 	m["user_id"] = objectsUser.ID
 	m["display_name"] = objectsUser.DisplayName
-	m["tags"] = objectsUser.Tags
+	m["tags"] = TagsToState(objectsUser.Tags)
 
 	keys := make([]map[string]string, 0, len(objectsUser.Keys))
 	for _, keyEntry := range objectsUser.Keys {
@@ -137,7 +138,7 @@ func gatherObjectsUserUpdateRequest(d *schema.ResourceData) []*cloudscale.Object
 			if attribute == "display_name" {
 				opts.DisplayName = d.Get(attribute).(string)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

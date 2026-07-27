@@ -364,7 +364,7 @@ func createServer(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if attr, ok := d.GetOk("status"); ok {
 		originalStatus = attr.(string)
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] Server create configuration: %#v", opts)
 
@@ -483,7 +483,7 @@ func gatherServerResourceData(server *cloudscale.Server) ResourceDataRaw {
 	m["image_slug"] = server.Image.Slug
 	m["zone_slug"] = server.Zone.Slug
 	m["status"] = server.Status
-	m["tags"] = server.Tags
+	m["tags"] = TagsToState(server.Tags)
 
 	if volumes := len(server.Volumes); volumes > 0 {
 		volumesMaps := make([]map[string]any, 0, volumes)
@@ -665,7 +665,7 @@ func resourceCloudscaleServerUpdate(ctx context.Context, d *schema.ResourceData,
 
 	if d.HasChange("tags") {
 		updateRequest := &cloudscale.ServerUpdateRequest{}
-		updateRequest.Tags = CopyTags(d)
+		updateRequest.Tags = TagsFromState(d)
 		err := client.Servers.Update(ctx, id, updateRequest)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("Error tagging the Server (%s) status (%s) ", id, err))

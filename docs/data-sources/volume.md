@@ -23,7 +23,7 @@ The following arguments can be used to look up a volume:
 * `zone_slug` - (Optional) The slug of the zone in which the new volume will be created. Options include `lpg1` and `rma1`.
 * `type` - (Optional) For SSD/NVMe volumes "ssd" (default); or "bulk" for our HDD cluster with NVMe caching.
 * `size_gb` - (Optional) The volume size in GB. Valid values are multiples of 1 for type "ssd" and multiples of 100 for type "bulk".
-* `tags` - (Optional) Tags allow you to assign custom metadata to resources. Tags are always strings (both keys and values).
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

@@ -22,6 +22,7 @@ The following arguments can be used to look up a server:
 * `name` - (Optional) Name of the server.
 * `zone_slug` - (Optional) The slug of the zone in which the server exists. Options include `lpg1` and `rma1`.
 * `status` - (Optional) The desired state of a server. Can be `running` (default) or `stopped`.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

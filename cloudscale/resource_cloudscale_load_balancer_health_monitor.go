@@ -163,7 +163,7 @@ func createLoadBalancerHealthMonitor(ctx context.Context, d *schema.ResourceData
 		opts.HTTP = &httpOpts
 	}
 
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] LoadBalancerHealthMonitor create configuration: %#v", opts)
 
@@ -218,7 +218,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 			} else if attribute == "down_threshold" {
 				opts.DownThreshold = d.Get(attribute).(int)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 
 			monitorType := d.Get("type").(string)
@@ -268,7 +268,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	} else {
 		m["http_expected_codes"] = nil
 	}
-	m["tags"] = loadBalancerHealthMonitor.Tags
+	m["tags"] = TagsToState(loadBalancerHealthMonitor.Tags)
 	return m
 }
 

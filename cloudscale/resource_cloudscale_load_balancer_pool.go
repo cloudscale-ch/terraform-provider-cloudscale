@@ -93,7 +93,7 @@ func createLoadBalancerPool(ctx context.Context, d *schema.ResourceData, meta in
 		Protocol:     d.Get("protocol").(string),
 	}
 
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] LoadBalancerPool create configuration: %#v", opts)
 
@@ -118,7 +118,7 @@ func gatherLoadBalancerPoolResourceData(loadbalancerpool *cloudscale.LoadBalance
 	m["load_balancer_href"] = loadbalancerpool.LoadBalancer.HREF
 	m["algorithm"] = loadbalancerpool.Algorithm
 	m["protocol"] = loadbalancerpool.Protocol
-	m["tags"] = loadbalancerpool.Tags
+	m["tags"] = TagsToState(loadbalancerpool.Tags)
 	return m
 }
 
@@ -144,7 +144,7 @@ func gatherLoadBalancerPoolUpdateRequest(d *schema.ResourceData) []*cloudscale.L
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

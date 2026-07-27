@@ -43,7 +43,7 @@ The following arguments can be used to look up a subnet:
 * `network_uuid` - (Optional) The network UUID of the subnet.
 * `network_name` - (Optional) The network name of the subnet.
 * `gateway_address` - (Optional) The gateway address of the subnet.
-
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

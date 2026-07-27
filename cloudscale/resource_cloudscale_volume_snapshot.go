@@ -104,7 +104,7 @@ func createVolumeSnapshot(ctx context.Context, d *schema.ResourceData, meta inte
 		Name:         d.Get("name").(string),
 		SourceVolume: sourceVolumeUUID,
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] VolumeSnapshot create configuration: %#v", opts)
 
@@ -158,7 +158,7 @@ func gatherVolumeSnapshotResourceData(snap *cloudscale.VolumeSnapshot) ResourceD
 	m["source_volume_href"] = snap.SourceVolume.HREF
 	m["size_gb"] = snap.SizeGB
 	m["status"] = snap.Status
-	m["tags"] = snap.Tags
+	m["tags"] = TagsToState(snap.Tags)
 	return m
 }
 
@@ -184,7 +184,7 @@ func gatherVolumeSnapshotUpdateRequest(d *schema.ResourceData) []*cloudscale.Vol
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

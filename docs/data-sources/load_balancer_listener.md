@@ -21,6 +21,7 @@ The following arguments can be used to look up a load balancer listener:
 * `id` - (Optional) The UUID of the load balancer listener.
 * `name` - (Optional) Name of the load balancer listener.
 * `pool_uuid` - (Optional) The UUID of the pool this listener belongs to.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

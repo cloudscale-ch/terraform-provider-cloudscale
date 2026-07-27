@@ -21,6 +21,7 @@ The following arguments can be used to look up a load balancer:
 * `id` - (Optional) The UUID of the load balancer.
 * `name` - (Optional) Name of the load balancer.
 * `zone_slug` - (Optional) The slug of the zone in which the load balancer exists. Options include `lpg1` and `rma1`.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 
