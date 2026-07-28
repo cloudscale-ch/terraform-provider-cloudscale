@@ -61,7 +61,7 @@ jobs:
           {terraform: '1.13.0', testargs: "-run TestAccCloudscaleServer_Basic"},
           {terraform: '1.14.0', testargs: "-run TestAccCloudscaleServer_Basic"},
           {terraform: '1.15.0', testargs: "-run TestAccCloudscaleServer_Basic"},
-          {terraform: '', testargs: ""},
+          {terraform: 'latest', testargs: ""},
         ]
     steps:
 
@@ -75,11 +75,23 @@ jobs:
         cache: false
       id: go
 
+    # Pre-install a pinned Terraform CLI binary so the acceptance test
+    # harness never falls back to hc-install's live "latest" lookup against
+    # checkpoint-api.hashicorp.com, which has become an unreliable 502
+    # source.
+    - name: Set up Terraform CLI
+      uses: hashicorp/setup-terraform@v4
+      with:
+        terraform_version: ${{ matrix.runs.terraform }}
+        terraform_wrapper: false
+
+    - name: Verify Terraform CLI version
+      run: terraform version
+
     - name: TF acceptance tests
       timeout-minutes: 120
       env:
         TF_ACC: "1"
-        TF_ACC_TERRAFORM_VERSION: ${{ matrix.runs.terraform }}
 
         # Set whatever additional acceptance test env vars here. You can
         # optionally use data from your repository secrets using the
