@@ -21,6 +21,8 @@ The following arguments can be used to look up a server:
 * `id` - (Optional) The UUID of a server.
 * `name` - (Optional) Name of the server.
 * `zone_slug` - (Optional) The slug of the zone in which the server exists. Options include `lpg1` and `rma1`.
+* `status` - (Optional) The desired state of a server. Can be `running` (default) or `stopped`.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 
@@ -32,22 +34,30 @@ In addition to the arguments listed above, the following computed attributes are
 * `ssh_host_keys` - A list of SSH host keys (strings) of this server.
 * `flavor_slug` - The slug (name) of the flavor used by this server.
 * `image_slug` - The slug (name) of the image (or custom image) used by the server.
-* `volumes` - A list of volume objects attached to this server. Each volume object has three attributes:
+* `volumes` - A list of volume objects attached to this server. Each volume object has the following attributes:
     * `device_path` - (Deprecated) The path (string) to the volume on your server (e.g. `/dev/vda`). This attribute is always null and will be removed in a future major version.
     * `size_gb` - The size (int) of the volume in GB. Typically matches `volume_size_gb` or `bulk_volume_size_gb`.
     * `type` - A string. Either `ssd` or `bulk`.
+    * `uuid` - The UUID of the volume.
+* `server_groups` - A list of server group objects this server is associated with. Each object has the following attributes:
+    * `href` - The cloudscale.ch API URL of the server group.
+    * `name` - The name of the server group.
+    * `uuid` - The UUID of the server group.
 * `public_ipv4_address` - The first `public` IPv4 address of this server. The returned IP address may be `""` if the server does not have a public IPv4.
 * `private_ipv4_address` - The first `private` IPv4 address of this server. The returned IP address may be `""` if the server does not have private networking enabled.
 * `public_ipv6_address` - The first `public` IPv6 address of this server. The returned IP address may be `""` if the server does not have a public IPv6.
 * `interfaces` - A list of interface objects attached to this server. Each interface object has the following attributes:
     * `network_name` - The name of the network the interface is attached to.
     * `network_href` - The cloudscale.ch API URL of the network the interface is attached to.
+    * `network_uuid` - The UUID of the network the interface is attached to.
     * `type` - Either `public` or `private`. Public interfaces are connected to the Internet, while private interfaces are not.
+    * `no_address` - `true` if no address is configured on this interface.
     * `addresses` - A list of address objects:
+        * `address` - The IP address assigned to this interface.
+        * `subnet_uuid` - The UUID of the subnet this address is part of.
         * `gateway` - An IPv4 or IPv6 address that represents the default gateway for this interface.
         * `prefix_length` - The prefix length for this IP address, typically 24 for IPv4 and 128 for IPv6.
         * `reverse_ptr` - The PTR record (reverse DNS pointer) for this IP address. If you use an FQDN as your server name it will automatically be used here.
         * `version` - The IP version, either `4` or `6`.
         * `subnet_cidr` - The cidr of the subnet the address is part of.
         * `subnet_href` - The cloudscale.ch API URL of the subnet the address is part of.
-* `status` - The state of a server.

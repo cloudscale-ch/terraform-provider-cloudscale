@@ -26,6 +26,7 @@ The following arguments can be used to look up an Objects User:
 * `id` - (Optional) The unique identifier of the Objects User.
 * `display_name` - (Optional) The display name of the Objects User.
 * `user_id` - (Optional) The unique identifier of the Objects User. (Exactly the same as `id`)
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

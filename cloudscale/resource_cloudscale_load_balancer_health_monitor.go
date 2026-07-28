@@ -57,22 +57,22 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 		},
 		"delay_s": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"timeout_s": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"up_threshold": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"down_threshold": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"type": {
@@ -84,28 +84,28 @@ func getLoadBalancerHealthMonitorSchema(t SchemaType) map[string]*schema.Schema 
 		"http_expected_codes": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"http_method": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"http_url_path": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"http_version": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
-			ForceNew: true,
+			ForceNew: t.isResource(),
 		},
 		"http_host": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"tags": &TagsSchema,
@@ -163,7 +163,7 @@ func createLoadBalancerHealthMonitor(ctx context.Context, d *schema.ResourceData
 		opts.HTTP = &httpOpts
 	}
 
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] LoadBalancerHealthMonitor create configuration: %#v", opts)
 
@@ -218,7 +218,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 			} else if attribute == "down_threshold" {
 				opts.DownThreshold = d.Get(attribute).(int)
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 
 			monitorType := d.Get("type").(string)
@@ -268,7 +268,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	} else {
 		m["http_expected_codes"] = nil
 	}
-	m["tags"] = loadBalancerHealthMonitor.Tags
+	m["tags"] = TagsToState(loadBalancerHealthMonitor.Tags)
 	return m
 }
 

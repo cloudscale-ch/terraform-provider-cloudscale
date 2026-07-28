@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	Token string
+	Token   string
+	Version string
 }
 
 func (c *Config) Client() (*cloudscale.Client, error) {
@@ -18,6 +19,9 @@ func (c *Config) Client() (*cloudscale.Client, error) {
 	tc.Transport = logging.NewTransport("Cloudscale", tc.Transport)
 
 	client := cloudscale.NewClient(tc)
+	if c.Version != "" {
+		client.UserAgent = client.UserAgent + " terraform-provider-cloudscale/" + c.Version
+	}
 
 	return client, nil
 }

@@ -74,23 +74,23 @@ func getLoadBalancerListenerSchema(t SchemaType) map[string]*schema.Schema {
 		},
 		"timeout_client_data_ms": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"timeout_member_connect_ms": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"timeout_member_data_ms": {
 			Type:     schema.TypeInt,
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"allowed_cidrs": {
 			Type:     schema.TypeList,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
+			Optional: t.isResource(),
 			Computed: true,
 		},
 		"tags": &TagsSchema,
@@ -134,7 +134,7 @@ func createLoadBalancerListener(ctx context.Context, d *schema.ResourceData, met
 	}
 	opts.AllowedCIDRs = &s
 
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] LoadBalancerListener create configuration: %#v", opts)
 
@@ -169,7 +169,7 @@ func gatherLoadBalancerListenerResourceData(loadbalancerlistener *cloudscale.Loa
 	m["timeout_member_connect_ms"] = loadbalancerlistener.TimeoutMemberConnectMS
 	m["timeout_member_data_ms"] = loadbalancerlistener.TimeoutMemberDataMS
 	m["allowed_cidrs"] = loadbalancerlistener.AllowedCIDRs
-	m["tags"] = loadbalancerlistener.Tags
+	m["tags"] = TagsToState(loadbalancerlistener.Tags)
 	return m
 }
 
@@ -217,7 +217,7 @@ func gatherLoadBalancerListenerUpdateRequest(d *schema.ResourceData) []*cloudsca
 				}
 				opts.AllowedCIDRs = &s
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

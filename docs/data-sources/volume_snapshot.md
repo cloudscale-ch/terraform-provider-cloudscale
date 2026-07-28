@@ -21,14 +21,13 @@ The following arguments can be used to look up a volume snapshot:
 * `id` - (Optional) The UUID of the volume snapshot.
 * `name` - (Optional) The name of the volume snapshot.
 * `source_volume_uuid` - (Optional) The UUID of the source volume.
-* `tags` - (Optional) Tags allow you to assign custom metadata to resources. Tags are always strings (both keys and values).
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 
 In addition to the arguments listed above, the following computed attributes are exported:
 
 * `href` - The cloudscale.ch API URL of the current resource.
-* `source_volume_uuid` - The UUID of the source volume.
 * `source_volume_name` - The name of the source volume.
 * `source_volume_href` - The cloudscale.ch API URL of the source volume.
 * `size_gb` - The size of the snapshot in GB.

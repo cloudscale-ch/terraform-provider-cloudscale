@@ -21,6 +21,7 @@ The following arguments can be used to look up a load balancer pool:
 * `id` - (Optional) The UUID of the load balancer pool.
 * `name` - (Optional) Name of the load balancer pool.
 * `load_balancer_uuid` - (Optional) The load balancer of the pool.
+* `tags` - (Optional) Filter by tags; the resource must have at least the specified key-value pairs (subset match). Tags are always strings (both keys and values).
 
 ## Attributes Reference
 

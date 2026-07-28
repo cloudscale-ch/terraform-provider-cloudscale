@@ -3,10 +3,11 @@ package cloudscale
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
 	"math"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/cloudscale-ch/cloudscale-go-sdk/v9"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -128,7 +129,7 @@ func createCustomImage(ctx context.Context, d *schema.ResourceData, meta any) di
 		UserDataHandling: d.Get("user_data_handling").(string),
 		Zones:            nil,
 	}
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 	zoneSlugs := d.Get("zone_slugs").(*schema.Set).List()
 	z := make([]string, len(zoneSlugs))
 	for i := range zoneSlugs {
@@ -192,7 +193,7 @@ func gatherCustomImageResourceData(customImage *cloudscale.CustomImage) Resource
 	m["user_data_handling"] = customImage.UserDataHandling
 	m["firmware_type"] = customImage.FirmwareType
 	m["checksums"] = customImage.Checksums
-	m["tags"] = customImage.Tags
+	m["tags"] = TagsToState(customImage.Tags)
 
 	zoneSlugs := make([]string, 0, len(customImage.Zones))
 	for _, zone := range customImage.Zones {
@@ -228,7 +229,7 @@ func gatherCustomImageUpdateRequest(d *schema.ResourceData) []*cloudscale.Custom
 			} else if attribute == "user_data_handling" {
 				opts.UserDataHandling = cloudscale.UserDataHandling(d.Get(attribute).(string))
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}

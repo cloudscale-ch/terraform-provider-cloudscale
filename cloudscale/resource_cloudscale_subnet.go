@@ -119,7 +119,7 @@ func createSubnet(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
-	opts.Tags = CopyTags(d)
+	opts.Tags = TagsFromState(d)
 
 	log.Printf("[DEBUG] Subnet create configuration: %#v", opts)
 
@@ -145,7 +145,7 @@ func gatherSubnetResourceData(subnet *cloudscale.Subnet) ResourceDataRaw {
 	m["network_name"] = subnet.Network.Name
 	m["gateway_address"] = subnet.GatewayAddress
 	m["dns_servers"] = subnet.DNSServers
-	m["tags"] = subnet.Tags
+	m["tags"] = TagsToState(subnet.Tags)
 	return m
 }
 
@@ -187,7 +187,7 @@ func gatherSubnetUpdateRequests(d *schema.ResourceData) []*cloudscale.SubnetUpda
 					}
 				}
 			} else if attribute == "tags" {
-				opts.Tags = CopyTags(d)
+				opts.Tags = TagsFromState(d)
 			}
 		}
 	}
