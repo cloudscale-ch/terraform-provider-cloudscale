@@ -3,6 +3,7 @@
 * Fix and document tag-based filtering in data sources to use subset matching: a resource matches if it has at least the specified tags.
 * Fix `cloudscale_load_balancer_listener` and `cloudscale_load_balancer_health_monitor` data source schemas to match the documented filter arguments (several fields were incorrectly exposed as filter arguments).
 * Fix documentation for load balancer, server, volume, and volume snapshot resources and data sources (missing attributes, duplicate entries, incorrect data source names, and Markdown formatting).
+* Include the provider version in the User-Agent header of API requests.
 * Update go dependencies.
 * Update CI/CD dependencies.
 
