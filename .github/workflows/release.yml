@@ -21,13 +21,13 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       -
         name: Unshallow
         run: git fetch --prune --unshallow
       -
         name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: 'go.mod'
           cache: false
@@ -35,7 +35,7 @@ jobs:
       -
         name: Run GoReleaser (snapshot build)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: goreleaser/goreleaser-action@v7
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           # 'latest', 'nightly', or a semver
           version: '~> v2'
@@ -44,7 +44,7 @@ jobs:
       # 2. Import GPG key only for Tagged Releases
       -
         name: Import GPG key
-        uses:  crazy-max/ghaction-import-gpg@v7
+        uses:  crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         if: startsWith(github.ref, 'refs/tags/')
         id: import_gpg
         with:
@@ -55,7 +55,7 @@ jobs:
       -
         name: Run GoReleaser (release build)
         if: startsWith(github.ref, 'refs/tags/')
-        uses: goreleaser/goreleaser-action@v7
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           # 'latest', 'nightly', or a semver
           version: '~> v2'
