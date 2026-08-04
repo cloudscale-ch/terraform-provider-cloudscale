@@ -20,7 +20,10 @@ import (
 func init() {
 	resource.AddTestSweepers("cloudscale_network", &resource.Sweeper{
 		Name: "cloudscale_network",
-		F:    testSweepNetworks,
+		// Router interfaces attach to networks, so routers (and their interfaces)
+		// must be swept before the networks they hold.
+		Dependencies: []string{"cloudscale_router"},
+		F:            testSweepNetworks,
 	})
 }
 

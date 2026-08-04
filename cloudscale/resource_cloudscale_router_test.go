@@ -41,6 +41,14 @@ func testSweepRouters(region string) error {
 		if strings.HasPrefix(s.Name, "terraform-") {
 			tflog.Info(context.Background(), "Destroying Router", map[string]any{"name": s.Name})
 
+			// Interfaces must be deleted before the router, and they also hold the
+			// networks attached to them, so remove them first.
+			for _, iface := range s.Interfaces {
+				if err := client.Routers.DeleteInterface(context.Background(), s.UUID, iface.UUID); err != nil {
+					errs = append(errs, err)
+				}
+			}
+
 			if err := client.Routers.Delete(context.Background(), s.UUID); err != nil {
 				errs = append(errs, err)
 			}
