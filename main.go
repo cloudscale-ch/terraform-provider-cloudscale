@@ -1,8 +1,11 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+
 	"github.com/terraform-providers/terraform-provider-cloudscale/cloudscale"
 )
 
@@ -21,7 +24,13 @@ var (
 )
 
 func main() {
+	var debug bool
+	flag.BoolVar(&debug, "debug", false, "run with support for debuggers like delve")
+	flag.Parse()
+
 	plugin.Serve(&plugin.ServeOpts{
+		Debug:        debug,
+		ProviderAddr: "registry.terraform.io/cloudscale-ch/cloudscale",
 		ProviderFunc: func() *schema.Provider {
 			return cloudscale.Provider(version)
 		},

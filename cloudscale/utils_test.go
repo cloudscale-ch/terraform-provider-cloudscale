@@ -19,6 +19,7 @@ var (
 	testAccCheckCloudscaleLoadBalancerPoolExists          = getTestAccCheckCloudscaleResourceExistsFunc(poolHumanName, getId, readLoadBalancerPool)
 	testAccCheckCloudscaleLoadBalancerPoolMemberExists    = getTestAccCheckCloudscaleResourceExistsFunc(poolMemberHumanName, getPoolId, readLoadBalancerPoolMember)
 	testAccCheckCloudscaleNetworkExists                   = getTestAccCheckCloudscaleResourceExistsFunc(networkHumanName, getId, readNetwork)
+	testAccCheckCloudscaleRouterExists                    = getTestAccCheckCloudscaleResourceExistsFunc(routerHumanName, getId, readRouter)
 	testAccCheckCloudscaleObjectsUserExists               = getTestAccCheckCloudscaleResourceExistsFunc(objectsUserHumanName, getId, readObjectsUser)
 	testAccCheckCloudscaleServerExists                    = getTestAccCheckCloudscaleResourceExistsFunc(serverHumanName, getId, readServer)
 	testAccCheckCloudscaleServerGroupExists               = getTestAccCheckCloudscaleResourceExistsFunc(serverGroupHumanName, getId, readServerGroup)
@@ -33,7 +34,9 @@ var (
 	)
 	testAccCheckCloudscaleVolumeSnapshotNotExists = getTestAccCheckCloudscaleResourceNotExistsFunc(
 		volumeSnapshotHumanName,
-		func(vs *cloudscale.VolumeSnapshot) GenericResourceIdentifier { return GenericResourceIdentifier{Id: vs.UUID} },
+		func(vs *cloudscale.VolumeSnapshot) GenericResourceIdentifier {
+			return GenericResourceIdentifier{Id: vs.UUID}
+		},
 		readVolumeSnapshot,
 	)
 )

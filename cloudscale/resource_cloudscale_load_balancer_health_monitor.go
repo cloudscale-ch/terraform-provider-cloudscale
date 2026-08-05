@@ -154,7 +154,7 @@ func createLoadBalancerHealthMonitor(ctx context.Context, d *schema.ResourceData
 			httpOpts.Version = attr.(string)
 		}
 		if attr, ok := d.GetOk("http_url_path"); ok {
-			httpOpts.UrlPath = attr.(string)
+			httpOpts.URLPath = attr.(string)
 		}
 		if attr, ok := d.GetOk("http_host"); ok {
 			s := attr.(string)
@@ -232,7 +232,7 @@ func gatherLoadBalancerHealthMonitorUpdateRequests(d *schema.ResourceData) []*cl
 				if attribute == "http_method" {
 					httpOpts.Method = d.Get(attribute).(string)
 				} else if attribute == "http_url_path" {
-					httpOpts.UrlPath = d.Get(attribute).(string)
+					httpOpts.URLPath = d.Get(attribute).(string)
 				} else if attribute == "http_host" {
 					if attr, ok := d.GetOk(attribute); ok {
 						s := attr.(string)
@@ -262,7 +262,7 @@ func gatherLoadBalancerHealthMonitorResourceData(loadBalancerHealthMonitor *clou
 	if loadBalancerHealthMonitor.HTTP != nil {
 		m["http_expected_codes"] = loadBalancerHealthMonitor.HTTP.ExpectedCodes
 		m["http_method"] = loadBalancerHealthMonitor.HTTP.Method
-		m["http_url_path"] = loadBalancerHealthMonitor.HTTP.UrlPath
+		m["http_url_path"] = loadBalancerHealthMonitor.HTTP.URLPath
 		m["http_version"] = loadBalancerHealthMonitor.HTTP.Version
 		m["http_host"] = loadBalancerHealthMonitor.HTTP.Host
 	} else {

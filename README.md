@@ -53,6 +53,39 @@ provider_installation {
 
 *Remember to replace `[your-username]` with your actual username.*
 
+### Debugging with Delve
+
+Follow below steps to be able to attach a debugger to the provider binary. Further below is an introduction how to
+achieve the same using an IDE (IntelliJ as an example).
+
+Build with optimizations off and start it with [delve](https://github.com/go-delve/delve):
+
+```sh
+go build -gcflags="all=-N -l" -o terraform-provider-cloudscale .
+dlv exec ./terraform-provider-cloudscale -- -debug
+```
+
+Set your breakpoints, then `continue`. The provider prints a `TF_REATTACH_PROVIDERS=...`
+line. Copy it into the shell where you run Terraform:
+
+```sh
+export TF_REATTACH_PROVIDERS='...'
+terraform apply
+```
+
+Terraform now talks to the provider you started, enabling you to debug the provider implementation.
+
+#### IntelliJ
+
+Add a Go Build run configuration:
+
+- Run kind: Package, pointing at the repo root (easiest is if you go to main.go `main` func, press the play icon and press "modify run configuration...")
+- Program arguments: `-debug`
+
+Start it with the debugger, set your breakpoints, and copy the `TF_REATTACH_PROVIDERS`
+value from the run output. Put it in the environment of the terminal (or run
+configuration) you use for `terraform apply`.
+
 ### Running Acceptance Tests
 
 > **Warning:** Only run acceptance tests against a dedicated cloudscale.ch project that contains no other resources. Tests may accidentially delete or modify existing resources in the project.
