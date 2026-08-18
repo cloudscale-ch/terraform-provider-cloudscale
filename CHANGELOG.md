@@ -1,3 +1,7 @@
+## 5.2.0
+* Add cloudscale_router resource and data source.
+* Add cloudscale_interface resource
+
 ## 5.1.1
 * Improve stability when managing load balancer resources by serializing concurrent API requests on the same load balancer.
 * Fix and document tag-based filtering in data sources to use subset matching: a resource matches if it has at least the specified tags.
