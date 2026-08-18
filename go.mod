@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/cloudscale-ch/cloudscale-go-sdk/v10 v10.0.0
-	github.com/hashicorp/terraform-plugin-log v0.10.0
+	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	golang.org/x/oauth2 v0.36.0
 )
