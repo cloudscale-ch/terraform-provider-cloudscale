@@ -26,7 +26,10 @@ var qcow2 = "qcow2"
 func init() {
 	resource.AddTestSweepers("cloudscale_custom_image", &resource.Sweeper{
 		Name: "cloudscale_custom_image",
-		F:    testSweepCustomImages,
+		// Servers can be created from custom images, which prevents the
+		// image from being deleted while the server still exists.
+		Dependencies: []string{"cloudscale_server"},
+		F:            testSweepCustomImages,
 	})
 
 }
