@@ -19,7 +19,7 @@ func init() {
 		Name: "cloudscale_floating_ip",
 		// Floating IPs may be attached to servers; ensure servers are gone
 		// first so the FIPs can be safely deleted.
-		Dependencies: []string{"cloudscale_server"},
+		Dependencies: []string{"cloudscale_server", "cloudscale_load_balancer"},
 		F:            testSweepFloatingIps,
 	})
 }
