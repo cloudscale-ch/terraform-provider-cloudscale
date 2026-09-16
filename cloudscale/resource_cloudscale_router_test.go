@@ -120,6 +120,64 @@ func TestAccCloudscaleRouter_import_basic(t *testing.T) {
 	})
 }
 
+func TestAccCloudscaleRouter_Update(t *testing.T) {
+	var router cloudscale.Router
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudscaleRouterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: routerConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleRouterExists("cloudscale_router.basic", &router),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "internet_gateway", "true"),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_router.basic", "href"),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_router.basic", "status"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "zone_slug", "rma1"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "tags.%", "0"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "interfaces.#", "0"),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_router.basic", "internet_gateway_addresses.0.address"),
+				),
+			},
+			{
+				Config: routerConfig_updated(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudscaleRouterExists("cloudscale_router.basic", &router),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "name", fmt.Sprintf("terraform-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "internet_gateway", "false"),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_router.basic", "href"),
+					resource.TestCheckResourceAttrSet(
+						"cloudscale_router.basic", "status"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "zone_slug", "rma1"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "tags.%", "0"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "interfaces.#", "0"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "internet_gateway_addresses.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudscaleRouterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudscale.Client)
 
@@ -152,6 +210,15 @@ resource "cloudscale_router" "basic" {
   name             = "terraform-%d"
   zone_slug        = "rma1"
   internet_gateway = true
+}`, rInt)
+}
+
+func routerConfig_updated(rInt int) string {
+	return fmt.Sprintf(`
+resource "cloudscale_router" "basic" {
+  name             = "terraform-%d"
+  zone_slug        = "rma1"
+  internet_gateway = false
 }`, rInt)
 }
 
