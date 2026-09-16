@@ -1,3 +1,6 @@
+## 5.3.0
+* Add update support to cloudscale_router resource.
+
 ## 5.2.0
 * Add cloudscale_router resource and data source.
 * Add cloudscale_interface resource

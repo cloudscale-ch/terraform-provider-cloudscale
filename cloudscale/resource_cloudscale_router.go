@@ -15,12 +15,14 @@ const routerHumanName = "router"
 var (
 	resourceCloudscaleRouterCreate = getCreateOperation(createRouter, nil)
 	resourceCloudscaleRouterRead   = getReadOperation(routerHumanName, getGenericResourceIdentifierFromSchema, readRouter, gatherRouterResourceData)
+	resourceCloudscaleRouterUpdate = getUpdateOperation(routerHumanName, getGenericResourceIdentifierFromSchema, updateRouter, resourceCloudscaleRouterRead, gatherRouterUpdateRequest, nil)
 	resourceCloudscaleRouterDelete = getDeleteOperation(routerHumanName, getGenericResourceIdentifierFromSchema, deleteRouter, nil)
 )
 
 func resourceCloudscaleRouter() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCloudscaleRouterCreate,
+		UpdateContext: resourceCloudscaleRouterUpdate,
 		ReadContext:   resourceCloudscaleRouterRead,
 		DeleteContext: resourceCloudscaleRouterDelete,
 
@@ -73,17 +75,12 @@ func gatherAddresses(in []cloudscale.IPAddress) []map[string]any {
 }
 
 func getRouterSchema(t SchemaType) map[string]*schema.Schema {
-	// FIXME: update not implemented yet, tags needs ForceNew until this is implemented
-	tagsSchema := TagsSchema
-	tagsSchema.ForceNew = true
-
 	m := map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
 			Required: t.isResource(),
 			Optional: t.isDataSource(),
 			Computed: t.isDataSource(),
-			ForceNew: true, // update not implemented yet
 		},
 		"zone_slug": {
 			Type:     schema.TypeString,
@@ -96,7 +93,7 @@ func getRouterSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"tags": &tagsSchema,
+		"tags": &TagsSchema,
 		"status": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -105,7 +102,6 @@ func getRouterSchema(t SchemaType) map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: t.isResource(),
 			Computed: t.isDataSource(),
-			ForceNew: true, // update not implemented yet
 		},
 		"internet_gateway_addresses": {
 			Type: schema.TypeList,
@@ -219,6 +215,32 @@ func gatherRouterResourceData(router *cloudscale.Router) ResourceDataRaw {
 func readRouter(ctx context.Context, rId GenericResourceIdentifier, meta any) (*cloudscale.Router, error) {
 	client := meta.(*cloudscale.Client)
 	return client.Routers.Get(ctx, rId.Id)
+}
+
+func updateRouter(ctx context.Context, rId GenericResourceIdentifier, meta any, updateRequest *cloudscale.RouterUpdateRequest) error {
+	client := meta.(*cloudscale.Client)
+	return client.Routers.Update(ctx, rId.Id, updateRequest)
+}
+
+func gatherRouterUpdateRequest(d *schema.ResourceData) []*cloudscale.RouterUpdateRequest {
+	requests := make([]*cloudscale.RouterUpdateRequest, 0)
+
+	for _, attribute := range []string{"name", "internet_gateway", "tags"} {
+		if d.HasChange(attribute) {
+			log.Printf("[INFO] Attribute %s changed", attribute)
+			opts := &cloudscale.RouterUpdateRequest{}
+			requests = append(requests, opts)
+
+			if attribute == "name" {
+				opts.Name = d.Get(attribute).(string)
+			} else if attribute == "internet_gateway" {
+				opts.InternetGateway = new(d.Get(attribute).(bool))
+			} else if attribute == "tags" {
+				opts.Tags = TagsFromState(d)
+			}
+		}
+	}
+	return requests
 }
 
 func deleteRouter(ctx context.Context, rId GenericResourceIdentifier, meta any) error {
