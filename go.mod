@@ -3,7 +3,7 @@ module github.com/terraform-providers/terraform-provider-cloudscale
 go 1.26.5
 
 require (
-	github.com/cloudscale-ch/cloudscale-go-sdk/v10 v10.0.0
+	github.com/cloudscale-ch/cloudscale-go-sdk/v10 v10.1.1
 	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	golang.org/x/oauth2 v0.37.0
@@ -59,5 +59,5 @@ require (
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.83.1 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
