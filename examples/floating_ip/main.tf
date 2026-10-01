@@ -1,9 +1,10 @@
-# Set the variable value in a *.tfvars file or use
-# the -var="cloudscale_api_token=..." CLI option.
+# Set variables in a *.tfvars file, pass them via the CLI with
+# -var="variable_name=value", or use TF_VAR_<variable_name>
+# environment variables.
 #
-# You can omit both the variable and provider if you
-# choose to set a shell environment variable called
-# `CLOUDSCALE_API_TOKEN` instead.
+# The cloudscale API token can alternatively be provided through
+# CLOUDSCALE_API_TOKEN. In this case, the cloudscale_api_token
+# variable and provider configuration can be omitted.
 
 variable "cloudscale_api_token" {}
 

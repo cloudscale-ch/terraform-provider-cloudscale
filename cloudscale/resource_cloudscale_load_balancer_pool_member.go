@@ -210,8 +210,7 @@ func gatherLoadBalancerPoolMemberUpdateRequest(d *schema.ResourceData) []*clouds
 			if attribute == "name" {
 				opts.Name = d.Get(attribute).(string)
 			} else if attribute == "enabled" {
-				v := d.Get(attribute).(bool)
-				opts.Enabled = &v
+				opts.Enabled = new(d.Get(attribute).(bool))
 			} else if attribute == "tags" {
 				opts.Tags = TagsFromState(d)
 			}
