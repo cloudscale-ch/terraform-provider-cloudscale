@@ -88,6 +88,20 @@ jobs:
     - name: Verify Terraform CLI version
       run: terraform version
 
+    # -----------------------------------------------------------------------
+    # Sweep leftovers from previous interrupted runs before starting tests.
+    # Without this, orphaned routers, servers, volumes, etc. can block
+    # resource creation or hit account limits.
+    # -----------------------------------------------------------------------
+    - name: Pre-test sweep
+      timeout-minutes: 15
+      env:
+        TF_ACC: "1"
+        CLOUDSCALE_API_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
+      if: env.CLOUDSCALE_API_TOKEN != null
+      run: |
+        go test ./... -v -sweep -timeout 10m
+
     - name: TF acceptance tests
       timeout-minutes: 120
       env:
@@ -103,3 +117,17 @@ jobs:
 
       run: |
         go test ./... -v $TESTARGS -timeout 120m
+
+    # -----------------------------------------------------------------------
+    # Sweep again after tests to clean up anything that leaked because a
+    # test was interrupted or its CheckDestroy did not catch a dependent
+    # resource.
+    # -----------------------------------------------------------------------
+    - name: Post-test sweep
+      if: always() && env.CLOUDSCALE_API_TOKEN != null
+      timeout-minutes: 15
+      env:
+        TF_ACC: "1"
+        CLOUDSCALE_API_TOKEN: ${{ secrets.CLOUDSCALE_TOKEN }}
+      run: |
+        go test ./... -v -sweep -timeout 10m

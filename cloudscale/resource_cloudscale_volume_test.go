@@ -19,7 +19,10 @@ import (
 func init() {
 	resource.AddTestSweepers("cloudscale_volume", &resource.Sweeper{
 		Name: "cloudscale_volume",
-		F:    testSweepVolumes,
+		// Volumes may be attached to servers or have snapshots, both of
+		// which block volume deletion.
+		Dependencies: []string{"cloudscale_server", "cloudscale_volume_snapshot"},
+		F:            testSweepVolumes,
 	})
 
 }

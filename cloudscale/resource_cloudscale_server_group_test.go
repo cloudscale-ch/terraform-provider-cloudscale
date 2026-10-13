@@ -19,7 +19,10 @@ import (
 func init() {
 	resource.AddTestSweepers("cloudscale_server_group", &resource.Sweeper{
 		Name: "cloudscale_server_group",
-		F:    testSweepServerGroups,
+		// Servers can be members of server groups, which prevents the
+		// group from being deleted.
+		Dependencies: []string{"cloudscale_server"},
+		F:            testSweepServerGroups,
 	})
 }
 

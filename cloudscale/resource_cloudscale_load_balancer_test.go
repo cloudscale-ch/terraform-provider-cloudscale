@@ -20,7 +20,10 @@ import (
 func init() {
 	resource.AddTestSweepers("cloudscale_load_balancer", &resource.Sweeper{
 		Name: "cloudscale_load_balancer",
-		F:    testSweepLoadBalancers,
+		// Load-balancer pool members reference servers. Deleting the LB
+		// first would orphan the member references, so sweep servers first.
+		Dependencies: []string{"cloudscale_server"},
+		F:            testSweepLoadBalancers,
 	})
 }
 
