@@ -41,6 +41,7 @@ func Provider(version string) *schema.Provider {
 			"cloudscale_subnet":                       resourceCloudscaleSubnet(),
 			"cloudscale_router":                       resourceCloudscaleRouter(),
 			"cloudscale_interface":                    resourceCloudscaleInterface(),
+			"cloudscale_router_extra_route":           resourceCloudscaleRouterExtraRoute(),
 			"cloudscale_floating_ip":                  resourceCloudscaleFloatingIP(),
 			"cloudscale_objects_user":                 resourceCloudscaleObjectsUser(),
 			"cloudscale_custom_image":                 resourceCloudscaleCustomImage(),
