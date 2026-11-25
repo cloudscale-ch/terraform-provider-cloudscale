@@ -41,6 +41,13 @@ func testSweepRouters(region string) error {
 		if strings.HasPrefix(r.Name, "terraform-") {
 			tflog.Info(context.Background(), "Destroying Router", map[string]any{"name": r.Name})
 
+			// Extra routes must be deleted before interfaces and the router.
+			for _, er := range r.ExtraRoutes {
+				if err := client.Routers.RemoveRouterExtraRoute(context.Background(), r.UUID, er.UUID); err != nil {
+					errs = append(errs, err)
+				}
+			}
+
 			// Interfaces must be deleted before the router, and they also hold the
 			// networks attached to them, so remove them first.
 			for _, iface := range r.Interfaces {
@@ -85,6 +92,8 @@ func TestAccCloudscaleRouter_Basic(t *testing.T) {
 						"cloudscale_router.basic", "tags.%", "0"),
 					resource.TestCheckResourceAttr(
 						"cloudscale_router.basic", "interfaces.#", "0"),
+					resource.TestCheckResourceAttr(
+						"cloudscale_router.basic", "extra_routes.#", "0"),
 					resource.TestCheckResourceAttrSet(
 						"cloudscale_router.basic", "internet_gateway_addresses.0.address"),
 				),
