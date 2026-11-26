@@ -38,6 +38,11 @@ In addition to the arguments listed above, the following computed attributes are
   * `addresses` - A list of [address objects](#address-object) describing the addresses assigned to the router on this network.
   * `type` - Whether this is a `public` or `private` interface.
   * `mac_address` - The MAC address of this interface.
+* `extra_routes` - A list of extra route objects describing the router's extra routes:
+  * `uuid` - The UUID of this extra route.
+  * `href` - The cloudscale.ch API URL of this extra route.
+  * `destination` - The destination prefix in CIDR notation.
+  * `next_hop` - The IP address of the next hop.
 
 ### Address object
 

@@ -149,6 +149,18 @@ func getRouterSchema(t SchemaType) map[string]*schema.Schema {
 			},
 			Computed: true,
 		},
+		"extra_routes": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"uuid":        {Type: schema.TypeString, Computed: true},
+					"href":        {Type: schema.TypeString, Computed: true},
+					"destination": {Type: schema.TypeString, Computed: true},
+					"next_hop":    {Type: schema.TypeString, Computed: true},
+				},
+			},
+			Computed: true,
+		},
 	}
 	if t.isDataSource() {
 		m["id"] = &schema.Schema{
@@ -209,6 +221,17 @@ func gatherRouterResourceData(router *cloudscale.Router) ResourceDataRaw {
 		RouterInterface[i] = g
 	}
 	m["interfaces"] = RouterInterface
+
+	extraRoutes := make([]map[string]any, len(router.ExtraRoutes))
+	for i, er := range router.ExtraRoutes {
+		extraRoutes[i] = map[string]any{
+			"uuid":        er.UUID,
+			"href":        er.HREF,
+			"destination": er.Destination,
+			"next_hop":    er.NextHop,
+		}
+	}
+	m["extra_routes"] = extraRoutes
 	return m
 }
 
